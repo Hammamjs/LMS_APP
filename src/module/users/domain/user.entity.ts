@@ -1,15 +1,15 @@
-import { UserRole } from './enums/UserRole.enum';
-import { ForbiddenError } from './errors/forbidden.error';
-import { InvalideEmailError } from './errors/invalide-email.error';
-import { InvalideUsernameError } from './errors/invalide-username.error';
+import { UserRole } from '../types/UserRole.type';
+import { ForbiddenError } from '../errors/forbidden.error';
+import { InvalideEmailError } from '../errors/invalide-email.error';
+import { InvalideUsernameError } from '../errors/invalide-username.error';
 
 type UserInformation = {
   id: string;
   email: string;
   username: string;
   createdAt: Date;
-  emailVerified: Date;
   role: UserRole;
+  emailVerified: Date | null;
   passwordHashed?: string;
   isVerified?: boolean;
   updatedAt?: Date;
@@ -22,9 +22,9 @@ export class User {
     public readonly email: string,
     public readonly username: string,
     public readonly createdAt: Date,
-    public readonly role: UserRole = UserRole.STUDENT,
+    public readonly role: UserRole,
+    public readonly emailVerified: Date | null,
     private passwordHashed?: string,
-    public readonly emailVerified?: Date,
     public readonly isVerified: boolean = false,
     public readonly updatedAt?: Date,
     public readonly phone?: string,
@@ -42,8 +42,8 @@ export class User {
       data.username,
       data.createdAt,
       data.role,
-      data.passwordHashed,
       data.emailVerified,
+      data.passwordHashed,
       data.isVerified ?? false,
       data.updatedAt,
       data.phone,
@@ -84,7 +84,7 @@ export class User {
   }
 
   public isAdmin() {
-    return this.role === UserRole.ADMIN;
+    return this.role === 'Admin';
   }
 
   private copy(props: Partial<UserInformation>): User {
