@@ -2,6 +2,7 @@ import { PrismaService } from 'src/core/database/prisma.service';
 import { IUserRepository } from '../domain/user.repository';
 import { User } from '../domain/user.entity';
 import { UserRole } from '../types/UserRole.type';
+import { Injectable } from '@nestjs/common';
 type RawUser = {
   id: string;
   email: string;
@@ -13,6 +14,8 @@ type RawUser = {
   emailVerified: Date | null;
   phone: string | null;
 };
+
+@Injectable()
 export class PrismaUserRepository implements IUserRepository {
   constructor(private readonly prisma: PrismaService) {}
   findOne: (id: string) => Promise<User | null>;

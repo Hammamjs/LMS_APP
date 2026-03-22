@@ -1,12 +1,11 @@
 import { Module, Provider } from '@nestjs/common';
-import { UserService } from './application/users.service';
-import { FindAllUsers } from './application/findAll-users.use-case';
-import { PrismaUserRepository } from './infrastructure/prisma.user.repository';
+import { PrismaUserRepository } from './infrastructure/prisma.user.repository.js';
+import { UserController } from './presentation/users.controller.js';
+import { FindAllUsers } from './application/findAll-users.use-case.js';
 
 const useCases: Provider[] = [FindAllUsers];
 
 @Module({
-  exports: [UserService],
   providers: [
     ...useCases,
     {
@@ -14,5 +13,7 @@ const useCases: Provider[] = [FindAllUsers];
       provide: 'IUserRepository',
     },
   ],
+  controllers: [UserController],
+  exports: [...useCases],
 })
-export class User {}
+export class UserModules {}
