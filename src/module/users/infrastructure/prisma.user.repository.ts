@@ -6,20 +6,20 @@ import { Users as PrismaUser } from '@prisma/client';
 import { UserRole } from '../domain/interface/role.interface';
 import { Result } from '@/core/common/result.pattern';
 import { handleError } from '@/core/common/handleError';
+import { Errors, failure } from '@/core/common/err.utils';
 
 @Injectable()
 export class PrismaUserRepository implements IUserRepository {
   constructor(private readonly prisma: PrismaService) {}
 
-  async findOne(id: string): Promise<Result<User | null>> {
+  async findOne(id: string): Promise<Result<User>> {
     try {
-      if (!id)
-        return {
-          ok: false,
-          error: { type: 'VALIDATION', message: 'User id not provided' },
-        };
+      if (!id) return failure(Errors.validation('User id not provided'));
       const user = await this.prisma.users.findUnique({ where: { id } });
-      return { ok: true, value: user ? this.toEntity(user) : null };
+
+      if (!user) return failure(Errors.notFound('User not exists'));
+
+      return { ok: true, value: this.toEntity(user) };
     } catch (err: unknown) {
       return {
         ok: false,
@@ -28,7 +28,7 @@ export class PrismaUserRepository implements IUserRepository {
     }
   }
 
-  async delete(id: string): Promise<Result<User | null>> {
+  async delete(id: string): Promise<Result<User>> {
     try {
       if (!id)
         return {
@@ -37,9 +37,11 @@ export class PrismaUserRepository implements IUserRepository {
         };
       const user = await this.prisma.users.delete({ where: { id } });
 
+      if (!user) return failure(Errors.notFound('User not found'));
+
       return {
         ok: true,
-        value: user ? this.toEntity(user) : null,
+        value: this.toEntity(user),
       };
     } catch (err: unknown) {
       return {
@@ -56,12 +58,29 @@ export class PrismaUserRepository implements IUserRepository {
     try {
       if (user.id)
         data = await this.prisma.users.update({
-          data: { ...user },
+          data: {
+            email: user.email,
+            username: user.username,
+            role: user.role,
+            password: user.getHashedPassword(),
+            phone: user.phone,
+            isVerified: user.isVerified,
+            emailVerified: user.emailVerified,
+            refreshToken: user.getRefreshToken(),
+          },
           where: { id: user.id },
         });
       else
         data = await this.prisma.users.create({
-          data: { email: user.email, username: user.username, role: user.role },
+          data: {
+            email: user.email,
+            username: user.username,
+            role: user.role,
+            password: user.getHashedPassword(),
+            phone: user.phone,
+            isVerified: user.isVerified,
+            emailVerified: user.emailVerified,
+          },
         });
 
       return { ok: true, value: this.toEntity(data) };
@@ -86,11 +105,13 @@ export class PrismaUserRepository implements IUserRepository {
     }
   }
 
-  async findByEmail(email: string): Promise<Result<User | null>> {
+  async findByEmail(email: string): Promise<Result<User>> {
     try {
       const user = await this.prisma.users.findUnique({ where: { email } });
 
-      return { ok: true, value: user ? this.toEntity(user) : null };
+      if (!user) return failure(Errors.notFound('User not found'));
+
+      return { ok: true, value: this.toEntity(user) };
     } catch (err: unknown) {
       return {
         ok: false,
@@ -111,6 +132,7 @@ export class PrismaUserRepository implements IUserRepository {
       emailVerified: rawUser.emailVerified,
       createdAt: rawUser.createdAt,
       updatedAt: rawUser.updatedAt,
+      refreshToken: rawUser.refreshToken,
     });
   }
 }

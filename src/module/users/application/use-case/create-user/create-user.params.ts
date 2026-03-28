@@ -6,5 +6,6 @@ export class CreateUserParams {
     public readonly username: string,
     public readonly role: UserRole | null,
     public readonly phone: string | null,
+    public readonly password: string,
   ) {}
 }
