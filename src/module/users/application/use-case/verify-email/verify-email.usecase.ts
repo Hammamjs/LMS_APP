@@ -2,6 +2,7 @@ import { IUseCase } from '@/core/common/use-case-interface';
 import { VerifyEmailParams } from './verify-email.params';
 import { Result } from '@/core/common/result.pattern';
 import { IUserRepository } from '@/module/users/domain/repositories/user.repository';
+import { User } from '@/module/users/domain/entity/user.entity';
 
 export class VerifyEmail implements IUseCase<
   VerifyEmailParams,
@@ -16,5 +17,12 @@ export class VerifyEmail implements IUseCase<
         ok: false,
         error: { type: 'NOT_FOUND', message: 'User not exists' },
       };
+
+    const verifyUser =
+      userResult.ok && userResult.value ? User.create(userResult.value) : null;
+
+      const generatePassword = 
+
+    const activateUser = await this.userRepo.save();
   }
 }
