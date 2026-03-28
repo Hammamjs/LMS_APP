@@ -28,4 +28,4 @@ const useCases: Provider[] = [
   controllers: [UserController],
   exports: [...useCases],
 })
-export class UserModules {}
+export class UserModule {}
