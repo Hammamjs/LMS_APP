@@ -2,7 +2,7 @@ import { JwtService, JwtSignOptions } from '@nestjs/jwt';
 import {
   IJWTTokenService,
   TokenOptions,
-} from '../../domain/repository/token.service';
+} from '../../domain/service/token.service';
 
 export class TokenService implements IJWTTokenService {
   constructor(private readonly jwtService: JwtService) {}
