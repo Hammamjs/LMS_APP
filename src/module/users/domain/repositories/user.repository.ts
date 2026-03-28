@@ -1,6 +1,6 @@
 import { User } from '../entity/user.entity';
 import { TUser } from '../entity/user.types';
-import { Result } from '@/core/common/result.pattern';
+import { Result } from '@core/common/result.pattern';
 
 export interface IUserRepository {
   findAll: () => Promise<Result<User[]>>;
