@@ -12,7 +12,7 @@ import { FacadeUsers } from '../application/facade.users';
 import { CreatUserDto } from './dto/users/create-user.dto';
 import { UpdateUserDto } from './dto/users/update-user.dto';
 import { UserResponse } from './dto/users/user.response';
-import { DomainException } from '../application/filters/domain.exception';
+import { DomainException } from '../../../core/common/filters/domain.exception';
 
 @Controller('users')
 export class UserController {
