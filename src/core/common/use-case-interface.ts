@@ -1,3 +1,3 @@
-export interface IUseCase<TParams, TResult> {
-  execute: (params: TParams) => TResult;
+export interface IUseCase<TRequest, TResponse> {
+  execute: (params: TRequest) => TResponse;
 }
