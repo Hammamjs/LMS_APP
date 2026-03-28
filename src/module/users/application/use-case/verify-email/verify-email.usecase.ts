@@ -6,23 +6,31 @@ import { User } from '@/module/users/domain/entity/user.entity';
 
 export class VerifyEmail implements IUseCase<
   VerifyEmailParams,
-  Promise<Result<{ message: string }>>
+  Promise<Result<string>>
 > {
   constructor(public readonly userRepo: IUserRepository) {}
-  async execute(dto: VerifyEmailParams): Promise<Result<{ message: string }>> {
+  async execute(dto: VerifyEmailParams): Promise<Result<string>> {
     const userResult = await this.userRepo.findByEmail(dto.email);
 
-    if (!userResult.ok)
+    if (!userResult.ok || !userResult.value)
       return {
         ok: false,
         error: { type: 'NOT_FOUND', message: 'User not exists' },
       };
 
-    const verifyUser =
-      userResult.ok && userResult.value ? User.create(userResult.value) : null;
+    const verifyUser = User.create(userResult.value);
 
-      const generatePassword = 
+    // at this step we need to hashing the password before
+    // save it to data base or to the entity
 
-    const activateUser = await this.userRepo.save();
+    // save hashed password
+    verifyUser?.withPassword(dto.password);
+
+    await this.userRepo.save(verifyUser);
+
+    return {
+      ok: true,
+      value: 'Email verified successfully',
+    };
   }
 }
