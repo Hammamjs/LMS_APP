@@ -1,0 +1,39 @@
+# 1. BUILD STAGE
+FROM node:22-alpine AS builder
+RUN apk add --no-cache libc6-compat
+WORKDIR /app
+
+# Enable pnpm
+ENV PNPM_HOME="/pnpm"
+ENV PATH="$PNPM_HOME:$PATH"
+RUN corepack enable && corepack prepare pnpm@latest --activate
+
+# Cache dependencies
+COPY package.json pnpm-lock.yaml ./
+RUN pnpm install --frozen-lockfile
+
+# Copy source and generate artifacts
+COPY . .
+RUN npx prisma generate
+RUN pnpm build
+
+# 2. PRODUCTION STAGE
+FROM node:22-alpine
+WORKDIR /app
+
+# Enable pnpm for production-only install
+RUN corepack enable && corepack prepare pnpm@latest --activate
+
+# Copy only the compiled code and lockfiles
+COPY --from=builder /app/package.json /app/pnpm-lock.yaml ./
+COPY --from=builder /app/dist ./dist
+
+# Copy generated prisma client (Crucial for DB communication)
+COPY --from=builder /app/node_modules/.prisma ./node_modules/.prisma
+COPY --from=builder /app/node_modules/@prisma ./node_modules/@prisma
+
+# Install ONLY production dependencies to save space
+RUN pnpm install --prod --frozen-lockfile
+
+EXPOSE 3000
+CMD ["node", "dist/main"]
