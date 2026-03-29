@@ -2,6 +2,7 @@ import { Test, TestingModule } from '@nestjs/testing';
 import { CreateUserUseCase } from './create-user.usecase';
 import { UserRole } from '@/module/users/domain/interface/role.interface';
 import { failure } from '@/core/common/err.utils';
+import { IUSER_REPOSITORY } from '@/module/users/domain/constants/injection.token';
 
 describe('Create user test', () => {
   let useCase: CreateUserUseCase;
@@ -9,6 +10,14 @@ describe('Create user test', () => {
     create: jest.Mock<any, any, any>;
     findByEmail: jest.Mock;
     save: jest.Mock;
+  };
+
+  const newUser = {
+    username: 'example',
+    email: 'exampleone@user.com',
+    phone: '7488399939',
+    role: 'Student' as UserRole,
+    password: 'pass123',
   };
 
   beforeEach(async () => {
@@ -20,7 +29,7 @@ describe('Create user test', () => {
     const module: TestingModule = await Test.createTestingModule({
       providers: [
         CreateUserUseCase,
-        { provide: 'IUserRepository', useValue: mockRepository },
+        { provide: IUSER_REPOSITORY, useValue: mockRepository },
       ],
     }).compile();
     useCase = module.get<CreateUserUseCase>(CreateUserUseCase);
@@ -28,13 +37,6 @@ describe('Create user test', () => {
 
   describe('Create new user', () => {
     it('should return new user after processing the user data', async () => {
-      const newUser = {
-        username: 'example',
-        email: 'exampleone@user.com',
-        phone: '7488399939',
-        role: 'Student' as UserRole,
-      };
-
       mockRepository.findByEmail.mockResolvedValue({ ok: true, value: null });
       mockRepository.save.mockResolvedValue({ ok: true, value: newUser });
       const result = await useCase.execute(newUser);
@@ -45,17 +47,11 @@ describe('Create user test', () => {
   });
 
   it('should throw error if email not provided', async () => {
-    const newUser = {
-      username: 'example',
-      phone: '7488399939',
-      role: 'Student' as UserRole,
-    };
-
     mockRepository.findByEmail.mockResolvedValue(
       failure({ type: 'NOT_FOUND', message: 'Email not provided' }),
     );
 
-    const result = await useCase.execute(newUser as any);
+    const result = await useCase.execute(newUser);
 
     if (!result.ok)
       expect(result.error).toEqual({
@@ -65,13 +61,6 @@ describe('Create user test', () => {
   });
 
   it('should throw error when repository.save fails', async () => {
-    const newUser = {
-      username: 'example',
-      email: 'exampleone@user.com',
-      phone: '7488399939',
-      role: 'Student' as UserRole,
-    };
-
     mockRepository.findByEmail.mockResolvedValue({ ok: true, value: null });
     mockRepository.save.mockResolvedValue(
       failure({

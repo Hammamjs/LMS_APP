@@ -1,5 +1,5 @@
 import { PrismaService } from 'src/core/database/prisma.service';
-import { IUserRepository } from '../domain/repositories/user.repository';
+import { IUserRepository } from '../domain/repositories/user.repository.interface';
 import { User } from '../domain/entity/user.entity';
 import { Injectable } from '@nestjs/common';
 import { Users as PrismaUser } from '@prisma/client';
@@ -28,7 +28,7 @@ export class PrismaUserRepository implements IUserRepository {
     }
   }
 
-  async delete(id: string): Promise<Result<User>> {
+  async delete(id: string): Promise<Result<void>> {
     try {
       if (!id)
         return {
@@ -41,7 +41,7 @@ export class PrismaUserRepository implements IUserRepository {
 
       return {
         ok: true,
-        value: this.toEntity(user),
+        value: undefined,
       };
     } catch (err: unknown) {
       return {
@@ -56,31 +56,14 @@ export class PrismaUserRepository implements IUserRepository {
     let data: PrismaUser;
 
     try {
-      if (user.id)
+      if (!user.isNew)
         data = await this.prisma.users.update({
-          data: {
-            email: user.email,
-            username: user.username,
-            role: user.role,
-            password: user.getHashedPassword(),
-            phone: user.phone,
-            isVerified: user.isVerified,
-            emailVerified: user.emailVerified,
-            refreshToken: user.getRefreshToken(),
-          },
-          where: { id: user.id },
+          data: user.toPersistence(),
+          where: { id: user.getId() },
         });
       else
         data = await this.prisma.users.create({
-          data: {
-            email: user.email,
-            username: user.username,
-            role: user.role,
-            password: user.getHashedPassword(),
-            phone: user.phone,
-            isVerified: user.isVerified,
-            emailVerified: user.emailVerified,
-          },
+          data: user.toPersistence(),
         });
 
       return { ok: true, value: this.toEntity(data) };

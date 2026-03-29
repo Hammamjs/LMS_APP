@@ -1,6 +1,7 @@
 import { Test, TestingModule } from '@nestjs/testing';
 import { DeleteUserUseCase } from './delete-user.usecase';
 import { failure } from '@/core/common/err.utils';
+import { IUSER_REPOSITORY } from '@/module/users/domain/constants/injection.token';
 
 describe('Delet user test cases', () => {
   let useCase: DeleteUserUseCase;
@@ -18,7 +19,7 @@ describe('Delet user test cases', () => {
       providers: [
         DeleteUserUseCase,
         {
-          provide: 'IUserRepository',
+          provide: IUSER_REPOSITORY,
           useValue: mockRepository,
         },
       ],
@@ -40,7 +41,7 @@ describe('Delet user test cases', () => {
     const result = await useCase.execute('1');
 
     expect(result.ok).toBe(true);
-    if (result.ok) expect(result.value).toBe(null);
+    if (!result.ok) expect(result.error.message).toBe('User not exists');
   });
 
   it('should called with id params', async () => {

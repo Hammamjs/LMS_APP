@@ -13,15 +13,15 @@ export class UserResponse {
   public phone: string | null;
 
   constructor(user: User) {
-    this.id = user.id!;
-    this.username = user.username;
-    this.email = user.email;
-    this.isVerified = user.isVerified;
-    this.emailVerified = user.emailVerified;
-    this.createdAt = user.createdAt;
-    this.updatedAt = user.updatedAt;
-    this.role = user.role;
-    this.phone = user.phone;
+    this.id = user.getId();
+    this.username = user.getUsername();
+    this.email = user.getEmail();
+    this.isVerified = user.getIsVerified();
+    this.emailVerified = user.getEmailVerified();
+    this.createdAt = user.getCreatedAt();
+    this.updatedAt = user.getUpdatedAt();
+    this.role = user.getRole();
+    this.phone = user.getPhone();
   }
 
   public static from(user: User) {

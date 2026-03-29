@@ -1,18 +1,18 @@
 import { IUseCase } from '@/core/common/use-case-interface';
-import { User } from '@/module/users/domain/entity/user.entity';
-import type { IUserRepository } from '@/module/users/domain/repositories/user.repository';
+import type { IUserRepository } from '@/module/users/domain/repositories/user.repository.interface';
 import { Inject } from '@nestjs/common';
 import { Result } from '@/core/common/result.pattern';
+import { IUSER_REPOSITORY } from '@/module/users/domain/constants/injection.token';
 
 export class DeleteUserUseCase implements IUseCase<
   string,
-  Promise<Result<User | null>>
+  Promise<Result<void>>
 > {
   constructor(
-    @Inject('IUserRepository') private readonly userRepo: IUserRepository,
+    @Inject(IUSER_REPOSITORY) private readonly userRepo: IUserRepository,
   ) {}
 
-  async execute(id: string): Promise<Result<User | null>> {
+  async execute(id: string): Promise<Result<void>> {
     if (!id)
       return {
         ok: false,
@@ -20,7 +20,12 @@ export class DeleteUserUseCase implements IUseCase<
       };
 
     const userResult = await this.userRepo.delete(id);
+
     if (!userResult.ok) return userResult;
-    return userResult;
+
+    return {
+      ok: true,
+      value: undefined,
+    };
   }
 }

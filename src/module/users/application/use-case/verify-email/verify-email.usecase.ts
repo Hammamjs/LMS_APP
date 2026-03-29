@@ -1,14 +1,18 @@
 import { IUseCase } from '@/core/common/use-case-interface';
 import { VerifyEmailParams } from './verify-email.params';
 import { Result } from '@/core/common/result.pattern';
-import { IUserRepository } from '@/module/users/domain/repositories/user.repository';
-import { User } from '@/module/users/domain/entity/user.entity';
-
+import type { IUserRepository } from '@/module/users/domain/repositories/user.repository.interface';
+import { Inject, Injectable } from '@nestjs/common';
+import { IUSER_REPOSITORY } from '@/module/users/domain/constants/injection.token';
+import { failure } from '@/core/common/err.utils';
+@Injectable()
 export class VerifyEmail implements IUseCase<
   VerifyEmailParams,
   Promise<Result<string>>
 > {
-  constructor(public readonly userRepo: IUserRepository) {}
+  constructor(
+    @Inject(IUSER_REPOSITORY) public readonly userRepo: IUserRepository,
+  ) {}
   async execute(dto: VerifyEmailParams): Promise<Result<string>> {
     const userResult = await this.userRepo.findByEmail(dto.email);
 
@@ -18,15 +22,16 @@ export class VerifyEmail implements IUseCase<
         error: { type: 'NOT_FOUND', message: 'User not exists' },
       };
 
-    const verifyUser = User.create(userResult.value);
+    const user = userResult.value;
 
-    // at this step we need to hashing the password before
-    // save it to data base or to the entity
+    if (user.getIsVerified())
+      return { ok: true, value: 'Email already verified' };
 
-    // save hashed password
-    verifyUser?.withPassword(dto.password);
+    const updatedUser = user.verify();
 
-    await this.userRepo.save(verifyUser);
+    const saveResult = await this.userRepo.save(updatedUser);
+
+    if (!saveResult.ok) return failure(saveResult.error);
 
     return {
       ok: true,

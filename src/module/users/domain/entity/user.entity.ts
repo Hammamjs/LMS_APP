@@ -1,163 +1,167 @@
-import { IBcryptService } from '@/module/auth/domain/service/bcrypt.service';
 import { ForbiddenError } from '../../errors/forbidden.error';
-import { InvalideEmailError } from '../../errors/invalide-email.error';
-import { InvalideUsernameError } from '../../errors/invalide-username.error';
+import { InvalidEmailError } from '../../errors/invalid-email.error';
+import { InvalidUsernameError } from '../../errors/invalid-username.error';
 import { UserRole } from './../interface/role.interface';
-
-type CreateUserProps = {
-  id?: string;
-  email: string;
-  username: string;
-  password: string;
-  role: UserRole | null;
-  phone: string | null;
-};
-
-type RehydrateUserProps = {
-  id: string;
-  email: string;
-  username: string;
-  role: UserRole;
-  password: string;
-  phone: string | null;
-  isVerified: boolean;
-  emailVerified: Date | null;
-  createdAt: Date;
-  updatedAt: Date;
-  refreshToken: string | null;
-};
-
-type UserProps = {
-  email: string;
-  username: string;
-  role: UserRole;
-  phone: string | null;
-  isVerified: boolean;
-  emailVerified: Date | null;
-  password: string;
-  refreshToken?: string;
-};
+import {
+  CreateUserProps,
+  RehydrateUserProps,
+  UserProps,
+  UserState,
+} from './user.types';
 
 export class User {
   private constructor(
-    public readonly id: string | undefined,
-    public readonly email: string,
-    public readonly username: string,
-    public readonly role: UserRole,
-    private readonly password: string,
-    public readonly phone: string | null,
-    public readonly isVerified: boolean = false,
-    public readonly emailVerified: Date | null = null,
-    public readonly createdAt: Date = new Date(),
-    public readonly updatedAt: Date = new Date(),
-    private readonly refreshToken: string | null = null,
+    private readonly props: UserState,
+    public readonly isNew: boolean,
   ) {}
 
   public static create(data: CreateUserProps): User {
-    if (!data.email || !data.email.includes('@'))
-      throw new InvalideEmailError();
-
-    if (!data.username.trim()) throw new InvalideUsernameError();
+    if (!data.email.includes('@')) throw new InvalidEmailError();
 
     return new User(
-      data.id,
-      data.email,
-      data.username,
-      data.role ?? UserRole.Student,
-      data.password,
-      data.phone,
+      {
+        ...data,
+        id: data.id ?? crypto.randomUUID(),
+        isVerified: false,
+        emailVerified: null,
+        createdAt: new Date(),
+        updatedAt: new Date(),
+        refreshToken: null,
+        role: data.role as UserRole,
+      },
+      true, // for new users
     );
   }
 
-  // ✅ For DB → Domain
-  public static rehydrate(props: RehydrateUserProps): User {
-    return new User(
-      props.id,
-      props.email,
-      props.username,
-      props.role,
-      props.password,
-      props.phone,
-      props.isVerified,
-      props.emailVerified,
-      props.createdAt,
-      props.updatedAt,
-      props.refreshToken,
-    );
+  public getId(): string {
+    return this.props.id;
   }
 
-  public async comparePassword(
-    plain: string,
-    hashService: IBcryptService,
-  ): Promise<boolean> {
-    const hash = this.getHashedPassword();
-
-    if (!hash) return false;
-
-    return hashService.compare(plain, hash);
+  public getEmail(): string {
+    return this.props.email;
   }
 
-  public withEmail(newEmail: string): User {
-    return this.copy({ email: newEmail });
+  public getUsername(): string {
+    return this.props.username;
+  }
+
+  public getPhone(): string | null {
+    return this.props.phone;
+  }
+
+  public getRole(): UserRole {
+    return this.props.role;
+  }
+
+  public getIsVerified(): boolean {
+    return this.props.isVerified;
+  }
+
+  public getHashedPassword(): string {
+    return this.props.password;
+  }
+
+  public getRefreshToken(): string | null {
+    return this.props.refreshToken || null;
+  }
+
+  public getEmailVerified(): Date | null {
+    return this.props.emailVerified;
+  }
+
+  public getCreatedAt(): Date {
+    return this.props.createdAt;
+  }
+
+  public getUpdatedAt(): Date {
+    return this.props.updatedAt;
+  }
+
+  public withUsername(newUsername: string): User {
+    if (!newUsername || this.IsSame(this.props.username, newUsername))
+      return this;
+
+    if (!newUsername.trim()) throw new InvalidUsernameError();
+
+    return this.copy({ username: newUsername.trim() });
   }
 
   public withPassword(newHashedPassword: string): User {
     return this.copy({ password: newHashedPassword });
   }
 
-  public withUsername(newUsername: string) {
-    if (!newUsername.trim()) throw new InvalideUsernameError();
+  public withEmail(newEmail: string): User {
+    return this.copy({ email: newEmail });
+  }
 
-    return this.copy({ username: newUsername });
+  public withPhone(newPhone?: string): User {
+    if (!newPhone || this.IsSame(this.props.phone ?? '', newPhone)) return this;
+    return this.copy({ phone: newPhone });
   }
 
   public verify() {
-    if (this.isVerified) return this;
-    return this.copy({ isVerified: true, emailVerified: new Date() });
+    if (this.props.isVerified) return this;
+    return this.copy({
+      isVerified: true,
+      emailVerified: this.props.emailVerified ?? new Date(),
+    });
+  }
+
+  public updateRefreshToken(newIssuedToken: string) {
+    return this.copy({ refreshToken: newIssuedToken });
   }
 
   public changeRole(newRole: UserRole, performedBy: User) {
     if (!performedBy.isAdmin())
       throw new ForbiddenError('Only Admins can change roles');
 
-    if (this.id === performedBy.id)
+    if (this.props.id === performedBy.props.id)
       throw new ForbiddenError('Admin cannot change their own role');
 
     return this.copy({ role: newRole });
   }
 
+  // ✅ For DB → Domain
+  public static rehydrate(props: RehydrateUserProps): User {
+    return new User(props, false);
+  }
+
   public hasRole(...roles: UserRole[]) {
-    return roles.includes(this.role);
+    return roles.includes(this.props.role);
   }
 
   public isAdmin() {
-    return this.role === UserRole.Admin;
+    return this.props.role === UserRole.Admin;
   }
 
-  public getHashedPassword(): string {
-    return this.password;
+  public toPersistence() {
+    return {
+      id: this.props.id,
+      email: this.props.email,
+      username: this.props.username,
+      phone: this.props.phone,
+      isVerified: this.props.isVerified,
+      emailVerified: this.props.emailVerified,
+      password: this.getHashedPassword(),
+      role: this.props.role,
+      refreshToken: this.props.refreshToken,
+      createdAt: this.props.createdAt,
+      updatedAt: this.props.updatedAt,
+    };
   }
 
-  public updateRefreshToke(newIssuedToken: string) {
-    return this.copy({ refreshToken: newIssuedToken });
-  }
-
-  public getRefreshToken(): string | null {
-    return this.refreshToken || null;
-  }
-
-  private copy(props: Partial<UserProps>): User {
+  private copy(updates: Partial<UserProps>): User {
     return new User(
-      this.id,
-      props.email ?? this.email,
-      props.username ?? this.username,
-      props.role ?? this.role,
-      props.password ?? this.password,
-      props.phone ?? this.phone,
-      props.isVerified ?? this.isVerified,
-      props.emailVerified ?? this.emailVerified,
-      this.createdAt,
-      new Date(), // updatedAt
+      {
+        ...this.props,
+        ...updates,
+        updatedAt: new Date(),
+      },
+      false,
     );
+  }
+
+  private IsSame(oldValue: string, newValue: string): boolean {
+    return oldValue.trim() === newValue.trim();
   }
 }

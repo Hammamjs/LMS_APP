@@ -1,10 +1,11 @@
 import { IUseCase } from '@/core/common/use-case-interface';
 import { User } from '../../../domain/entity/user.entity';
 import { UpdateUserParams } from './update-user.params';
-import type { IUserRepository } from '@/module/users/domain/repositories/user.repository';
+import type { IUserRepository } from '@/module/users/domain/repositories/user.repository.interface';
 import { Inject, Injectable } from '@nestjs/common';
 import { Result } from '@/core/common/result.pattern';
 import { Errors, failure } from '@/core/common/err.utils';
+import { IUSER_REPOSITORY } from '@/module/users/domain/constants/injection.token';
 
 @Injectable()
 export class UpdateUserUseCase implements IUseCase<
@@ -12,10 +13,10 @@ export class UpdateUserUseCase implements IUseCase<
   Promise<Result<User | null>>
 > {
   constructor(
-    @Inject('IUserRepository') private readonly userRepo: IUserRepository,
+    @Inject(IUSER_REPOSITORY) private readonly userRepo: IUserRepository,
   ) {}
-  async execute(updateUser: UpdateUserParams): Promise<Result<User | null>> {
-    if (!updateUser.id)
+  async execute(dto: UpdateUserParams): Promise<Result<User | null>> {
+    if (!dto.id)
       return {
         ok: false,
         error: {
@@ -24,13 +25,18 @@ export class UpdateUserUseCase implements IUseCase<
         },
       };
 
-    const userResult = await this.userRepo.findOne(updateUser.id);
+    const userResult = await this.userRepo.findOne(dto.id);
 
     if (!userResult.ok) return userResult;
 
     if (!userResult.value) return failure(Errors.notFound('User not found'));
 
-    const updatedUser = User.create({ ...updateUser, ...userResult.value });
+    const user = userResult.value;
+
+    const updatedUser = user
+      .withUsername(dto.username ?? user.getUsername())
+      .withEmail(dto.email ?? user.getEmail())
+      .withPhone(dto.phone);
 
     const savedUser = await this.userRepo.save(updatedUser);
 
