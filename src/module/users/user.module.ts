@@ -1,12 +1,13 @@
 import { Module, Provider } from '@nestjs/common';
-import { PrismaUserRepository } from './infrastructure/prisma.user.repository.js';
-import { UserController } from './presentation/users.controller.js';
-import { FacadeUsers } from './application/facade.users.js';
-import { CreateUserUseCase } from './application/use-case/create-user/create-user.usecase.js';
-import { UpdateUserUseCase } from './application/use-case/update-user/update-user.usecase.js';
-import { FindAllUsersUseCase } from './application/use-case/find-all-users/find-all-users.use-case.js';
-import { FindUserUseCase } from './application/use-case/find-user/find-user.usecase.js';
-import { DeleteUserUseCase } from './application/use-case/delete-user/delete-user.usecase.js';
+import { PrismaUserRepository } from './infrastructure/prisma.user.repository';
+import { UserController } from './presentation/users.controller';
+import { FacadeUsers } from './application/facade.users';
+import { CreateUserUseCase } from './application/use-case/create-user/create-user.usecase';
+import { UpdateUserUseCase } from './application/use-case/update-user/update-user.usecase';
+import { FindAllUsersUseCase } from './application/use-case/find-all-users/find-all-users.use-case';
+import { FindUserUseCase } from './application/use-case/find-user/find-user.usecase';
+import { DeleteUserUseCase } from './application/use-case/delete-user/delete-user.usecase';
+import { IUSER_REPOSITORY } from './domain/constants/injection.token';
 
 const useCases: Provider[] = [
   FacadeUsers,
@@ -17,15 +18,17 @@ const useCases: Provider[] = [
   DeleteUserUseCase,
 ];
 
+const infrastructure: Provider[] = [
+  PrismaUserRepository,
+  {
+    useExisting: PrismaUserRepository,
+    provide: IUSER_REPOSITORY,
+  },
+];
+
 @Module({
-  providers: [
-    ...useCases,
-    {
-      useClass: PrismaUserRepository,
-      provide: 'IUserRepository',
-    },
-  ],
+  providers: [...useCases, ...infrastructure],
   controllers: [UserController],
-  exports: [...useCases],
+  exports: [...useCases, IUSER_REPOSITORY],
 })
 export class UserModule {}

@@ -2,6 +2,8 @@ import { Test, TestingModule } from '@nestjs/testing';
 import { UpdateUserUseCase } from './update-user.usecase';
 import { UserRole } from '@/module/users/domain/interface/role.interface';
 import { failure } from '@/core/common/err.utils';
+import { User } from '@/module/users/domain/entity/user.entity';
+import { IUSER_REPOSITORY } from '@/module/users/domain/constants/injection.token';
 
 describe('Update user test cases', () => {
   let useCase: UpdateUserUseCase;
@@ -24,7 +26,7 @@ describe('Update user test cases', () => {
       providers: [
         UpdateUserUseCase,
         {
-          provide: 'IUserRepository',
+          provide: IUSER_REPOSITORY,
           useValue: mockRepository,
         },
       ],
@@ -34,20 +36,41 @@ describe('Update user test cases', () => {
   });
 
   it('should return updated user', async () => {
-    const updatedUser = {
+    const updateDto = {
       ...user,
       username: 'newuser',
       email: 'newuser@email.com',
     };
 
-    mockRepository.findOne.mockResolvedValue({ ok: true, value: user });
+    const existingUser = User.rehydrate({
+      id: '123',
+      username: 'olduser',
+      email: 'old@email.com',
+      password: 'hashedpassword',
+      phone: null,
+      isVerified: true,
+      emailVerified: new Date(),
+      createdAt: new Date(),
+      updatedAt: new Date(),
+      role: UserRole.Student,
+      refreshToken: null,
+    });
 
-    mockRepository.save.mockResolvedValue({ ok: true, value: updatedUser });
+    mockRepository.findOne.mockResolvedValue({ ok: true, value: existingUser });
 
-    const result = await useCase.execute(updatedUser);
+    const expectedUser = existingUser
+      .withUsername(updateDto.username)
+      .withEmail(updateDto.email);
+
+    mockRepository.save.mockResolvedValue({ ok: true, value: expectedUser });
+
+    const result = await useCase.execute(updateDto);
 
     expect(result.ok).toBeTruthy();
-    if (result.ok) expect(result.value).toEqual(updatedUser);
+    if (result.ok) {
+      expect(result.value?.getUsername()).toBe(updateDto.username);
+      expect(result.value?.getEmail()).toBe(updateDto.email);
+    }
     expect(mockRepository.save).toHaveBeenCalledTimes(1);
   });
 

@@ -1,3 +1,4 @@
+import { IUSER_REPOSITORY } from '@/module/users/domain/constants/injection.token';
 import { FindAllUsersUseCase } from './find-all-users.use-case';
 import { Test, TestingModule } from '@nestjs/testing';
 
@@ -14,7 +15,7 @@ describe('Find All users use case', () => {
       providers: [
         FindAllUsersUseCase,
         {
-          provide: 'IUserRepository',
+          provide: IUSER_REPOSITORY,
           useValue: mockRepository,
         },
       ],
