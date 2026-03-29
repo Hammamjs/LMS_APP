@@ -3,11 +3,12 @@ import { SignInUseCase } from './sign-in.usecase';
 import { UserRole } from '@/module/users/domain/interface/role.interface';
 import { Test, TestingModule } from '@nestjs/testing';
 import { ConfigService } from '@nestjs/config';
+import { IUSER_REPOSITORY } from '@/module/users/domain/constants/injection.token';
 import {
   IBCRYPT_SERVICE,
   IJWTTOKEN_SERVICE,
-  IUSER_REPOSITORY,
-} from '@/module/auth/domain/service/token.symbol';
+} from '@/module/auth/domain/constants/injection.token';
+
 
 describe('Sign in test cases', () => {
   let useCase: SignInUseCase;

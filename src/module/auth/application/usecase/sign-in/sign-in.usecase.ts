@@ -4,15 +4,15 @@ import { SignInParam } from './sign-in.params';
 import { Result } from '@core/common/result.pattern';
 import type { IBcryptService } from '../../../domain/service/bcrypt.service';
 import type { IJWTTokenService } from '../../../domain/service/token.service';
-import type { IUserRepository } from '@/module/users/domain/repositories/user.repository';
+import type { IUserRepository } from '@/module/users/domain/repositories/user.repository.interface';
 import { Inject, Injectable } from '@nestjs/common';
 import { Errors, failure } from '@/core/common/err.utils';
 import { ConfigService } from '@nestjs/config';
+import { IUSER_REPOSITORY } from '@/module/users/domain/constants/injection.token';
 import {
   IBCRYPT_SERVICE,
   IJWTTOKEN_SERVICE,
-  IUSER_REPOSITORY,
-} from '@/module/auth/domain/service/token.symbol';
+} from '@/module/auth/domain/constants/injection.token';
 
 @Injectable()
 export class SignInUseCase implements IUseCase<
@@ -38,19 +38,19 @@ export class SignInUseCase implements IUseCase<
 
     const rawUser = userResult.value;
 
-    if (!rawUser.isVerified)
+    if (!rawUser.getIsVerified())
       return failure(Errors.validation('Email not verified'));
 
     // Compare passwords
-    const isMatch = await rawUser.comparePassword(
+    const isMatch = await this.bcrypteService.compare(
       dto.password,
-      this.bcrypteService,
+      rawUser.getHashedPassword(),
     );
 
     if (!isMatch)
       return failure(Errors.validation('Incorrect Email or password'));
 
-    if (!rawUser.id)
+    if (!rawUser.getId())
       return failure(Errors.internal('Pleas re-loggin internal issue occur'));
 
     // we need to issue token for sign in user
@@ -64,17 +64,21 @@ export class SignInUseCase implements IUseCase<
       'JWT_REFRESH_TOKEN_SECRET',
     );
 
+    const id = rawUser.getId();
+    const email = rawUser.getEmail();
+    const role = rawUser.getRole();
+
     const accessToken = await this.tokenService.generate(
-      { id: rawUser.id, role: rawUser.role, email: rawUser.email },
+      { id, role, email },
       { expiresIn: '15min', secret: accessTokenSecret },
     );
 
     const refreshToken = await this.tokenService.generate(
-      { id: rawUser.id, role: rawUser.role, email: rawUser.email },
+      { id, role, email },
       { expiresIn: '7d', secret: refreshTokenSecret },
     );
 
-    const updatedUser = rawUser.updateRefreshToke(refreshToken);
+    const updatedUser = rawUser.updateRefreshToken(refreshToken);
 
     await this.userRepo.save(updatedUser);
 

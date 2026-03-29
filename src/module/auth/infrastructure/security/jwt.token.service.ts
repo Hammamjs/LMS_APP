@@ -1,6 +1,7 @@
 import { JwtService, JwtSignOptions } from '@nestjs/jwt';
 import {
   IJWTTokenService,
+  JwtPayload,
   TokenOptions,
 } from '../../domain/service/token.service';
 import { Injectable } from '@nestjs/common';
@@ -8,11 +9,14 @@ import { Injectable } from '@nestjs/common';
 export class TokenService implements IJWTTokenService {
   constructor(private readonly jwtService: JwtService) {}
 
-  async generate(payload: Record<string, string>, option: TokenOptions) {
+  async generate(payload: JwtPayload, option: TokenOptions) {
     return this.jwtService.signAsync(payload, option as JwtSignOptions);
   }
 
-  verify<T>(token: string): Promise<T> {
-    return this.jwtService.verify(token);
+  async verify<T extends JwtPayload>(
+    token: string,
+    options?: TokenOptions,
+  ): Promise<T> {
+    return this.jwtService.verifyAsync(token, options);
   }
 }
