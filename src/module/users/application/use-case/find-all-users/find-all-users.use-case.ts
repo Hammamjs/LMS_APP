@@ -1,8 +1,9 @@
 import { IUseCase } from 'src/core/common/use-case-interface';
-import type { IUserRepository } from '@/module/users/domain/repositories/user.repository';
+import type { IUserRepository } from '@/module/users/domain/repositories/user.repository.interface';
 import { User } from '@/module/users/domain/entity/user.entity';
 import { Inject, Injectable } from '@nestjs/common';
 import { Result } from '@/core/common/result.pattern';
+import { IUSER_REPOSITORY } from '@/module/users/domain/constants/injection.token';
 
 @Injectable()
 export class FindAllUsersUseCase implements IUseCase<
@@ -10,7 +11,7 @@ export class FindAllUsersUseCase implements IUseCase<
   Promise<Result<User[]>>
 > {
   constructor(
-    @Inject('IUserRepository') private readonly userRepo: IUserRepository,
+    @Inject(IUSER_REPOSITORY) private readonly userRepo: IUserRepository,
   ) {}
   async execute(): Promise<Result<User[]>> {
     const result = await this.userRepo.findAll();

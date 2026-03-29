@@ -1,5 +1,6 @@
 import { Test, TestingModule } from '@nestjs/testing';
 import { FindUserUseCase } from './find-user.usecase';
+import { IUSER_REPOSITORY } from '@/module/users/domain/constants/injection.token';
 
 describe('Find unique user', () => {
   let useCase: FindUserUseCase;
@@ -11,7 +12,7 @@ describe('Find unique user', () => {
       providers: [
         FindUserUseCase,
         {
-          provide: 'IUserRepository',
+          provide: IUSER_REPOSITORY,
           useValue: mockRepository,
         },
       ],
