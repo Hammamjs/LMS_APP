@@ -29,4 +29,6 @@ model Users {
  emailVerified DateTime?
  refreshToken String?
  phone String?
+ passwordUpdatedAt DateTime?
+ isPasswordCodeVerified Boolean @default(false)
 }

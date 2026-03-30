@@ -116,6 +116,8 @@ export class PrismaUserRepository implements IUserRepository {
       createdAt: rawUser.createdAt,
       updatedAt: rawUser.updatedAt,
       refreshToken: rawUser.refreshToken,
+      isPasswordCodeVerified: rawUser.isPasswordCodeVerified,
+      passwordUpdatedAt: rawUser.passwordUpdatedAt,
     });
   }
 }
