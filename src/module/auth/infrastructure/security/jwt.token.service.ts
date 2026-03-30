@@ -3,7 +3,7 @@ import {
   IJWTTokenService,
   JwtPayload,
   TokenOptions,
-} from '../../domain/service/token.service';
+} from '../../domain/service/token.service.interface';
 import { Injectable } from '@nestjs/common';
 @Injectable()
 export class TokenService implements IJWTTokenService {
