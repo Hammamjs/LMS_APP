@@ -8,6 +8,8 @@ import { FindAllUsersUseCase } from './application/use-case/find-all-users/find-
 import { FindUserUseCase } from './application/use-case/find-user/find-user.usecase';
 import { DeleteUserUseCase } from './application/use-case/delete-user/delete-user.usecase';
 import { IUSER_REPOSITORY } from './domain/constants/injection.token';
+import { BcryptService } from '../auth/infrastructure/security/bcrypt.service';
+import { IBCRYPT_SERVICE } from '../auth/domain/constants/injection.token';
 
 const useCases: Provider[] = [
   FacadeUsers,
@@ -20,9 +22,14 @@ const useCases: Provider[] = [
 
 const infrastructure: Provider[] = [
   PrismaUserRepository,
+  BcryptService,
   {
     useExisting: PrismaUserRepository,
     provide: IUSER_REPOSITORY,
+  },
+  {
+    useExisting: BcryptService,
+    provide: IBCRYPT_SERVICE,
   },
 ];
 

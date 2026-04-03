@@ -7,25 +7,27 @@ import {
   Param,
   Patch,
   Post,
+  Query,
 } from '@nestjs/common';
 import { FacadeUsers } from '../application/facade.users';
 import { CreatUserDto } from './dto/users/create-user.dto';
 import { UpdateUserDto } from './dto/users/update-user.dto';
 import { UserResponse } from './dto/users/user.response';
 import { DomainException } from '../../../core/common/filters/domain.exception';
+import { PaginationQuery } from './dto/users/pagination-params';
 
 @Controller('users')
 export class UserController {
   constructor(private readonly facadeUser: FacadeUsers) {}
 
   @Get('/')
-  async findAll() {
-    const result = await this.facadeUser.findAll.execute();
+  async findAll(@Query() query: PaginationQuery) {
+    const result = await this.facadeUser.findAll.execute(query);
 
     if (!result.ok) throw new DomainException(result.error);
 
-    const users = result.value.map((u) => UserResponse.from(u));
-    return { data: users };
+    const users = result.value.data.map((u) => UserResponse.from(u));
+    return { data: users, meta: result.value.meta };
   }
 
   @Get('/:id')
@@ -40,6 +42,8 @@ export class UserController {
   @Post('create')
   async create(@Body() userdto: CreatUserDto) {
     const result = await this.facadeUser.create.execute(userdto);
+
+    console.log(result);
 
     if (!result.ok) throw new DomainException(result.error);
 

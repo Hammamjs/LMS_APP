@@ -31,7 +31,13 @@ export interface UserProps {
   isVerified: boolean;
   emailVerified: Date | null;
   password: string;
+<<<<<<< Updated upstream
   refreshToken?: string;
+=======
+  refreshToken?: string | null;
+  passwordUpdatedAt: Date | null;
+  isPasswordCodeVerified: boolean;
+>>>>>>> Stashed changes
 }
 
 export interface UserState {

@@ -3,6 +3,7 @@ import { CreateUserUseCase } from './create-user.usecase';
 import { UserRole } from '@/module/users/domain/interface/role.interface';
 import { failure } from '@/core/common/err.utils';
 import { IUSER_REPOSITORY } from '@/module/users/domain/constants/injection.token';
+import { IBCRYPT_SERVICE } from '@/module/auth/domain/constants/injection.token';
 
 describe('Create user test', () => {
   let useCase: CreateUserUseCase;
@@ -10,6 +11,10 @@ describe('Create user test', () => {
     create: jest.Mock<any, any, any>;
     findByEmail: jest.Mock;
     save: jest.Mock;
+  };
+
+  let mockBcryptService: {
+    hash: jest.Mock;
   };
 
   const newUser = {
@@ -26,10 +31,16 @@ describe('Create user test', () => {
       findByEmail: jest.fn(),
       save: jest.fn(),
     };
+
+    mockBcryptService = {
+      hash: jest.fn(),
+    };
+
     const module: TestingModule = await Test.createTestingModule({
       providers: [
         CreateUserUseCase,
         { provide: IUSER_REPOSITORY, useValue: mockRepository },
+        { provide: IBCRYPT_SERVICE, useValue: mockBcryptService },
       ],
     }).compile();
     useCase = module.get<CreateUserUseCase>(CreateUserUseCase);
@@ -37,8 +48,15 @@ describe('Create user test', () => {
 
   describe('Create new user', () => {
     it('should return new user after processing the user data', async () => {
-      mockRepository.findByEmail.mockResolvedValue({ ok: true, value: null });
-      mockRepository.save.mockResolvedValue({ ok: true, value: newUser });
+      mockRepository.findByEmail.mockResolvedValue({
+        ok: true,
+        value: null,
+      });
+
+      mockRepository.save.mockResolvedValue({
+        ok: true,
+        value: newUser,
+      });
       const result = await useCase.execute(newUser);
 
       expect(result.ok).toBe(true);
@@ -46,17 +64,17 @@ describe('Create user test', () => {
     });
   });
 
-  it('should throw error if email not provided', async () => {
-    mockRepository.findByEmail.mockResolvedValue(
-      failure({ type: 'NOT_FOUND', message: 'Email not provided' }),
-    );
+  it('should return error if email is missing in request', async () => {
+    const invalidData = { ...newUser, email: '' };
 
-    const result = await useCase.execute(newUser);
+    const result = await useCase.execute(invalidData);
+
+    expect(result.ok).toBe(false);
 
     if (!result.ok)
       expect(result.error).toEqual({
-        type: 'NOT_FOUND',
-        message: 'Email not provided',
+        type: 'VALIDATION',
+        message: 'Email is missing',
       });
   });
 

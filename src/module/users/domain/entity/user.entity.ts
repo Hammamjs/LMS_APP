@@ -80,7 +80,6 @@ export class User {
   public withUsername(newUsername: string): User {
     if (!newUsername || this.IsSame(this.props.username, newUsername))
       return this;
-
     if (!newUsername.trim()) throw new InvalidUsernameError();
 
     return this.copy({ username: newUsername.trim() });
@@ -107,7 +106,7 @@ export class User {
     });
   }
 
-  public updateRefreshToken(newIssuedToken: string) {
+  public updateRefreshToken(newIssuedToken: string | null) {
     return this.copy({ refreshToken: newIssuedToken });
   }
 
@@ -119,6 +118,14 @@ export class User {
       throw new ForbiddenError('Admin cannot change their own role');
 
     return this.copy({ role: newRole });
+  }
+
+  public markPasswordCodeVerified(): User {
+    return this.copy({ isPasswordCodeVerified: true });
+  }
+
+  public resetPasswordCodeFlag(): User {
+    return this.copy({ isPasswordCodeVerified: false });
   }
 
   // ✅ For DB → Domain
@@ -147,6 +154,7 @@ export class User {
       refreshToken: this.props.refreshToken,
       createdAt: this.props.createdAt,
       updatedAt: this.props.updatedAt,
+      isPasswordCodeVerified: this.props.isPasswordCodeVerified,
     };
   }
 
@@ -157,7 +165,7 @@ export class User {
         ...updates,
         updatedAt: new Date(),
       },
-      false,
+      this.isNew,
     );
   }
 

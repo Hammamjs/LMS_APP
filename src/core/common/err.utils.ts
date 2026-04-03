@@ -19,6 +19,13 @@ export const Errors = {
     type: 'INTERNAL',
     message,
   }),
+<<<<<<< Updated upstream
+=======
+  unauthroized: (message: string): DomainError => ({
+    type: 'UNAUTHORIZED',
+    message,
+  }),
+>>>>>>> Stashed changes
 };
 
 export function failure(error: DomainError): Result<never> {

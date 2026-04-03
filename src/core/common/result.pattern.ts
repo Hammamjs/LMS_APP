@@ -18,4 +18,11 @@ export type DomainError =
   | {
       type: 'INTERNAL';
       message: string;
+<<<<<<< Updated upstream
+=======
+    }
+  | {
+      type: 'UNAUTHORIZED';
+      message: string;
+>>>>>>> Stashed changes
     };
