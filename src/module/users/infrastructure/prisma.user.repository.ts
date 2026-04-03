@@ -51,20 +51,21 @@ export class PrismaUserRepository implements IUserRepository {
     }
   }
 
-  // Combine both insert and update operaation
+  // Combine both insert and update operation
   async save(user: User): Promise<Result<User>> {
     let data: PrismaUser;
 
     try {
-      if (!user.isNew)
+      if (!user.isNew) {
         data = await this.prisma.users.update({
           data: user.toPersistence(),
           where: { id: user.getId() },
         });
-      else
+      } else {
         data = await this.prisma.users.create({
           data: user.toPersistence(),
         });
+      }
 
       return { ok: true, value: this.toEntity(data) };
     } catch (err: unknown) {
@@ -75,11 +76,24 @@ export class PrismaUserRepository implements IUserRepository {
     }
   }
 
-  async findAll(): Promise<Result<User[]>> {
+  async findAll(params: {
+    take: number;
+    skip: number;
+  }): Promise<Result<{ users: User[]; total: number }>> {
     try {
-      const users = await this.prisma.users.findMany();
-      const usersDomain = users.map((user) => this.toEntity(user));
-      return { ok: true, value: usersDomain };
+      const [users, total] = await Promise.all([
+        this.prisma.users.findMany({
+          skip: params.skip,
+          take: params.take,
+          orderBy: { createdAt: 'desc' },
+        }),
+        this.prisma.users.count(),
+      ]);
+
+      return {
+        ok: true,
+        value: { users: users.map((user) => this.toEntity(user)), total },
+      };
     } catch (err: unknown) {
       return {
         ok: false,
