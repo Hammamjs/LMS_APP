@@ -17,7 +17,7 @@ import {
 @Injectable()
 export class SignInUseCase implements IUseCase<
   SignInParam,
-  Promise<Result<{ user: User; accessToken: string }>>
+  Promise<Result<{ user: User; accessToken: string; refreshToken: string }>>
 > {
   constructor(
     @Inject(IBCRYPT_SERVICE)
@@ -31,7 +31,9 @@ export class SignInUseCase implements IUseCase<
 
   async execute(
     dto: SignInParam,
-  ): Promise<Result<{ user: User; accessToken: string }>> {
+  ): Promise<
+    Result<{ user: User; accessToken: string; refreshToken: string }>
+  > {
     const userResult = await this.userRepo.findByEmail(dto.email);
 
     if (!userResult.ok) return userResult;
@@ -78,13 +80,15 @@ export class SignInUseCase implements IUseCase<
       { expiresIn: '7d', secret: refreshTokenSecret },
     );
 
-    const updatedUser = rawUser.updateRefreshToken(refreshToken);
+    const hashingRefreshToken = await this.bcrypteService.hash(refreshToken);
+
+    const updatedUser = rawUser.updateRefreshToken(hashingRefreshToken);
 
     await this.userRepo.save(updatedUser);
 
     return {
       ok: true,
-      value: { user: updatedUser, accessToken },
+      value: { user: updatedUser, accessToken, refreshToken },
     };
   }
 }

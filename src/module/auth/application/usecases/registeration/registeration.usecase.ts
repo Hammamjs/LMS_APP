@@ -1,4 +1,4 @@
-import { IUseCase } from '@/core/common/use-case-interface';
+import type { IUseCase } from '@/core/common/use-case-interface';
 import { RegisterationRequest } from './registeration.request';
 import { Result } from '@core/common/result.pattern';
 import { Inject, Injectable } from '@nestjs/common';
@@ -7,15 +7,15 @@ import { IUSER_REPOSITORY } from '@/module/users/domain/constants/injection.toke
 import type { IBcryptService } from '@/module/auth/domain/service/bcrypt.service.interface';
 import {
   IBCRYPT_SERVICE,
-  IEMAIL_SERVICE,
+  IOTP_REPOSITORY,
 } from '@/module/auth/domain/constants/injection.token';
 import { Errors, failure } from '@/core/common/err.utils';
 import { User } from '@/module/users/domain/entity/user.entity';
 import { UserRole } from '@/module/users/domain/interface/role.interface';
 import { createHash } from 'crypto';
-import { InjectRedis } from '@nestjs-modules/ioredis';
-import Redis from 'ioredis';
-import { IEmailService } from '@/module/auth/domain/service/email.service.interface';
+import type { IOTPRepository } from '@/module/auth/domain/repository/otp.repsoitory.interface';
+import { EventBus } from '@nestjs/cqrs';
+import { RegisterationCodeRequedEvent } from '@/module/auth/domain/events/registeration-code.requested';
 
 @Injectable()
 export class RegisterationUseCase implements IUseCase<
@@ -24,9 +24,9 @@ export class RegisterationUseCase implements IUseCase<
 > {
   constructor(
     @Inject(IUSER_REPOSITORY) private readonly userRepo: IUserRepository,
-    @Inject(IBCRYPT_SERVICE) private readonly hash: IBcryptService,
-    @InjectRedis() private readonly redis: Redis,
-    @Inject(IEMAIL_SERVICE) private readonly email: IEmailService,
+    @Inject(IBCRYPT_SERVICE) private readonly hashService: IBcryptService,
+    @Inject(IOTP_REPOSITORY) private readonly otpRepo: IOTPRepository,
+    private readonly eventPublisher: EventBus,
   ) {}
 
   async execute(dto: RegisterationRequest): Promise<Result<string>> {
@@ -35,7 +35,7 @@ export class RegisterationUseCase implements IUseCase<
     if (emailResult.ok) return failure(Errors.conflict('Email already exists'));
 
     // hashing user password
-    const hashedPassword = await this.hash.hash(dto.password);
+    const hashedPassword = await this.hashService.hash(dto.password);
 
     const user = User.create({
       email: dto.email,
@@ -59,12 +59,17 @@ export class RegisterationUseCase implements IUseCase<
 
     try {
       // save the digits to redis
-      await this.redis.set(`verify:${user.getId()}`, hashedCode, 'EX', 600);
-      await this.email.send(
-        user.getEmail(),
-        'Your verification code',
-        `Your verification Code is <br /> <b>${verificationCode}</b> <br /> Valid for 10 mins`,
+      await this.otpRepo.setResetCode(
+        `verify:${user.getId()}`,
+        hashedCode,
+        600,
       );
+
+      // Trigger event to send mail
+      this.eventPublisher.publish(
+        new RegisterationCodeRequedEvent(user.getEmail(), verificationCode),
+      );
+
       return {
         ok: true,
         value: 'Please verify your account',

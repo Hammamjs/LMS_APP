@@ -3,15 +3,17 @@ import { Result } from '@/core/common/result.pattern';
 import type { IUserRepository } from '@/module/users/domain/repositories/user.repository.interface';
 import { Inject, Injectable } from '@nestjs/common';
 import { IUSER_REPOSITORY } from '@/module/users/domain/constants/injection.token';
-import { IJWTTOKEN_SERVICE } from '@/module/auth/domain/constants/injection.token';
+import {
+  IJWTTOKEN_SERVICE,
+  IOTP_REPOSITORY,
+} from '@/module/auth/domain/constants/injection.token';
 import type { IJWTTokenService } from '@/module/auth/domain/service/token.service.interface';
-import { InjectRedis } from '@nestjs-modules/ioredis';
-import Redis from 'ioredis';
 import { EmailVerificationRequest } from './email-verification.request';
 import { EmailVerificationResponse } from './email-verification.response';
 import { Errors, failure } from '@/core/common/err.utils';
 import { createHash } from 'crypto';
 import { ConfigService } from '@nestjs/config';
+import type { IOTPRepository } from '@/module/auth/domain/repository/otp.repsoitory.interface';
 
 @Injectable()
 export class EmailVerificationUseCase implements IUseCase<
@@ -21,7 +23,7 @@ export class EmailVerificationUseCase implements IUseCase<
   constructor(
     @Inject(IUSER_REPOSITORY) private readonly userRepo: IUserRepository,
     @Inject(IJWTTOKEN_SERVICE) private readonly tokenService: IJWTTokenService,
-    @InjectRedis() private readonly redis: Redis,
+    @Inject(IOTP_REPOSITORY) private readonly otpRepo: IOTPRepository,
     private readonly config: ConfigService,
   ) {}
 
@@ -39,14 +41,19 @@ export class EmailVerificationUseCase implements IUseCase<
 
     const inputHash = createHash('sha256').update(dto.code).digest('hex');
 
-    const savedCode = await this.redis.get(`verify:${user.getId()}`);
+    const savedCodeResult = await this.otpRepo.getResetCode(
+      `verify:${user.getId()}`,
+    );
 
-    if (!savedCode)
+    if (!savedCodeResult.ok)
+      return failure(Errors.internal('Failed to retrive code'));
+
+    if (!savedCodeResult.value)
       return failure(
-        Errors.validation('Verification code has expired or was never sent'),
+        Errors.internal('Verification code has expired or was never sent'),
       );
 
-    if (inputHash !== savedCode)
+    if (inputHash !== savedCodeResult.value)
       return failure(Errors.validation('Incorrect verification code'));
 
     const id = user.getId(),
@@ -73,13 +80,13 @@ export class EmailVerificationUseCase implements IUseCase<
 
     // atomic clean up and save
     await Promise.all([
-      this.redis.del(`verify:${user.getId()}`),
+      this.otpRepo.delResetCode(`verify:${user.getId()}`),
       this.userRepo.save(finalUser),
     ]);
 
     return {
       ok: true,
-      value: { user: finalUser, accessToken },
+      value: { user: finalUser, accessToken, refreshToken },
     };
   }
 }

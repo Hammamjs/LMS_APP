@@ -12,7 +12,7 @@ import {
 describe('Sign in test cases', () => {
   let useCase: SignInUseCase;
   let userRepoMock: { findByEmail: jest.Mock; save: jest.Mock };
-  let bcryptServiceMock: { compare: jest.Mock };
+  let bcryptServiceMock: { compare: jest.Mock; hash: jest.Mock };
   let tokenServiceMock: { generate: jest.Mock };
   let configServiceMock: { getOrThrow: jest.Mock };
 
@@ -29,13 +29,15 @@ describe('Sign in test cases', () => {
       emailVerified: null,
       phone: null,
       refreshToken: null,
+      isPasswordCodeVerified: false,
+      passwordUpdatedAt: null,
       ...overrides,
     });
   };
 
   beforeEach(async () => {
     userRepoMock = { findByEmail: jest.fn(), save: jest.fn() };
-    bcryptServiceMock = { compare: jest.fn() };
+    bcryptServiceMock = { compare: jest.fn(), hash: jest.fn() };
     tokenServiceMock = { generate: jest.fn() };
     configServiceMock = { getOrThrow: jest.fn().mockReturnValue('secret') };
 

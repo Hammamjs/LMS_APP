@@ -10,8 +10,8 @@ export class NodemailerService implements IEmailService {
       host: process.env.MAIL_HOST,
       port: Number(process.env.EMAIL_PORT),
       auth: {
-        user: process.env.Email_USER,
-        pass: process.env.Email_PASS,
+        user: process.env.EMAIL_USER,
+        pass: process.env.EMAIL_PASS,
       },
     });
   }

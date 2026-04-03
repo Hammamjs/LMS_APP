@@ -13,20 +13,20 @@ describe('Registeration test cases', () => {
     hash: jest.fn(),
   };
 
-  const mockRedis = {
-    set: jest.fn(),
+  const mockOTPRepo = {
+    setResetCode: jest.fn(),
   };
 
-  const mockEmail = {
-    send: jest.fn(),
+  const mockEventPublisher = {
+    publish: jest.fn(),
   };
 
   beforeEach(() => {
     useCase = new RegisterationUseCase(
       mockUserRepo as any,
       mockBcryptService as any,
-      mockRedis as any,
-      mockEmail as any,
+      mockOTPRepo as any,
+      mockEventPublisher as any,
     );
 
     jest.clearAllMocks();
@@ -55,11 +55,10 @@ describe('Registeration test cases', () => {
     if (result.ok) {
       expect(mockBcryptService.hash).toHaveBeenCalledWith('hashed-pass');
       expect(mockUserRepo.save).toHaveBeenCalled();
-      expect(mockEmail.send).toHaveBeenCalled();
-      expect(mockRedis.set).toHaveBeenCalledWith(
+      expect(mockEventPublisher.publish).toHaveBeenCalled();
+      expect(mockOTPRepo.setResetCode).toHaveBeenCalledWith(
         `verify:user-123`,
         hashedCode,
-        'EX',
         600,
       );
     }
