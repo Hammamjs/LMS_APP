@@ -4,5 +4,6 @@ export class EmailVerificationResponse {
   constructor(
     public user: User,
     public accessToken: string,
+    public refreshToken: string,
   ) {}
 }

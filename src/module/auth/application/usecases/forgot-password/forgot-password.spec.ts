@@ -20,7 +20,7 @@ describe('Forgot password test cases', () => {
       createdAt: new Date(),
       updatedAt: new Date(),
       isPasswordCodeVerified: false,
-      passwordUpdatedAt: new Date(),
+      passwordUpdatedAt: null,
       ...override,
     });
   };
@@ -29,19 +29,19 @@ describe('Forgot password test cases', () => {
     findByEmail: jest.fn(),
   };
 
-  const mockRedis = {
-    set: jest.fn(),
+  const mockOTPRepo = {
+    setResetCode: jest.fn(),
   };
 
-  const mockEmail = {
-    send: jest.fn(),
+  const mockEventPublisher = {
+    publish: jest.fn(),
   };
 
   beforeEach(() => {
     useCase = new ForgotPasswordUseCase(
       mockUserRepo as any,
-      mockRedis as any,
-      mockEmail as any,
+      mockOTPRepo as any,
+      mockEventPublisher as any,
     );
 
     jest.clearAllMocks();
@@ -63,16 +63,15 @@ describe('Forgot password test cases', () => {
     const hashedCode = createHash('sha256').update(expectedCode).digest('hex');
 
     if (result.ok) {
-      expect(result.value.message).toBe('Code successfully sent to your email');
+      expect(result.value).toBe('Code successfully sent to your email');
     }
 
-    expect(mockRedis.set).toHaveBeenCalledWith(
+    expect(mockOTPRepo.setResetCode).toHaveBeenCalledWith(
       `reset_password:${user.getId()}`,
       hashedCode,
-      'EX',
       600,
     );
-    expect(mockEmail.send).toHaveBeenCalled();
+    expect(mockEventPublisher.publish).toHaveBeenCalled();
   });
 
   afterEach(() => {

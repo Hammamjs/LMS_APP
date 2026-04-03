@@ -1,3 +1,3 @@
 export class IEmailService {
-  send: (email: string, subject: string, content: string) => Promise<void>;
+  send: (to: string, subject: string, content: string) => Promise<void>;
 }

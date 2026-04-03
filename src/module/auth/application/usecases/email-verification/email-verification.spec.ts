@@ -15,9 +15,9 @@ describe('Code verification test cases', () => {
     generate: jest.fn(),
   };
 
-  const mockRedis = {
-    get: jest.fn(),
-    del: jest.fn(),
+  const mockOTPRepo = {
+    getResetCode: jest.fn(),
+    delResetCode: jest.fn(),
   };
 
   const mockConfig = {
@@ -28,7 +28,7 @@ describe('Code verification test cases', () => {
     useCase = new EmailVerificationUseCase(
       mockUserRepo as any,
       mockJwtService as any,
-      mockRedis as any,
+      mockOTPRepo as any,
       mockConfig as any,
     );
 
@@ -66,25 +66,34 @@ describe('Code verification test cases', () => {
       value: user,
     });
 
-    mockRedis.get.mockResolvedValue(hashedCode);
+    mockOTPRepo.getResetCode.mockResolvedValue({
+      ok: true,
+      value: hashedCode,
+    });
     mockJwtService.generate.mockResolvedValue('fake-token-gen');
 
     const result = await useCase.execute({ email, code: rawCode });
 
     expect(result.ok).toBe(true);
+
     if (result.ok) {
       expect(result.value.accessToken).toBe('fake-token-gen');
       expect(result.value.user.getIsVerified()).toBe(true);
     }
     expect(mockUserRepo.save).toHaveBeenCalled();
-    expect(mockRedis.del).toHaveBeenCalledWith(`verify:${user.getId()}`);
+    expect(mockOTPRepo.delResetCode).toHaveBeenCalledWith(
+      `verify:${user.getId()}`,
+    );
   });
 
   it('should fail when verification code expired in redis', async () => {
     const user = createUser();
 
     mockUserRepo.findByEmail.mockResolvedValue({ ok: true, value: user });
-    mockRedis.get.mockResolvedValue(null);
+    mockOTPRepo.getResetCode.mockResolvedValue({
+      ok: true,
+      value: null,
+    });
 
     const result = await useCase.execute({ email, code: rawCode });
 
@@ -111,7 +120,7 @@ describe('Code verification test cases', () => {
     if (!result.ok) {
       expect(result.error.message).toBe('Email already verified');
     }
-    expect(mockRedis.get).not.toHaveBeenCalled();
+    expect(mockOTPRepo.delResetCode).not.toHaveBeenCalled();
     expect(mockUserRepo.save).not.toHaveBeenCalled();
   });
 });

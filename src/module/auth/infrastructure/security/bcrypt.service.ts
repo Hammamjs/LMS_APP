@@ -9,11 +9,12 @@ export class BcryptService implements IBcryptService {
   constructor(private readonly config: ConfigService) {
     this.saltNumber = this.config.getOrThrow<number>('SALT_NUMBER');
   }
+
   async compare(plainPassword: string, hashedPassword: string) {
     return bcrypt.compare(plainPassword, hashedPassword);
   }
 
   async hash(password: string) {
-    return bcrypt.hash(password, this.saltNumber);
+    return bcrypt.hash(password, Number(this.saltNumber));
   }
 }
