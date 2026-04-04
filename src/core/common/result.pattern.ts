@@ -1,6 +1,6 @@
 export type Result<T> =
-  | { ok: true; value: T }
-  | { ok: false; error: DomainError };
+ | { ok: true; value: T }
+ | { ok: false; error: DomainError };
 
 export type DomainError =
   | {
@@ -18,11 +18,8 @@ export type DomainError =
   | {
       type: 'INTERNAL';
       message: string;
-<<<<<<< Updated upstream
-=======
     }
   | {
       type: 'UNAUTHORIZED';
       message: string;
->>>>>>> Stashed changes
     };

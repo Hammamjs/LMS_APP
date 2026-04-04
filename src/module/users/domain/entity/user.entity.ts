@@ -28,6 +28,8 @@ export class User {
         updatedAt: new Date(),
         refreshToken: null,
         role: data.role as UserRole,
+        isPasswordCodeVerified: false,
+        passwordUpdatedAt: new Date(),
       },
       true, // for new users
     );
@@ -77,6 +79,14 @@ export class User {
     return this.props.updatedAt;
   }
 
+  public getIsPasswordCodeVerified(): boolean {
+    return this.props.isPasswordCodeVerified;
+  }
+
+  public getPasswordUpdatedAt(): Date | null {
+    return this.props.passwordUpdatedAt;
+  }
+
   public withUsername(newUsername: string): User {
     if (!newUsername || this.IsSame(this.props.username, newUsername))
       return this;
@@ -86,7 +96,10 @@ export class User {
   }
 
   public withPassword(newHashedPassword: string): User {
-    return this.copy({ password: newHashedPassword });
+    return this.copy({
+      password: newHashedPassword,
+      passwordUpdatedAt: new Date(),
+    });
   }
 
   public withEmail(newEmail: string): User {

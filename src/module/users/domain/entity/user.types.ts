@@ -21,6 +21,8 @@ export interface RehydrateUserProps {
   createdAt: Date;
   updatedAt: Date;
   refreshToken: string | null;
+  passwordUpdatedAt: Date | null;
+  isPasswordCodeVerified: boolean;
 }
 
 export interface UserProps {
@@ -31,13 +33,10 @@ export interface UserProps {
   isVerified: boolean;
   emailVerified: Date | null;
   password: string;
-<<<<<<< Updated upstream
   refreshToken?: string;
-=======
   refreshToken?: string | null;
   passwordUpdatedAt: Date | null;
   isPasswordCodeVerified: boolean;
->>>>>>> Stashed changes
 }
 
 export interface UserState {
@@ -52,4 +51,6 @@ export interface UserState {
   createdAt: Date;
   updatedAt: Date;
   refreshToken: string | null;
+  passwordUpdatedAt: Date | null;
+  isPasswordCodeVerified: boolean;
 }
