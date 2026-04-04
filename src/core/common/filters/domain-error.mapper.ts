@@ -4,6 +4,7 @@ import {
   NotFoundException,
   InternalServerErrorException,
   ConflictException,
+  UnauthorizedException,
 } from '@nestjs/common';
 
 export function mapDomainErrorTOHttp(error: DomainError) {
@@ -16,5 +17,7 @@ export function mapDomainErrorTOHttp(error: DomainError) {
       return new NotFoundException(error.message);
     case 'VALIDATION':
       return new BadRequestException(error.message);
+    case 'UNAUTHORIZED':
+      return new UnauthorizedException();
   }
 }

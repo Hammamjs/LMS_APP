@@ -34,7 +34,9 @@ export interface UserProps {
   emailVerified: Date | null;
   password: string;
   refreshToken?: string;
+  refreshToken?: string | null;
   passwordUpdatedAt: Date | null;
+  isPasswordCodeVerified: boolean;
 }
 
 export interface UserState {

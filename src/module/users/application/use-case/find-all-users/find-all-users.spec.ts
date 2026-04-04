@@ -39,26 +39,47 @@ describe('Find All users use case', () => {
 
     mockRepository.findAll.mockResolvedValue({
       ok: true,
-      value: expectedUsers,
+      value: {
+        users: expectedUsers,
+        total: 20,
+      },
     });
-    const result = await useCase.execute();
+    const result = await useCase.execute({ page: 2, limit: 10 });
 
     expect(result.ok).toBe(true);
 
     if (result.ok) {
-      expect(result.value).toEqual(expectedUsers);
+      expect(result.value.data).toEqual(expectedUsers);
+      expect(result.value.meta.page).toBe(2);
+      expect(result.value.meta.total).toBe(20);
+      expect(result.value.meta.lastPage).toBe(2);
+
+      expect(mockRepository.findAll).toHaveBeenCalledWith({
+        skip: 10,
+        take: 10,
+      });
     }
 
     expect(mockRepository.findAll).toHaveBeenCalledTimes(1);
   });
 
   it('should return empty array when no users', async () => {
-    mockRepository.findAll.mockResolvedValue({ ok: true, value: [] });
+    mockRepository.findAll.mockResolvedValue({
+      ok: true,
+      value: {
+        users: [],
+        total: 10,
+      },
+    });
 
-    const result = await useCase.execute();
+    const result = await useCase.execute({ page: 1, limit: 10 });
 
     expect(result.ok).toBe(true);
 
-    if (result.ok) expect(result.value).toEqual([]);
+    if (result.ok) expect(result.value.data).toEqual([]);
+    expect(mockRepository.findAll).toHaveBeenLastCalledWith({
+      take: 10,
+      skip: 0,
+    });
   });
 });
