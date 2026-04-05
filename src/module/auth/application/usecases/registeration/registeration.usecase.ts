@@ -34,6 +34,10 @@ export class RegisterationUseCase implements IUseCase<
 
     if (emailResult.ok) return failure(Errors.conflict('Email already exists'));
 
+    // we need to confirm the passwords matched
+    if (dto.confirmPassword !== dto.password)
+      return failure(Errors.validation('Passwords do not match'));
+
     // hashing user password
     const hashedPassword = await this.hashService.hash(dto.password);
 

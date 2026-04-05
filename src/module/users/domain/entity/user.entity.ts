@@ -141,6 +141,10 @@ export class User {
     return this.copy({ isPasswordCodeVerified: false });
   }
 
+  public isInstructor(): boolean {
+    return this.props.role == UserRole.Instructor;
+  }
+
   // ✅ For DB → Domain
   public static rehydrate(props: RehydrateUserProps): User {
     return new User(props, false);

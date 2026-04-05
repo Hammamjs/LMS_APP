@@ -2,11 +2,11 @@ import { PrismaService } from 'src/core/database/prisma.service';
 import { IUserRepository } from '../domain/repositories/user.repository.interface';
 import { User } from '../domain/entity/user.entity';
 import { Injectable } from '@nestjs/common';
-import { Users as PrismaUser } from '@prisma/client';
-import { UserRole } from '../domain/interface/role.interface';
+import { users as PrismaUser } from '@prisma/client';
 import { Result } from '@/core/common/result.pattern';
 import { handleError } from '@/core/common/handleError';
 import { Errors, failure } from '@/core/common/err.utils';
+import { MapperUser } from './mapper/user.mapper';
 
 @Injectable()
 export class PrismaUserRepository implements IUserRepository {
@@ -19,7 +19,7 @@ export class PrismaUserRepository implements IUserRepository {
 
       if (!user) return failure(Errors.notFound('User not exists'));
 
-      return { ok: true, value: this.toEntity(user) };
+      return { ok: true, value: MapperUser.toDomain(user) };
     } catch (err: unknown) {
       return {
         ok: false,
@@ -67,7 +67,7 @@ export class PrismaUserRepository implements IUserRepository {
         });
       }
 
-      return { ok: true, value: this.toEntity(data) };
+      return { ok: true, value: MapperUser.toDomain(data) };
     } catch (err: unknown) {
       return {
         ok: false,
@@ -92,7 +92,7 @@ export class PrismaUserRepository implements IUserRepository {
 
       return {
         ok: true,
-        value: { users: users.map((user) => this.toEntity(user)), total },
+        value: { users: users.map((user) => MapperUser.toDomain(user)), total },
       };
     } catch (err: unknown) {
       return {
@@ -108,30 +108,12 @@ export class PrismaUserRepository implements IUserRepository {
 
       if (!user) return failure(Errors.notFound('User not found'));
 
-      return { ok: true, value: this.toEntity(user) };
+      return { ok: true, value: MapperUser.toDomain(user) };
     } catch (err: unknown) {
       return {
         ok: false,
         error: handleError(err),
       };
     }
-  }
-
-  private toEntity(rawUser: PrismaUser) {
-    return User.rehydrate({
-      id: rawUser.id,
-      email: rawUser.email,
-      username: rawUser.username,
-      role: rawUser.role as UserRole,
-      password: rawUser.password,
-      phone: rawUser.phone,
-      isVerified: rawUser.isVerified,
-      emailVerified: rawUser.emailVerified,
-      createdAt: rawUser.createdAt,
-      updatedAt: rawUser.updatedAt,
-      refreshToken: rawUser.refreshToken,
-      isPasswordCodeVerified: rawUser.isPasswordCodeVerified,
-      passwordUpdatedAt: rawUser.passwordUpdatedAt,
-    });
   }
 }
