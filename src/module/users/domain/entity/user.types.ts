@@ -33,8 +33,7 @@ export interface UserProps {
   isVerified: boolean;
   emailVerified: Date | null;
   password: string;
-  refreshToken?: string;
-  refreshToken?: string | null;
+  refreshToken: string | null;
   passwordUpdatedAt: Date | null;
   isPasswordCodeVerified: boolean;
 }

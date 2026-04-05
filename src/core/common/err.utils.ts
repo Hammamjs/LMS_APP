@@ -1,15 +1,15 @@
 import { DomainError, Result } from './result.pattern';
 
 export const Errors = {
- notFound: (message: string): DomainError => ({
-  type: 'NOT_FOUND',
-  message,
- }),
+  notFound: (message: string): DomainError => ({
+    type: 'NOT_FOUND',
+    message,
+  }),
 
- validation: (message: string): DomainError => ({
-  type: 'VALIDATION',
-  message,
- }),
+  validation: (message: string): DomainError => ({
+    type: 'VALIDATION',
+    message,
+  }),
 
   conflict: (message: string): DomainError => ({
     type: 'CONFLICT',
@@ -26,5 +26,5 @@ export const Errors = {
 };
 
 export function failure(error: DomainError): Result<never> {
- return { ok: false, error };
+  return { ok: false, error };
 }
