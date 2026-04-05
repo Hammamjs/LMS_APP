@@ -17,7 +17,7 @@ enum Role {
  Admin
 }
 
-model Users {
+model users {
  id   String   @id @default(uuid())
  email String @unique 
  username String 
@@ -31,4 +31,48 @@ model Users {
  phone String?
  passwordUpdatedAt DateTime?
  isPasswordCodeVerified Boolean @default(false)
+
+ authorCourses courses[] 
+}
+
+model courses {
+ id String  @id @default(uuid())
+  title String
+  price Int
+  hours Int
+  slug String @unique
+  description String
+  rating Int @default(0)
+  purchaseCount Int  @default(0)
+  image String?
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  category String
+
+  instructorId String
+
+ //  relation
+ instructor users @relation(fields: [instructorId], references: [id])
+ lessons  lessons[]
+
+ // indexing
+  @@index([slug])
+}
+
+model lessons {
+  id          String   @id @default(uuid())
+  title       String
+  video       String?  // Video URL
+  sourceLink  String?  // PDF or Github links
+  order       Int      // To keep lessons in the right sequence (1, 2, 3...)
+  rating Int @default(0)
+  
+  // Foreign Key
+  courseId    String
+  
+  // Relation back to course
+  course      courses  @relation(fields: [courseId], references: [id], onDelete: Cascade)
+
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
 }

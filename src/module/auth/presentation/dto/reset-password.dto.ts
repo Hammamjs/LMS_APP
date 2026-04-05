@@ -1,3 +1,4 @@
+import { Match } from '@/core/common/decorators/match.decorator';
 import { IsEmail, IsString, MaxLength, MinLength } from 'class-validator';
 
 export class ResetPassword {
@@ -12,5 +13,6 @@ export class ResetPassword {
   // build decorator
 
   @IsString()
+  @Match('password', { message: 'password do not match' })
   confirmPassword: string;
 }
