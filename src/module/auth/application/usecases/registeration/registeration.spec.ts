@@ -49,6 +49,7 @@ describe('Registeration test cases', () => {
       email: 'test@example.com',
       password: 'hashed-pass',
       username: 'test',
+      confirmPassword: 'hashed-pass',
     });
 
     expect(result.ok).toBe(true);
@@ -77,6 +78,7 @@ describe('Registeration test cases', () => {
       email: 'test@example.com',
       password: 'hashed-pass',
       username: 'test',
+      confirmPassword: 'hashed-pass',
     });
 
     expect(result.ok).toBe(false);
