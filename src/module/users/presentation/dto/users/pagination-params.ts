@@ -6,10 +6,10 @@ export class PaginationQuery {
   @Type(() => Number)
   @Min(1)
   @Max(100)
-  limit: number;
+  limit: number = 10;
 
   @IsOptional()
   @Type(() => Number)
   @Min(1)
-  page: number;
+  page: number = 1;
 }

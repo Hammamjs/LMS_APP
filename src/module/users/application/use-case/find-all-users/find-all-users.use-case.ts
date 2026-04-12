@@ -1,8 +1,8 @@
-import { IUseCase } from 'src/core/common/use-case-interface';
+import { IUseCase } from '@/core/common/domain/use-case-interface';
 import type { IUserRepository } from '@/module/users/domain/repositories/user.repository.interface';
 import { User } from '@/module/users/domain/entity/user.entity';
 import { Inject, Injectable } from '@nestjs/common';
-import { Result } from '@/core/common/result.pattern';
+import { Result } from '@/core/common/domain/result.pattern';
 import { IUSER_REPOSITORY } from '@/module/users/domain/constants/injection.token';
 
 type ReturnType = Promise<
