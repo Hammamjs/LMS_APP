@@ -2,8 +2,8 @@ import { Injectable } from '@nestjs/common';
 import { IOTPRepository } from '../../domain/repository/otp.repsoitory.interface';
 import { InjectRedis } from '@nestjs-modules/ioredis';
 import Redis from 'ioredis';
-import { Result } from '@core/common/result.pattern';
-import { Errors, failure } from '@/core/common/err.utils';
+import { Result } from '@/core/common/domain/result.pattern';
+import { Errors, failure } from '@/core/common/domain/err.utils';
 
 @Injectable()
 export class RedisOTPRepository implements IOTPRepository {

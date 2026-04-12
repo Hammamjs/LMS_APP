@@ -2,7 +2,7 @@ import { User } from '@/module/users/domain/entity/user.entity';
 import { ResendVerificationCodeUseCase } from './resend-verification-code.usecase';
 import { UserRole } from '@/module/users/domain/interface/role.interface';
 import { createHash } from 'crypto';
-import { Errors } from '@/core/common/err.utils';
+import { Errors } from '@/core/common/domain/err.utils';
 
 describe('Resend Code verification test cases', () => {
   let usecase: ResendVerificationCodeUseCase;
