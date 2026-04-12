@@ -1,12 +1,12 @@
-import { IUseCase } from '@/core/common/use-case-interface';
+import { IUseCase } from '@/core/common/domain/use-case-interface';
 import { ForgotPasswordRequest } from './forgot-password.request';
-import { Result } from '@core/common/result.pattern';
+import { Result } from '@/core/common/domain/result.pattern';
 import type { IUserRepository } from '@/module/users/domain/repositories/user.repository.interface';
 import { Inject } from '@nestjs/common';
 import { IUSER_REPOSITORY } from '@/module/users/domain/constants/injection.token';
 import { createHash } from 'crypto';
 import { IOTP_REPOSITORY } from '@/module/auth/domain/constants/injection.token';
-import { Errors, failure } from '@/core/common/err.utils';
+import { Errors, failure } from '@/core/common/domain/err.utils';
 import type { IOTPRepository } from '@/module/auth/domain/repository/otp.repsoitory.interface';
 import { EventBus } from '@nestjs/cqrs';
 import { ResetPasswordRequestedEvent } from '@/module/auth/domain/events/reset-password-requested.event';

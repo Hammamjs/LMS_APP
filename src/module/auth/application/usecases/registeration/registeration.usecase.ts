@@ -1,6 +1,6 @@
-import type { IUseCase } from '@/core/common/use-case-interface';
+import type { IUseCase } from '@/core/common/domain/use-case-interface';
 import { RegisterationRequest } from './registeration.request';
-import { Result } from '@core/common/result.pattern';
+import { Result } from '@/core/common/domain/result.pattern';
 import { Inject, Injectable } from '@nestjs/common';
 import type { IUserRepository } from '@/module/users/domain/repositories/user.repository.interface';
 import { IUSER_REPOSITORY } from '@/module/users/domain/constants/injection.token';
@@ -9,7 +9,7 @@ import {
   IBCRYPT_SERVICE,
   IOTP_REPOSITORY,
 } from '@/module/auth/domain/constants/injection.token';
-import { Errors, failure } from '@/core/common/err.utils';
+import { Errors, failure } from '@/core/common/domain/err.utils';
 import { User } from '@/module/users/domain/entity/user.entity';
 import { UserRole } from '@/module/users/domain/interface/role.interface';
 import { createHash } from 'crypto';

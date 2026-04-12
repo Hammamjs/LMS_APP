@@ -1,12 +1,12 @@
-import { IUseCase } from '@/core/common/use-case-interface';
+import { IUseCase } from '@/core/common/domain/use-case-interface';
 import { VerifyResetPasswordCodeParam } from './verify-reset-password-code.params';
-import { Result } from '@core/common/result.pattern';
+import { Result } from '@/core/common/domain/result.pattern';
 import { Inject, Injectable } from '@nestjs/common';
 import { IUSER_REPOSITORY } from '@/module/users/domain/constants/injection.token';
 import type { IUserRepository } from '@/module/users/domain/repositories/user.repository.interface';
 import { IOTP_REPOSITORY } from '@/module/auth/domain/constants/injection.token';
 import type { IOTPRepository } from '@/module/auth/domain/repository/otp.repsoitory.interface';
-import { Errors, failure } from '@/core/common/err.utils';
+import { Errors, failure } from '@/core/common/domain/err.utils';
 import { createHash } from 'crypto';
 type VRPCParams = VerifyResetPasswordCodeParam;
 

@@ -43,7 +43,7 @@ export class AuthSendEmail implements IEventHandler<
       case 'RESET':
         return 'Reset Password Code';
       case 'RESEND':
-        return 'Resend Password Code';
+        return 'Email verification Code';
       case 'REGISTERATION':
         return 'Registeration Code';
       default:

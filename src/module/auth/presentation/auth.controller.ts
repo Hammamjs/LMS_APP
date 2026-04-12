@@ -9,7 +9,7 @@ import {
 } from '@nestjs/common';
 import { AuthFacade } from '../application/auth.facade';
 import { SignInDto } from './dto/sign-in.dto';
-import { DomainException } from '@/core/common/filters/domain.exception';
+import { DomainException } from '@/core/common/domain/domain.exception';
 import { SignUpDto } from './dto/sign-up.dto';
 import { EmailVerification } from './dto/email-verification.dto';
 import { ResendCode } from './dto/resend-code.dto';
@@ -18,7 +18,7 @@ import { ForgotPassword } from './dto/forgot-password.dto';
 import { VerifyPasswordResetCode } from './dto/verify-reset-code.dto';
 import { ResetPassword } from './dto/reset-password.dto';
 import type { Request, Response } from 'express';
-import { Errors } from '@/core/common/err.utils';
+import { Errors } from '@/core/common/domain/err.utils';
 import { ConfigService } from '@nestjs/config';
 
 @Controller('auth')

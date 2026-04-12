@@ -1,11 +1,11 @@
-import type { IUseCase } from '@/core/common/use-case-interface';
+import type { IUseCase } from '@/core/common/domain/use-case-interface';
 import { IUSER_REPOSITORY } from '@/module/users/domain/constants/injection.token';
 import type { IUserRepository } from '@/module/users/domain/repositories/user.repository.interface';
-import { Result } from '@core/common/result.pattern';
+import { Result } from '@/core/common/domain/result.pattern';
 import { Inject, Injectable } from '@nestjs/common';
 import { IOTP_REPOSITORY } from '../../../domain/constants/injection.token';
 import type { IOTPRepository } from '../../../domain/repository/otp.repsoitory.interface';
-import { Errors, failure } from '@/core/common/err.utils';
+import { Errors, failure } from '@/core/common/domain/err.utils';
 import { createHash } from 'crypto';
 import { ResendVerificaionCodeParam } from './resend-verification-code.param';
 import { EventBus } from '@nestjs/cqrs';

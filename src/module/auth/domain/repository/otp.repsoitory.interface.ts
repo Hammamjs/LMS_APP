@@ -1,4 +1,4 @@
-import { Result } from '@core/common/result.pattern';
+import { Result } from '@/core/common/domain/result.pattern';
 
 export interface IOTPRepository {
   getResetCode: (key: string) => Promise<Result<string | null>>;

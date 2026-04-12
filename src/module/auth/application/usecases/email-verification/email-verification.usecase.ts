@@ -1,5 +1,5 @@
-import { IUseCase } from '@/core/common/use-case-interface';
-import { Result } from '@/core/common/result.pattern';
+import { IUseCase } from '@/core/common/domain/use-case-interface';
+import { Result } from '@/core/common/domain/result.pattern';
 import type { IUserRepository } from '@/module/users/domain/repositories/user.repository.interface';
 import { Inject, Injectable } from '@nestjs/common';
 import { IUSER_REPOSITORY } from '@/module/users/domain/constants/injection.token';
@@ -10,7 +10,7 @@ import {
 import type { IJWTTokenService } from '@/module/auth/domain/service/token.service.interface';
 import { EmailVerificationRequest } from './email-verification.request';
 import { EmailVerificationResponse } from './email-verification.response';
-import { Errors, failure } from '@/core/common/err.utils';
+import { Errors, failure } from '@/core/common/domain/err.utils';
 import { createHash } from 'crypto';
 import { ConfigService } from '@nestjs/config';
 import type { IOTPRepository } from '@/module/auth/domain/repository/otp.repsoitory.interface';
