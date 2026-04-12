@@ -15,12 +15,18 @@ export const Errors = {
     type: 'CONFLICT',
     message,
   }),
+
   internal: (message: string): DomainError => ({
     type: 'INTERNAL',
     message,
   }),
   unauthroized: (message: string): DomainError => ({
     type: 'UNAUTHORIZED',
+    message,
+  }),
+
+  forbidden: (message: string): DomainError => ({
+    type: 'FORBIDDEN',
     message,
   }),
 };

@@ -17,6 +17,7 @@ export class CourseMapper {
       instructorId: row.instructorId,
       category: row.category,
       image: row.image,
+      isDeleted: row.isDeleted,
     });
   }
 }

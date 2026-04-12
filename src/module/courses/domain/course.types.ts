@@ -12,6 +12,7 @@ export interface CourseState {
   instructorId: string;
   image: string | null; // cover for course
   category: string;
+  isDeleted: boolean; //
 }
 
 export interface CourseProps {
@@ -28,4 +29,14 @@ export interface CourseProps {
   instructorId: string;
   image: string | null;
   category: string;
+  isDeleted: boolean; //
 }
+
+export type ExcludedFields =
+  | 'createdAt'
+  | 'updatedAt'
+  | 'id'
+  | 'slug'
+  | 'rating'
+  | 'purchaseCount'
+  | 'isDeleted';

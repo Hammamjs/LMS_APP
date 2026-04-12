@@ -6,6 +6,6 @@ export function handleError(
 ): DomainError {
   return {
     type,
-    message: err instanceof Error ? err.message : 'Database Error',
+    message: err instanceof Error ? err.message : 'Internal Server Error',
   };
 }
