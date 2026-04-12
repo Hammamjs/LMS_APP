@@ -3,16 +3,16 @@ import { IUserRepository } from '../domain/repositories/user.repository.interfac
 import { User } from '../domain/entity/user.entity';
 import { Injectable } from '@nestjs/common';
 import { users as PrismaUser } from '@prisma/client';
-import { Result } from '@/core/common/result.pattern';
-import { handleError } from '@/core/common/handleError';
-import { Errors, failure } from '@/core/common/err.utils';
+import { Result } from '@/core/common/domain/result.pattern';
+import { handleError } from '@/core/common/domain/handleError';
+import { Errors, failure } from '@/core/common/domain/err.utils';
 import { MapperUser } from './mapper/user.mapper';
 
 @Injectable()
 export class PrismaUserRepository implements IUserRepository {
   constructor(private readonly prisma: PrismaService) {}
 
-  async findOne(id: string): Promise<Result<User>> {
+  async findById(id: string): Promise<Result<User>> {
     try {
       if (!id) return failure(Errors.validation('User id not provided'));
       const user = await this.prisma.users.findUnique({ where: { id } });

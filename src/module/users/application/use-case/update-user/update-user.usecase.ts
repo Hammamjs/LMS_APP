@@ -1,10 +1,10 @@
-import { IUseCase } from '@/core/common/use-case-interface';
+import { IUseCase } from '@/core/common/domain/use-case-interface';
 import { User } from '../../../domain/entity/user.entity';
 import { UpdateUserParams } from './update-user.params';
 import type { IUserRepository } from '@/module/users/domain/repositories/user.repository.interface';
 import { Inject, Injectable } from '@nestjs/common';
-import { Result } from '@/core/common/result.pattern';
-import { Errors, failure } from '@/core/common/err.utils';
+import { Result } from '@/core/common/domain/result.pattern';
+import { Errors, failure } from '@/core/common/domain/err.utils';
 import { IUSER_REPOSITORY } from '@/module/users/domain/constants/injection.token';
 
 @Injectable()
@@ -25,7 +25,7 @@ export class UpdateUserUseCase implements IUseCase<
         },
       };
 
-    const userResult = await this.userRepo.findOne(dto.id);
+    const userResult = await this.userRepo.findById(dto.id);
 
     if (!userResult.ok) return userResult;
 

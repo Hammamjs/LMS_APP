@@ -1,11 +1,10 @@
 import { Module } from '@nestjs/common';
-import { AppController } from './app.controller';
-import { AppService } from './app.service';
 import { PrismaModule } from './core/database/prisma.module';
 import { ConfigModule, ConfigService } from '@nestjs/config';
 import { UserModule } from './module/users/user.module';
 import { AuthModule } from './module/auth/auth.module';
 import { RedisModule } from '@nestjs-modules/ioredis';
+import { CourseModule } from './module/courses/course.module';
 
 @Module({
   imports: [
@@ -20,8 +19,9 @@ import { RedisModule } from '@nestjs-modules/ioredis';
     PrismaModule,
     UserModule,
     AuthModule,
+    CourseModule,
   ],
-  controllers: [AppController],
-  providers: [AppService],
+  controllers: [],
+  providers: [],
 })
 export class AppModule {}

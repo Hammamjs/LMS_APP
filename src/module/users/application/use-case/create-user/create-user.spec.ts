@@ -1,7 +1,7 @@
 import { Test, TestingModule } from '@nestjs/testing';
 import { CreateUserUseCase } from './create-user.usecase';
 import { UserRole } from '@/module/users/domain/interface/role.interface';
-import { failure } from '@/core/common/err.utils';
+import { failure } from '@/core/common/domain/err.utils';
 import { IUSER_REPOSITORY } from '@/module/users/domain/constants/injection.token';
 import { IBCRYPT_SERVICE } from '@/module/auth/domain/constants/injection.token';
 
