@@ -48,6 +48,7 @@ model courses {
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
   category String
+  isDeleted Boolean @default(false)
 
   instructorId String
 

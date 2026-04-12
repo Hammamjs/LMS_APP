@@ -22,4 +22,14 @@ export type DomainError =
   | {
       type: 'UNAUTHORIZED';
       message: string;
+    }
+  | {
+      type: 'FORBIDDEN';
+      message: string;
     };
+
+// Factory method
+export const Result = {
+  ok: <T>(value: T): Result<T> => ({ ok: true, value }),
+  fail: <T>(error: DomainError): Result<T> => ({ ok: false, error }),
+};

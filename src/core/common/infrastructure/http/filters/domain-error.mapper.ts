@@ -1,10 +1,11 @@
-import { DomainError } from '@/core/common/result.pattern';
+import { DomainError } from '@/core/common/domain/result.pattern';
 import {
   BadRequestException,
   NotFoundException,
   InternalServerErrorException,
   ConflictException,
   UnauthorizedException,
+  ForbiddenException,
 } from '@nestjs/common';
 
 export function mapDomainErrorTOHttp(error: DomainError) {
@@ -19,5 +20,7 @@ export function mapDomainErrorTOHttp(error: DomainError) {
       return new BadRequestException(error.message);
     case 'UNAUTHORIZED':
       return new UnauthorizedException();
+    case 'FORBIDDEN':
+      return new ForbiddenException();
   }
 }

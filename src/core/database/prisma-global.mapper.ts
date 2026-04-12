@@ -1,5 +1,5 @@
 import { Prisma } from '@prisma/client';
-import { Errors, failure } from '../common/err.utils';
+import { Errors, failure } from '../common/domain/err.utils';
 
 export class ErrorMapper {
   private constructor() {}

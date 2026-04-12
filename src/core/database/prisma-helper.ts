@@ -1,8 +1,8 @@
 import {
   PaginationParams,
   PaginationResult,
-} from '../common/pagination.interface';
-import { Result } from '../common/result.pattern';
+} from '../common/domain/pagination.interface';
+import { Result } from '../common/domain/result.pattern';
 
 export async function paginate<TDomain, TPrisma>(
   params: PaginationParams & { where?: object | boolean },
