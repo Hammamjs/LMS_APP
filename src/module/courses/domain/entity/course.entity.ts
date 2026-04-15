@@ -143,6 +143,11 @@ export class Course {
     return this._copy({ isDeleted: true });
   }
 
+  // guard
+  public isOwnedBy(userId: string): boolean {
+    return this.props.instructorId === userId;
+  }
+
   private _copy(props: Partial<CourseProps>): Course {
     return new Course(
       { ...this.props, ...props, updatedAt: new Date() },

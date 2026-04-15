@@ -2,8 +2,8 @@ import { IUseCase } from '@/core/common/domain/use-case-interface';
 import { DeleteCourseParams } from './delete-course.params';
 import { Result } from '@/core/common/domain/result.pattern';
 import { Inject } from '@nestjs/common';
-import { ICOURSE_REPOSITORY } from '../../domain/constants/injection.token';
-import type { ICourseRepository } from '../../domain/repository/course.repository.interface';
+import { ICOURSE_REPOSITORY } from '../../../domain/constants/injection.token';
+import type { ICourseRepository } from '../../../domain/repository/course.repository.interface';
 import { Errors } from '@/core/common/domain/err.utils';
 
 export class DeleteCourseUseCase implements IUseCase<

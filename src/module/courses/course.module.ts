@@ -1,10 +1,10 @@
 import { Module, Provider } from '@nestjs/common';
 import { CourseFacade } from './application/course.facade';
-import { CreateCourseUseCase } from './application/create-course/create-course.usecase';
-import { DeleteCourseUseCase } from './application/delete-course/delete-course.usecase';
-import { UpdateCourseUseCase } from './application/update-course/update-course.usecase';
-import { FindCourseUseCase } from './application/find-course/find-course.usecase';
-import { FindCoursesUseCase } from './application/find-courses/find-courses.usecase';
+import { CreateCourseUseCase } from './application/usecases/create-course/create-course.usecase';
+import { DeleteCourseUseCase } from './application/usecases/delete-course/delete-course.usecase';
+import { UpdateCourseUseCase } from './application/usecases/update-course/update-course.usecase';
+import { FindCourseUseCase } from './application/usecases/find-course/find-course.usecase';
+import { FindCoursesUseCase } from './application/usecases/find-courses/find-courses.usecase';
 import { ICOURSE_REPOSITORY } from './domain/constants/injection.token';
 import { CourseRepository } from './infrastructure/course.prisma.repository';
 import { UserModule } from '../users/user.module';
@@ -30,7 +30,7 @@ const infrastructure: Provider[] = [
 
 @Module({
   imports: [UserModule, AuthModule],
-  exports: [],
+  exports: [ICOURSE_REPOSITORY],
   controllers: [CourseController],
   providers: [...usecases, ...infrastructure],
 })

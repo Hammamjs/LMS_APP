@@ -1,11 +1,11 @@
 import { Test, TestingModule } from '@nestjs/testing';
 import { UpdateCourseUseCase } from './update-course.usecase';
-import { ICOURSE_REPOSITORY } from '../../domain/constants/injection.token';
+import { ICOURSE_REPOSITORY } from '../../../domain/constants/injection.token';
 import { IUSER_REPOSITORY } from '@/module/users/domain/constants/injection.token';
 import { Result } from '@/core/common/domain/result.pattern';
 import { Errors } from '@/core/common/domain/err.utils';
-import { CourseFactory } from '@/tests/factories';
-import { CourseMapper } from '../../domain/entity/course-mapper';
+import { CourseFactory } from '@/tests';
+import { CourseMapper } from '../../mapper/course-mapper';
 
 describe('Update course test cases', () => {
   const errors = {

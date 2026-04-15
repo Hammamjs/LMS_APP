@@ -1,17 +1,17 @@
 import { IUseCase } from '@/core/common/domain/use-case-interface';
 import { CreateCourseParams } from './create-course.params';
-import { Course } from '../../domain/entity/course.entity';
+import { Course } from '../../../domain/entity/course.entity';
 import { Result } from '@/core/common/domain/result.pattern';
 import { Inject, Injectable } from '@nestjs/common';
-import { ICOURSE_REPOSITORY } from '../../domain/constants/injection.token';
-import type { ICourseRepository } from '../../domain/repository/course.repository.interface';
+import { ICOURSE_REPOSITORY } from '../../../domain/constants/injection.token';
+import type { ICourseRepository } from '../../../domain/repository/course.repository.interface';
 import { Errors, failure } from '@/core/common/domain/err.utils';
 import { IUSER_REPOSITORY } from '@/module/users/domain/constants/injection.token';
 import type { IUserRepository } from '@/module/users/domain/repositories/user.repository.interface';
 import {
   CourseMapper,
   ICourseMapperResponse,
-} from '../../domain/entity/course-mapper';
+} from '../../mapper/course-mapper';
 
 @Injectable()
 export class CreateCourseUseCase implements IUseCase<

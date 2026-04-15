@@ -16,7 +16,7 @@ import { FindCoursesDto } from './dto/find-courses.dto';
 import { CreateCourseDto } from './dto/create-course.dto';
 import { UpdateCourseDto } from './dto/update-course.dto';
 import { isUUID } from 'class-validator';
-import { FindCourseParams } from '../application/find-course/find-course.params';
+import { FindCourseParams } from '../application/usecases/find-course/find-course.params';
 import { RoleGuard, VerifyJwt } from '@/core';
 import { JwtPayload } from '@/module/auth';
 import { UserRole } from '@/module/users';
