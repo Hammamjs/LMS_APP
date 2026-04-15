@@ -5,6 +5,7 @@ import { UserModule } from './module/users/user.module';
 import { AuthModule } from './module/auth/auth.module';
 import { RedisModule } from '@nestjs-modules/ioredis';
 import { CourseModule } from './module/courses/course.module';
+import { LessonModule } from './module/lessons/lessons.module';
 
 @Module({
   imports: [
@@ -20,6 +21,7 @@ import { CourseModule } from './module/courses/course.module';
     UserModule,
     AuthModule,
     CourseModule,
+    LessonModule,
   ],
   controllers: [],
   providers: [],

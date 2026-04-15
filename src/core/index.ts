@@ -21,7 +21,7 @@ export type {
   PaginationParams,
   PaginationResult,
 } from './common/domain/pagination.interface';
-export type { DomainError, Result } from './common/domain/result.pattern';
+export { type DomainError, Result } from './common/domain/result.pattern';
 export type { IUseCase } from './common/domain/use-case-interface';
 
 // re export database utilities

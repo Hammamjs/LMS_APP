@@ -17,7 +17,7 @@ enum Role {
  Admin
 }
 
-model users {
+model Users {
  id   String   @id @default(uuid())
  email String @unique 
  username String 
@@ -32,10 +32,10 @@ model users {
  passwordUpdatedAt DateTime?
  isPasswordCodeVerified Boolean @default(false)
 
- authorCourses courses[] 
+ authorCourses Courses[] 
 }
 
-model courses {
+model Courses {
  id String  @id @default(uuid())
   title String
   price Int
@@ -53,27 +53,48 @@ model courses {
   instructorId String
 
  //  relation
- instructor users @relation(fields: [instructorId], references: [id])
- lessons  lessons[]
+ instructor Users @relation(fields: [instructorId], references: [id])
+ lessons  Lessons[]
 
  // indexing
   @@index([slug])
 }
 
-model lessons {
+model Lessons {
   id          String   @id @default(uuid())
   title       String
   video       String?  // Video URL
   sourceLink  String?  // PDF or Github links
   order       Int      // To keep lessons in the right sequence (1, 2, 3...)
   rating Int @default(0)
+  description String
+  isFree Boolean @default(false)
   
   // Foreign Key
   courseId    String
   
   // Relation back to course
-  course      courses  @relation(fields: [courseId], references: [id], onDelete: Cascade)
+  course      Courses  @relation(fields: [courseId], references: [id], onDelete: Cascade)
 
   createdAt   DateTime @default(now())
   updatedAt   DateTime @updatedAt
+}
+
+enum Status {
+ ACTIVE
+ COMPLETED
+ REFUND
+}
+
+model Enrollment {
+ id String @id @default(uuid())
+ userId String 
+ courseId String
+ createdAt DateTime @default(now())
+ enrolledAt DateTime @default(now())
+ progressPercentage Int @default(0)
+ status Status @default(ACTIVE) 
+ completedLessonsIds String[]
+
+ @@unique([userId, courseId]) 
 }
