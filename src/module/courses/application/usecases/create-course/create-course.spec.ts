@@ -1,7 +1,7 @@
 import { Test, TestingModule } from '@nestjs/testing';
 import { CreateCourseUseCase } from './create-course.usecase';
-import { ICOURSE_REPOSITORY } from '../../domain/constants/injection.token';
-import { CourseFactory } from '@/tests/factories';
+import { ICOURSE_REPOSITORY } from '../../../domain/constants/injection.token';
+import { CourseFactory } from '@/tests';
 import { Result } from '@/core/common/domain/result.pattern';
 import { Errors } from '@/core/common/domain/err.utils';
 import { IUSER_REPOSITORY } from '@/module/users/domain/constants/injection.token';

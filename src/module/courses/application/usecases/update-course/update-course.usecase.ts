@@ -4,13 +4,13 @@ import { Result } from '@/core/common/domain/result.pattern';
 import { Inject, Injectable } from '@nestjs/common';
 import { IUSER_REPOSITORY } from '@/module/users/domain/constants/injection.token';
 import type { IUserRepository } from '@/module/users/domain/repositories/user.repository.interface';
-import { ICOURSE_REPOSITORY } from '../../domain/constants/injection.token';
-import type { ICourseRepository } from '../../domain/repository/course.repository.interface';
+import { ICOURSE_REPOSITORY } from '../../../domain/constants/injection.token';
+import type { ICourseRepository } from '../../../domain/repository/course.repository.interface';
 import { Errors } from '@/core/common/domain/err.utils';
 import {
   CourseMapper,
   ICourseMapperResponse,
-} from '../../domain/entity/course-mapper';
+} from '../../mapper/course-mapper';
 
 @Injectable()
 export class UpdateCourseUseCase implements IUseCase<

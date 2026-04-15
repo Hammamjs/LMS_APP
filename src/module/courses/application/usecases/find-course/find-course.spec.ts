@@ -1,10 +1,10 @@
 import { TestingModule, Test } from '@nestjs/testing';
 import { FindCourseUseCase } from './find-course.usecase';
-import { ICOURSE_REPOSITORY } from '../../domain/constants/injection.token';
+import { ICOURSE_REPOSITORY } from '../../../domain/constants/injection.token';
 import { Result } from '@/core/common/domain/result.pattern';
 import { Errors } from '@/core/common/domain/err.utils';
-import { CourseFactory } from '@/tests/factories';
-import { CourseMapper } from '../../domain/entity/course-mapper';
+import { CourseFactory } from '@/tests';
+import { CourseMapper } from '../../mapper/course-mapper';
 
 describe('Find course use case', () => {
   let usecase: FindCourseUseCase;

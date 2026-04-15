@@ -1,9 +1,9 @@
 import { Test, TestingModule } from '@nestjs/testing';
 import { DeleteCourseUseCase } from './delete-course.usecase';
-import { ICOURSE_REPOSITORY } from '../../domain/constants/injection.token';
+import { ICOURSE_REPOSITORY } from '../../../domain/constants/injection.token';
 import { Result } from '@/core/common/domain/result.pattern';
 import { Errors } from '@/core/common/domain/err.utils';
-import { CourseFactory } from '@/tests/factories';
+import { CourseFactory } from '@/tests';
 
 describe('Delete course test cases', () => {
   let usecase: DeleteCourseUseCase;

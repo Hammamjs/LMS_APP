@@ -1,14 +1,14 @@
 import { PaginationResult } from '@/core/common/domain/pagination.interface';
 import { IUseCase } from '@/core/common/domain/use-case-interface';
 import { Inject, Injectable } from '@nestjs/common';
-import { ICOURSE_REPOSITORY } from '../../domain/constants/injection.token';
-import type { ICourseRepository } from '../../domain/repository/course.repository.interface';
+import { ICOURSE_REPOSITORY } from '../../../domain/constants/injection.token';
+import type { ICourseRepository } from '../../../domain/repository/course.repository.interface';
 import { FindCoursesParams } from './find-course.params';
 import { Result } from '@/core/common/domain/result.pattern';
 import {
   CourseMapper,
   ICourseMapperPaginationResult,
-} from '../../domain/entity/course-mapper';
+} from '../../mapper/course-mapper';
 
 @Injectable()
 export class FindCoursesUseCase implements IUseCase<

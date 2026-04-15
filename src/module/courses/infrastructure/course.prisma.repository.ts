@@ -9,7 +9,7 @@ import {
 import { paginate } from '@/core/database/prisma-helper';
 import { CourseMapper } from './mapper/course.mapper';
 import { Errors, failure } from '@/core/common/domain/err.utils';
-import { Prisma, courses as PrismaCourse } from '@prisma/client';
+import { Prisma, Courses as PrismaCourse } from '@prisma/client';
 import { ErrorMapper } from '@/core/database/prisma-global.mapper';
 import { Injectable } from '@nestjs/common';
 @Injectable()
@@ -23,7 +23,7 @@ export class CourseRepository implements ICourseRepository {
   ): Promise<Result<PaginationResult<Course>>> {
     const { limit, page, search, category, instructorId } = params;
     try {
-      const where: Prisma.coursesWhereInput = {
+      const where: Prisma.CoursesWhereInput = {
         isDeleted: false,
         // Filter by instructor
         ...(instructorId && { instructorId }),
@@ -58,12 +58,14 @@ export class CourseRepository implements ICourseRepository {
   async findById(id: string): Promise<Result<Course>> {
     try {
       const result = await this.prisma.courses.findUnique({
-        where: { id, isDeleted: true },
+        where: { id, isDeleted: false },
       });
 
       if (!result) return failure(Errors.notFound('Course not found'));
 
-      return { ok: true, value: CourseMapper.toDomain(result) };
+      const domainData = CourseMapper.toDomain(result);
+
+      return Result.ok(domainData);
     } catch (err: unknown) {
       return ErrorMapper.toResult(err, this._entityName);
     }
@@ -83,10 +85,9 @@ export class CourseRepository implements ICourseRepository {
           where: { id: props.getId() },
         });
 
-      return {
-        ok: true,
-        value: CourseMapper.toDomain(data),
-      };
+      const domain = CourseMapper.toDomain(data);
+
+      return Result.ok(domain);
     } catch (err: unknown) {
       return ErrorMapper.toResult(err, this._entityName);
     }
@@ -98,10 +99,9 @@ export class CourseRepository implements ICourseRepository {
 
       if (!result) return failure(Errors.notFound('Course not found'));
 
-      return {
-        ok: true,
-        value: CourseMapper.toDomain(result),
-      };
+      const domain = CourseMapper.toDomain(result);
+
+      return Result.ok(domain);
     } catch (err: unknown) {
       console.error(err);
       return ErrorMapper.toResult(err, this._entityName);
@@ -159,10 +159,7 @@ export class CourseRepository implements ICourseRepository {
       if (!result)
         return failure(Errors.notFound('Course not found operation failed'));
 
-      return {
-        ok: true,
-        value: undefined,
-      };
+      return Result.ok(undefined);
     } catch (err: unknown) {
       return ErrorMapper.toResult(err, this._entityName);
     }
