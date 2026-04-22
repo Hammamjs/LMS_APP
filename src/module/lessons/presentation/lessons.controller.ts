@@ -27,8 +27,9 @@ export class LessonController {
   }
 
   @Get(':id')
-  async findOne(@Param('id') id: string) {
-    return await this.lesson.findOne.execute(id);
+  async findOne(@Param('id') id: string, @Req() req: Request) {
+    const { id: userId } = req['user'] as JwtPayload;
+    return await this.lesson.findOne.execute({ id, userId });
   }
 
   @Post()

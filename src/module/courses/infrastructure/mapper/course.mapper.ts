@@ -1,4 +1,4 @@
-import { courses as PrismaCourse } from '@prisma/client';
+import { Courses as PrismaCourse } from '@prisma/client';
 import { Course } from '../../domain/entity/course.entity';
 export class CourseMapper {
   private constructor() {}

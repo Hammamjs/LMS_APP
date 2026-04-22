@@ -9,19 +9,30 @@ import { ILESSON_REPOSITORY } from './domain/constants/token.injection';
 import { JwtModule } from '@nestjs/jwt';
 import { FindLessonUseCase } from './application/usecases/find-lesson/find-lesson.usecase';
 import { FindLessonsUseCase } from './application/usecases/find-lessons/find-lessons.usecase';
+import { DeleteLessonUseCase } from './application/usecases/delete-lesson/delete-lesson.usecase';
+import { UpdateLessonUseCase } from './application/usecases/update-lesson/update-lesson.usecase';
+import { EnrollmentPrimsaRepository } from '../enrollment/infrastructure/enrollement.prisma.repository';
+import { IENROLLMENT_REPOSITORY } from '../enrollment';
 
 const usecase: Provider[] = [
   CreateLessonUsecase,
   FindLessonUseCase,
   FindLessonsUseCase,
+  DeleteLessonUseCase,
+  UpdateLessonUseCase,
   LessonFacade,
 ];
 
 const infrastructure: Provider[] = [
   LessonPrismaRepository,
+  EnrollmentPrimsaRepository,
   {
     provide: ILESSON_REPOSITORY,
     useClass: LessonPrismaRepository,
+  },
+  {
+    provide: IENROLLMENT_REPOSITORY,
+    useClass: EnrollmentPrimsaRepository,
   },
 ];
 

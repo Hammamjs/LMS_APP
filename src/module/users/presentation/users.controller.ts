@@ -26,8 +26,7 @@ export class UserController {
 
     if (!result.ok) throw new DomainException(result.error);
 
-    const users = result.value.data.map((u) => UserResponse.from(u));
-    return { data: users, meta: result.value.meta };
+    return result;
   }
 
   @Get('/:id')
