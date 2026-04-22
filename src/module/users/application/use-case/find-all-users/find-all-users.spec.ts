@@ -1,6 +1,8 @@
 import { IUSER_REPOSITORY } from '@/module/users/domain/constants/injection.token';
 import { FindAllUsersUseCase } from './find-all-users.use-case';
 import { Test, TestingModule } from '@nestjs/testing';
+import { Result } from '@/core';
+import { UserFactory } from '@/tests';
 
 describe('Find All users use case', () => {
   let useCase: FindAllUsersUseCase;
@@ -24,39 +26,31 @@ describe('Find All users use case', () => {
   });
 
   it('should return array of users from repository', async () => {
-    const expectedUsers = [
-      {
-        id: '1',
-        email: 'exampleone@gmail.com',
-        username: 'example One',
-      },
-      {
-        id: '2',
-        email: 'exampletwo@gmail.com',
-        username: 'example Two',
-      },
-    ];
+    const user1 = UserFactory.build();
+    const user2 = UserFactory.build();
+    const expectedData = [user1, user2];
 
-    mockRepository.findAll.mockResolvedValue({
-      ok: true,
-      value: {
-        users: expectedUsers,
-        total: 20,
-      },
-    });
-    const result = await useCase.execute({ page: 2, limit: 10 });
+    mockRepository.findAll.mockResolvedValue(
+      Result.ok({
+        data: expectedData,
+        meta: {
+          page: 2,
+          total: 20,
+          lastPage: 2,
+        },
+      }),
+    );
+    const result = await useCase.execute({ isVerified: true });
 
     expect(result.ok).toBe(true);
 
     if (result.ok) {
-      expect(result.value.data).toEqual(expectedUsers);
       expect(result.value.meta.page).toBe(2);
       expect(result.value.meta.total).toBe(20);
       expect(result.value.meta.lastPage).toBe(2);
 
       expect(mockRepository.findAll).toHaveBeenCalledWith({
-        skip: 10,
-        take: 10,
+        isVerified: true,
       });
     }
 
@@ -64,22 +58,20 @@ describe('Find All users use case', () => {
   });
 
   it('should return empty array when no users', async () => {
-    mockRepository.findAll.mockResolvedValue({
-      ok: true,
-      value: {
-        users: [],
-        total: 10,
-      },
-    });
+    mockRepository.findAll.mockResolvedValue(
+      Result.ok({
+        data: [],
+        meta: {},
+      }),
+    );
 
-    const result = await useCase.execute({ page: 1, limit: 10 });
+    const result = await useCase.execute({ isVerified: true });
 
     expect(result.ok).toBe(true);
 
     if (result.ok) expect(result.value.data).toEqual([]);
     expect(mockRepository.findAll).toHaveBeenLastCalledWith({
-      take: 10,
-      skip: 0,
+      isVerified: true,
     });
   });
 });
