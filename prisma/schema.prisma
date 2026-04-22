@@ -72,6 +72,8 @@ model Lessons {
   
   // Foreign Key
   courseId    String
+  // is deleted for soft deletion
+  isDeleted Boolean @default(false)
   
   // Relation back to course
   course      Courses  @relation(fields: [courseId], references: [id], onDelete: Cascade)
@@ -97,4 +99,38 @@ model Enrollment {
  completedLessonsIds String[]
 
  @@unique([userId, courseId]) 
+}
+
+enum PaymenStatus {
+ SUCCESS
+ FAILED
+ PENDING
+}
+
+
+enum PaymentProvider {
+ BANK
+ STRIPE
+}
+
+model Payment {
+ id String @id @default(uuid())
+ userId String
+ amount Float
+ status PaymenStatus
+ courseId String
+ paymentId String
+ provider PaymentProvider @default(BANK)
+ createdAt DateTime @default(now()) 
+}
+
+
+model Notification {
+ id String @id @default(uuid())
+ userId String
+ text String
+ title String
+ read Boolean @default(false)
+ createdAt DateTime @default(now())
+ isDeleted Boolean @default(false)
 }
