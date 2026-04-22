@@ -1,15 +1,15 @@
 import { Injectable } from '@nestjs/common';
-import { IOTPRepository } from '../../domain/repository/otp.repsoitory.interface';
+import { ICacheRepository } from '../../domain/repository/cache.repsoitory.interface';
 import { InjectRedis } from '@nestjs-modules/ioredis';
 import Redis from 'ioredis';
 import { Result } from '@/core/common/domain/result.pattern';
 import { Errors, failure } from '@/core/common/domain/err.utils';
 
 @Injectable()
-export class RedisOTPRepository implements IOTPRepository {
+export class RedisCacheRepository implements ICacheRepository {
   constructor(@InjectRedis() private readonly redis: Redis) {}
 
-  async getResetCode(key: string): Promise<Result<string | null>> {
+  async get(key: string): Promise<Result<string | null>> {
     try {
       const result = await this.redis.get(key);
       return {
@@ -21,7 +21,7 @@ export class RedisOTPRepository implements IOTPRepository {
     }
   }
 
-  async setResetCode(
+  async set(
     key: string,
     code: string,
     ttlSeconds: number,
@@ -37,7 +37,7 @@ export class RedisOTPRepository implements IOTPRepository {
     }
   }
 
-  async delResetCode(key: string): Promise<Result<void>> {
+  async del(key: string): Promise<Result<void>> {
     try {
       await this.redis.del(key);
       return {
@@ -46,6 +46,20 @@ export class RedisOTPRepository implements IOTPRepository {
       };
     } catch {
       return failure(Errors.internal('Redis connection failed'));
+    }
+  }
+
+  async setNx(
+    key: string,
+    value: string,
+    ttlSeconds: number,
+  ): Promise<Result<boolean>> {
+    try {
+      const result = await this.redis.set(key, value, 'EX', ttlSeconds, 'NX');
+
+      return Result.ok(result == 'OK');
+    } catch {
+      return failure(Errors.internal('Redis failed to save'));
     }
   }
 }

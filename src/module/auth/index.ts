@@ -5,7 +5,7 @@ export {
   IBCRYPT_SERVICE,
   IEMAIL_SERVICE,
   IJWTTOKEN_SERVICE,
-  IOTP_REPOSITORY,
+  ICACHE_REPOSITORY,
 } from './domain/constants/injection.token';
 
 // this export jwt services as type

@@ -6,7 +6,7 @@ import type { IBcryptService } from '../../../domain/service/bcrypt.service.inte
 import type { IJWTTokenService } from '../../../domain/service/token.service.interface';
 import type { IUserRepository } from '@/module/users/domain/repositories/user.repository.interface';
 import { Inject, Injectable } from '@nestjs/common';
-import { Errors, failure } from '@/core/common/domain/err.utils';
+import { Errors } from '@/core/common/domain/err.utils';
 import { ConfigService } from '@nestjs/config';
 import { IUSER_REPOSITORY } from '@/module/users/domain/constants/injection.token';
 import {
@@ -35,13 +35,14 @@ export class SignInUseCase implements IUseCase<
     Result<{ user: User; accessToken: string; refreshToken: string }>
   > {
     const userResult = await this.userRepo.findByEmail(dto.email);
+    console.log(userResult);
 
     if (!userResult.ok) return userResult;
 
     const rawUser = userResult.value;
 
     if (!rawUser.getIsVerified())
-      return failure(Errors.validation('Email not verified'));
+      return Result.fail(Errors.validation('Email not verified'));
 
     // Compare passwords
     const isMatch = await this.bcrypteService.compare(
@@ -50,10 +51,12 @@ export class SignInUseCase implements IUseCase<
     );
 
     if (!isMatch)
-      return failure(Errors.validation('Incorrect Email or password'));
+      return Result.fail(Errors.validation('Incorrect Email or password'));
 
     if (!rawUser.getId())
-      return failure(Errors.internal('Pleas re-loggin internal issue occur'));
+      return Result.fail(
+        Errors.internal('Pleas re-loggin internal issue occur'),
+      );
 
     // we need to issue token for sign in user
     // if the user reach this point
@@ -86,9 +89,6 @@ export class SignInUseCase implements IUseCase<
 
     await this.userRepo.save(updatedUser);
 
-    return {
-      ok: true,
-      value: { user: updatedUser, accessToken, refreshToken },
-    };
+    return Result.ok({ user: updatedUser, accessToken, refreshToken });
   }
 }

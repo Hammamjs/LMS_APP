@@ -25,5 +25,5 @@ export interface EnrollmentProps {
 
 export interface EnrollmentPaginationResult extends PaginationParams {
   userId: string;
-  courseId: string;
+  courseId?: string;
 }

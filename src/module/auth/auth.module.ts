@@ -16,12 +16,12 @@ import {
   IBCRYPT_SERVICE,
   IEMAIL_SERVICE,
   IJWTTOKEN_SERVICE,
-  IOTP_REPOSITORY,
+  ICACHE_REPOSITORY,
   SignInUseCase,
 } from './index';
-import { AuthSendEmail } from './application/usecases/event-handler/auth-email-handler';
+import { AuthSendEmail } from './application/handler/auth-email-handler';
 import { NodemailerService } from './infrastructure/security/email.service';
-import { RedisOTPRepository } from './infrastructure/repository/redis-otp.repository';
+import { RedisCacheRepository } from './infrastructure/repository/redis-cache.repository';
 import { CqrsModule } from '@nestjs/cqrs';
 
 const useCases: Provider[] = [
@@ -43,7 +43,7 @@ const infrastructure: Provider[] = [
   BcryptService,
   TokenService,
   NodemailerService,
-  RedisOTPRepository,
+  RedisCacheRepository,
 
   {
     useExisting: BcryptService,
@@ -58,8 +58,8 @@ const infrastructure: Provider[] = [
     provide: IEMAIL_SERVICE,
   },
   {
-    useExisting: RedisOTPRepository,
-    provide: IOTP_REPOSITORY,
+    useExisting: RedisCacheRepository,
+    provide: ICACHE_REPOSITORY,
   },
 ];
 

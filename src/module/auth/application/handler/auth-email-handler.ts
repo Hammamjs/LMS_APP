@@ -26,11 +26,7 @@ export class AuthSendEmail implements IEventHandler<
   async handle(event: EventType) {
     const subject = this._getSubject(event);
     try {
-      await this.emailService.send(
-        event.email,
-        subject,
-        `Your new code is <br /> ${event.code} <br /> it valid only for 10 min`,
-      );
+      await this.emailService.send(event.email, subject, event.code);
     } catch {
       // return failure(Errors.internal(`Failed send code to ${event.email}`));
       // This event is fire and forgot so we need to log error
