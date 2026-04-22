@@ -107,12 +107,13 @@ export class NotificationPrismaRepository implements INotificationSystemReposito
 
   async deleteAll(ids: string[]): Promise<Result<void>> {
     try {
-      const result = await this._db.notification.deleteMany({
+      const result = await this._db.notification.updateMany({
         where: {
           id: {
             in: ids,
           },
         },
+        data: { isDeleted: true },
       });
 
       if (!result.count)

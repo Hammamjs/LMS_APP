@@ -33,7 +33,7 @@ export class Notification {
   }
 
   public withTitle(title: string): Notification {
-    if (!title && title.trim() == '') throw new Error('Title is required');
+    if (!title || title.trim() == '') throw new Error('Title is required');
     title = title.trim();
     return this._copy({ title });
   }
@@ -53,7 +53,7 @@ export class Notification {
   }
 
   markAsDeleted(): Notification {
-    return this._copy({ isDeleted: false });
+    return this._copy({ isDeleted: true });
   }
 
   public markAsRead(): Notification {
