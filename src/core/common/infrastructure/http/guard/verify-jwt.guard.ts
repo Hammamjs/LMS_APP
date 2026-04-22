@@ -40,6 +40,8 @@ export class VerifyJwt implements CanActivate {
       request.headers.authorization ||
       (request.headers['authorization'] as string);
 
+    if (!authHeader) return undefined;
+
     const [type, token] = authHeader.split(' ');
 
     return type === 'Bearer' ? token : undefined;

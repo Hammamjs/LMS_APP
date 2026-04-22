@@ -6,6 +6,9 @@ import { AuthModule } from './module/auth/auth.module';
 import { RedisModule } from '@nestjs-modules/ioredis';
 import { CourseModule } from './module/courses/course.module';
 import { LessonModule } from './module/lessons/lessons.module';
+import { PaymentModule } from './module/payment/payment.module';
+import { EnrollmentModule } from './module/enrollment/enrollment.module';
+import { NotificationModule } from './module/notification/notification.module';
 
 @Module({
   imports: [
@@ -22,6 +25,9 @@ import { LessonModule } from './module/lessons/lessons.module';
     AuthModule,
     CourseModule,
     LessonModule,
+    PaymentModule,
+    EnrollmentModule,
+    NotificationModule,
   ],
   controllers: [],
   providers: [],
