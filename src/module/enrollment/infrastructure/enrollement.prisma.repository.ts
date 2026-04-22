@@ -5,20 +5,31 @@ import {
   PaginationResult,
   PrismaService,
   Result,
+  TransactionContext,
 } from '@/core';
 import { IEnrollmentRepository } from '../domain/repository/enrollment.repository.interface';
 import { Enrollment } from '../domain/entity/enrollment.entity';
 import { EnrollmentMapper } from './mapper/enrollment.mapper';
 import { EnrollmentPaginationResult } from '../domain/entity/enrollment.types';
 import { Prisma, Enrollment as PrismaEnrollment } from '@prisma/client';
+import { Injectable } from '@nestjs/common';
 
+@Injectable()
 export class EnrollmentPrimsaRepository implements IEnrollmentRepository {
   private _entityName = 'Enrollment';
-  constructor(private readonly prisma: PrismaService) {}
+  constructor(
+    private readonly prisma: PrismaService,
+    private readonly context: TransactionContext,
+  ) {}
+
+  private get _db() {
+    const store = this.context.getStore();
+    return store?.tx || this.prisma;
+  }
 
   async findById(id: string): Promise<Result<Enrollment>> {
     try {
-      const result = await this.prisma.enrollment.findFirst({ where: { id } });
+      const result = await this._db.enrollment.findFirst({ where: { id } });
 
       if (!result) return Result.fail(Errors.notFound('No enrollment found'));
       const toDomain = EnrollmentMapper.toDomain(result);
@@ -39,8 +50,8 @@ export class EnrollmentPrimsaRepository implements IEnrollmentRepository {
     try {
       const paginationData = await paginate(
         { page, limit },
-        (args) => this.prisma.enrollment.findMany({ ...args, where }),
-        (args) => this.prisma.enrollment.count({ ...args, where }),
+        (args) => this._db.enrollment.findMany({ ...args, where }),
+        (args) => this._db.enrollment.count({ ...args, where }),
         (row) => EnrollmentMapper.toDomain(row),
       );
 
@@ -58,7 +69,7 @@ export class EnrollmentPrimsaRepository implements IEnrollmentRepository {
     courseId: string,
   ): Promise<Result<Enrollment>> {
     try {
-      const result = await this.prisma.enrollment.findUnique({
+      const result = await this._db.enrollment.findUnique({
         where: {
           userId_courseId: { userId, courseId },
         },
@@ -78,11 +89,11 @@ export class EnrollmentPrimsaRepository implements IEnrollmentRepository {
     let data: PrismaEnrollment;
     try {
       if (enrollment.isNew) {
-        data = await this.prisma.enrollment.create({
+        data = await this._db.enrollment.create({
           data: enrollment.toPersistence(),
         });
       } else {
-        data = await this.prisma.enrollment.update({
+        data = await this._db.enrollment.update({
           where: { id: enrollment.getId() },
           data: enrollment.toPersistence(),
         });

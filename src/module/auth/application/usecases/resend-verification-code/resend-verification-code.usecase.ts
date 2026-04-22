@@ -3,8 +3,8 @@ import { IUSER_REPOSITORY } from '@/module/users/domain/constants/injection.toke
 import type { IUserRepository } from '@/module/users/domain/repositories/user.repository.interface';
 import { Result } from '@/core/common/domain/result.pattern';
 import { Inject, Injectable } from '@nestjs/common';
-import { IOTP_REPOSITORY } from '../../../domain/constants/injection.token';
-import type { IOTPRepository } from '../../../domain/repository/otp.repsoitory.interface';
+import { ICACHE_REPOSITORY } from '../../../domain/constants/injection.token';
+import type { ICacheRepository } from '../../../domain/repository/cache.repsoitory.interface';
 import { Errors, failure } from '@/core/common/domain/err.utils';
 import { createHash } from 'crypto';
 import { ResendVerificaionCodeParam } from './resend-verification-code.param';
@@ -18,7 +18,7 @@ export class ResendVerificationCodeUseCase implements IUseCase<
 > {
   constructor(
     @Inject(IUSER_REPOSITORY) private readonly userRepo: IUserRepository,
-    @Inject(IOTP_REPOSITORY) private readonly otpRepository: IOTPRepository,
+    @Inject(ICACHE_REPOSITORY) private readonly cacheRepo: ICacheRepository,
     private readonly eventPublisher: EventBus,
   ) {}
 
@@ -40,11 +40,7 @@ export class ResendVerificationCodeUseCase implements IUseCase<
 
     // save it to redis and send code in user email
 
-    await this.otpRepository.setResetCode(
-      `verify:${user.getId()}`,
-      hashedNewCode,
-      600,
-    );
+    await this.cacheRepo.set(`verify:${user.getId()}`, hashedNewCode, 600);
 
     // Trigger event
     this.eventPublisher.publish(

@@ -47,6 +47,14 @@ export class Enrollment {
     return this.props.status;
   }
 
+  public getEnrolledAt(): Date {
+    return this.props.enrolledAt;
+  }
+
+  public getCreatedAt(): Date {
+    return this.props.createdAt;
+  }
+
   public isActive(): boolean {
     return this.props.status == 'ACTIVE';
   }
