@@ -12,7 +12,7 @@ import {
 import { Lesson } from '../domain/entity/lesson.entity';
 import { Prisma } from '@prisma/client';
 import { LessonMapper } from './mapper/lesson.mapper';
-import { lessons as PrismaLesson } from '@prisma/client';
+import { Lessons as PrismaLesson } from '@prisma/client';
 import { LessonPaginationParams } from '../domain/lesson.type';
 
 @Injectable()
@@ -30,7 +30,7 @@ export class LessonPrismaRepository implements ILessonRepository {
   ): Promise<Result<PaginationResult<Lesson>>> {
     try {
       const { search, limit, page, courseId } = params;
-      const where: Prisma.lessonsWhereInput = {
+      const where: Prisma.LessonsWhereInput = {
         ...(courseId && { courseId }),
         ...(search && {
           title: {
