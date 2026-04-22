@@ -14,7 +14,7 @@ export class UpdateNotificationsUseCase implements IUseCase<
   ) {}
 
   async execute(params: string[]): Promise<Result<void>> {
-    if (!params || params.length)
+    if (!params || !params.length)
       return Result.fail(Errors.validation('No notification IDs provided'));
 
     return await this.notificationRepo.markAllAsRead(params);

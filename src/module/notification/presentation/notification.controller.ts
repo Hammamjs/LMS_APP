@@ -3,6 +3,7 @@ import {
   Controller,
   Delete,
   Get,
+  Param,
   Patch,
   Query,
   Req,
@@ -34,7 +35,7 @@ export class NotificationController {
   }
 
   @Get(':id')
-  async findOne(@Query() dto: NotificationIdDto) {
+  async findOne(@Param() dto: NotificationIdDto) {
     return await this.notificationFacade.getNotification.execute(dto.id);
   }
 
