@@ -14,6 +14,9 @@ import { PaymentModule } from './module/payment/payment.module';
 import { EnrollmentModule } from './module/enrollment/enrollment.module';
 import { NotificationModule } from './module/notification/notification.module';
 import { ThrottlerModule } from '@nestjs/throttler';
+<<<<<<< Updated upstream
+>>>>>>> Stashed changes
+=======
 >>>>>>> Stashed changes
 
 @Module({
@@ -42,6 +45,9 @@ import { ThrottlerModule } from '@nestjs/throttler';
         limit: 10,
       },
     ]),
+<<<<<<< Updated upstream
+>>>>>>> Stashed changes
+=======
 >>>>>>> Stashed changes
   ],
   controllers: [AppController],

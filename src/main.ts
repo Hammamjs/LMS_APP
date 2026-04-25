@@ -7,10 +7,15 @@ import cookieParser from 'cookie-parser';
 =======
 import { ResultInterceptor, DomainExceptionFilter } from './core';
 import { corsOption } from './core/common/infrastructure/config/cors-option';
+<<<<<<< Updated upstream
+>>>>>>> Stashed changes
+=======
 >>>>>>> Stashed changes
 
 async function bootstrap() {
   const app = await NestFactory.create(AppModule);
+
+  app.enableCors(corsOption);
 
   app.enableCors(corsOption);
 
