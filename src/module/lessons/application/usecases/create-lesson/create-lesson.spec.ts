@@ -5,18 +5,23 @@ import { IUSER_REPOSITORY, UserRole } from '@/module/users';
 import { ILESSON_REPOSITORY } from '@/module/lessons/domain/constants/token.injection';
 import { Errors, Result } from '@/core';
 import { CourseFactory, UserFactory } from '@/tests';
+import { EventBus } from '@nestjs/cqrs';
 
 describe('Create lesson test cases', () => {
   let usecase: CreateLessonUsecase;
 
   let mockUserRepo: { findById: jest.Mock },
     mockLessonRepo: { save: jest.Mock; findLastOrderByCourse: jest.Mock },
-    mockCourseRepo: { findById: jest.Mock };
+    mockCourseRepo: { findById: jest.Mock },
+    mockEventBus: {
+      publish: jest.Mock;
+    };
 
   beforeEach(async () => {
     mockUserRepo = { findById: jest.fn() };
     mockLessonRepo = { findLastOrderByCourse: jest.fn(), save: jest.fn() };
     mockCourseRepo = { findById: jest.fn() };
+    mockEventBus = { publish: jest.fn() };
 
     const module: TestingModule = await Test.createTestingModule({
       providers: [
@@ -32,6 +37,10 @@ describe('Create lesson test cases', () => {
         {
           provide: ILESSON_REPOSITORY,
           useValue: mockLessonRepo,
+        },
+        {
+          provide: EventBus,
+          useValue: mockEventBus,
         },
       ],
     }).compile();
