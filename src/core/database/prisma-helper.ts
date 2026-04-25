@@ -1,8 +1,8 @@
 import {
   PaginationParams,
   PaginationResult,
-} from '../common/domain/pagination.interface';
-import { Result } from '../common/domain/result.pattern';
+} from '../common/pagination.interface';
+import { Result } from '../common/result.pattern';
 
 export async function paginate<TDomain, TPrisma>(
   params: PaginationParams & { where?: object | boolean },
@@ -27,19 +27,21 @@ export async function paginate<TDomain, TPrisma>(
     }),
   ]);
 
-  const lastPage = Math.ceil(total / limit);
-  const hasNext = page < lastPage;
+  const hasNext = page < total;
   const hasPrev = page > 1;
 
-  return Result.ok({
-    data: items.map(mapper),
-    meta: {
-      hasNext,
-      hasPrev,
-      total,
-      page,
-      limit,
-      lastPage,
+  return {
+    ok: true,
+    value: {
+      data: items.map(mapper),
+      meta: {
+        hasNext,
+        hasPrev,
+        total,
+        page,
+        limit,
+        lastPage: Math.ceil(total / limit),
+      },
     },
-  });
+  };
 }

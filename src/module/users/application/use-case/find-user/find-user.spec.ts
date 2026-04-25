@@ -4,10 +4,10 @@ import { IUSER_REPOSITORY } from '@/module/users/domain/constants/injection.toke
 
 describe('Find unique user', () => {
   let useCase: FindUserUseCase;
-  let mockRepository: { findById: jest.Mock<any, any, any> };
+  let mockRepository: { findOne: jest.Mock<any, any, any> };
 
   beforeEach(async () => {
-    mockRepository = { findById: jest.fn() };
+    mockRepository = { findOne: jest.fn() };
     const module: TestingModule = await Test.createTestingModule({
       providers: [
         FindUserUseCase,
@@ -27,16 +27,16 @@ describe('Find unique user', () => {
       email: 'exampleone@email.com',
     };
 
-    mockRepository.findById.mockResolvedValue(user);
+    mockRepository.findOne.mockResolvedValue(user);
 
     const result = await useCase.execute('1');
 
     if (result.ok) expect(result.value).toBe(user);
-    expect(mockRepository.findById).toHaveBeenCalledTimes(1);
+    expect(mockRepository.findOne).toHaveBeenCalledTimes(1);
   });
 
   it('should return null if the id mismatch', async () => {
-    mockRepository.findById.mockResolvedValue({ ok: true, value: null });
+    mockRepository.findOne.mockResolvedValue({ ok: true, value: null });
 
     const result = await useCase.execute('4');
 
@@ -47,15 +47,15 @@ describe('Find unique user', () => {
         message: 'User not found',
       });
 
-    expect(mockRepository.findById).toHaveBeenCalledTimes(1);
+    expect(mockRepository.findOne).toHaveBeenCalledTimes(1);
   });
 
   it('should return error message when connection fails', async () => {
-    mockRepository.findById.mockRejectedValue(
+    mockRepository.findOne.mockRejectedValue(
       new Error('Faild to load user connection issue'),
     );
 
-    await expect(mockRepository.findById).rejects.toThrow(
+    await expect(mockRepository.findOne).rejects.toThrow(
       'Faild to load user connection issue',
     );
   });

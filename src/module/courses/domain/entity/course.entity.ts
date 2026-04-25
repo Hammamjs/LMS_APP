@@ -1,4 +1,4 @@
-import { CourseProps, CourseState, ExcludedFields } from '../course.types';
+import { CourseProps, CourseState } from '../course.types';
 import { InvalidCourseHours } from '../errors/invalid-course-hours.error';
 import { InvalidDescription } from '../errors/invalid-description.error';
 import { InvalidPrice } from '../errors/invalid-price.error';
@@ -12,8 +12,9 @@ export class Course {
     public readonly isNew: boolean,
   ) {}
 
-  public static create(props: Omit<CourseProps, ExcludedFields>): Course {
-    const slug = this._convertToslug(props.title);
+  public static create(
+    props: Omit<CourseProps, 'createdAt' | 'updatedAt'>,
+  ): Course {
     return new Course(
       {
         ...props,
@@ -21,9 +22,6 @@ export class Course {
         rating: 0,
         createdAt: new Date(),
         updatedAt: new Date(),
-        purchaseCount: 0,
-        slug,
-        isDeleted: false,
       },
       true,
     );
@@ -82,21 +80,17 @@ export class Course {
     return this.props.category;
   }
 
-  public getImage(): string | null {
-    return this.props.image;
-  }
-
   public withTitle(title: string): Course {
     if (!title || title == '') throw new InvalidTitle();
 
-    const newSlug = Course._convertToslug(title);
+    const newSlug = this._convertToslug(title);
 
-    return this._copy({ title, slug: newSlug });
+    return this.copy({ title, slug: newSlug });
   }
 
   public withDescription(description: string): Course {
     if (!description || description == '') throw new InvalidDescription();
-    return this._copy({ description });
+    return this.copy({ description });
   }
 
   public withPrice(price: number): Course {
@@ -105,50 +99,37 @@ export class Course {
 
     if (price < 0) throw new InvalidPrice();
 
-    return this._copy({ price });
+    return this.copy({ price });
   }
 
   public recordPurchase(): Course {
-    return this._copy({ purchaseCount: this.props.purchaseCount + 1 });
+    return this.copy({ purchaseCount: this.props.purchaseCount + 1 });
   }
 
   public withCourseHours(hours: number): Course {
     if (typeof hours !== 'number') throw new InvalidCourseHours();
     if (hours < 0) throw new InvalidCourseHours(this.NEG_NOT_ALLOWED);
-    return this._copy({ hours });
+    return this.copy({ hours });
   }
 
   public applyRating(rating: number): Course {
     if (rating > 5 || rating < 0)
       throw new Error('Rating cannot be greater than 5 or less than 0');
-    return this._copy({ rating });
+    return this.copy({ rating });
   }
 
-  public updateImage(src: string | null): Course {
-    if (!src || src.trim() == '') return this._copy({ image: null });
-    return this._copy({ image: src });
+  public updateImage(src: string): Course {
+    if (!src || src.trim() == '') throw new Error('Invalid image');
+    return this.copy({ image: src });
   }
 
   public setCategory(category: string): Course {
     category = category.trim();
     if (!category || category == '') throw new Error('Category is required');
-    return this._copy({ category });
+    return this.copy({ category });
   }
 
-  // soft deletion
-  public withSoftDeletion(userId: string): Course {
-    if (userId !== this.props.instructorId || !this.getInstructor())
-      throw new Error("You don't have permission to perform this operation");
-
-    return this._copy({ isDeleted: true });
-  }
-
-  // guard
-  public isOwnedBy(userId: string): boolean {
-    return this.props.instructorId === userId;
-  }
-
-  private _copy(props: Partial<CourseProps>): Course {
+  public copy(props: Partial<CourseProps>): Course {
     return new Course(
       { ...this.props, ...props, updatedAt: new Date() },
       this.isNew,
@@ -173,7 +154,7 @@ export class Course {
     };
   }
 
-  private static _convertToslug(slug: string): string {
+  private _convertToslug(slug: string): string {
     return slug
       .toLocaleLowerCase()
       .trim()

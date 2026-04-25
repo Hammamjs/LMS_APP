@@ -11,8 +11,8 @@ export class EmailVerification {
   @IsString()
   @MaxLength(6)
   @MinLength(6)
-  code!: string;
+  code: string;
 
   @IsEmail()
-  email!: string;
+  email: string;
 }

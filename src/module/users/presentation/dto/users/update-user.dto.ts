@@ -3,22 +3,22 @@ import { IsEmail, IsEnum, IsOptional, IsUUID } from 'class-validator';
 
 export class UpdateUserDto {
   @IsUUID()
-  id!: string;
+  id: string;
 
   @IsOptional()
   @IsEmail()
-  email?: string;
+  email: string;
 
   @IsOptional()
-  username!: string;
+  username: string;
 
   @IsOptional()
   @IsEnum(UserRole)
-  role?: UserRole;
+  role: UserRole;
 
   @IsOptional()
-  phone?: string | undefined;
+  phone: string | undefined;
 
   @IsOptional()
-  isVerified?: boolean;
+  isVerified: boolean;
 }

@@ -1,51 +1,34 @@
 import { PrismaService } from '@/core/database/prisma.service';
 import { ICourseRepository } from '../domain/repository/course.repository.interface';
-import { Result } from '@/core/common/domain/result.pattern';
+import { Result } from '@/core/common/result.pattern';
 import { Course } from '../domain/entity/course.entity';
 import {
   PaginationParams,
   PaginationResult,
-} from '@/core/common/domain/pagination.interface';
+} from '@/core/common/pagination.interface';
 import { paginate } from '@/core/database/prisma-helper';
 import { CourseMapper } from './mapper/course.mapper';
-import { Errors, failure } from '@/core/common/domain/err.utils';
-import { Prisma, Courses as PrismaCourse } from '@prisma/client';
+import { Errors, failure } from '@/core/common/err.utils';
+import { courses as PrismaCourse } from '@prisma/client';
 import { ErrorMapper } from '@/core/database/prisma-global.mapper';
-import { Injectable } from '@nestjs/common';
-@Injectable()
+
 export class CourseRepository implements ICourseRepository {
   constructor(private readonly prisma: PrismaService) {}
 
   readonly _entityName: string = 'Courses';
 
   async findAll(
-    params: PaginationParams,
+    params?: PaginationParams,
   ): Promise<Result<PaginationResult<Course>>> {
-    const { limit, page, search, category, instructorId } = params;
     try {
-      const where: Prisma.CoursesWhereInput = {
-        isDeleted: false,
-        // Filter by instructor
-        ...(instructorId && { instructorId }),
-        // Filter by category
-        ...(category && { category }),
-        ...(search && {
-          title: {
-            mode: 'insensitive',
-            contains: search,
-          },
-        }),
-      };
-
       const paginationData = await paginate(
-        { limit, page },
+        params ?? { limit: 20, page: 1 },
         (args) =>
           this.prisma.courses.findMany({
             ...args,
-            where,
             orderBy: { createdAt: 'desc' },
           }),
-        (args) => this.prisma.courses.count({ ...args, where }),
+        (args) => this.prisma.courses.count({ ...args }),
         (row) => CourseMapper.toDomain(row),
       );
 
@@ -57,15 +40,11 @@ export class CourseRepository implements ICourseRepository {
 
   async findById(id: string): Promise<Result<Course>> {
     try {
-      const result = await this.prisma.courses.findUnique({
-        where: { id, isDeleted: false },
-      });
+      const result = await this.prisma.courses.findUnique({ where: { id } });
 
       if (!result) return failure(Errors.notFound('Course not found'));
 
-      const domainData = CourseMapper.toDomain(result);
-
-      return Result.ok(domainData);
+      return { ok: true, value: CourseMapper.toDomain(result) };
     } catch (err: unknown) {
       return ErrorMapper.toResult(err, this._entityName);
     }
@@ -85,23 +64,24 @@ export class CourseRepository implements ICourseRepository {
           where: { id: props.getId() },
         });
 
-      const domain = CourseMapper.toDomain(data);
-
-      return Result.ok(domain);
+      return {
+        ok: true,
+        value: CourseMapper.toDomain(data),
+      };
     } catch (err: unknown) {
       return ErrorMapper.toResult(err, this._entityName);
     }
   }
-
   async findBySlug(slug: string): Promise<Result<Course>> {
     try {
       const result = await this.prisma.courses.findUnique({ where: { slug } });
 
       if (!result) return failure(Errors.notFound('Course not found'));
 
-      const domain = CourseMapper.toDomain(result);
-
-      return Result.ok(domain);
+      return {
+        ok: true,
+        value: CourseMapper.toDomain(result),
+      };
     } catch (err: unknown) {
       console.error(err);
       return ErrorMapper.toResult(err, this._entityName);
@@ -159,7 +139,10 @@ export class CourseRepository implements ICourseRepository {
       if (!result)
         return failure(Errors.notFound('Course not found operation failed'));
 
-      return Result.ok(undefined);
+      return {
+        ok: true,
+        value: undefined,
+      };
     } catch (err: unknown) {
       return ErrorMapper.toResult(err, this._entityName);
     }

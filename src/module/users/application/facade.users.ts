@@ -9,7 +9,7 @@ import { UpdateUserUseCase } from './use-case/update-user/update-user.usecase';
 export class FacadeUsers {
   constructor(
     public readonly findAll: FindAllUsersUseCase,
-    public readonly findById: FindUserUseCase,
+    public readonly findOne: FindUserUseCase,
     public readonly update: UpdateUserUseCase,
     public readonly create: CreateUserUseCase,
     public readonly deleteOne: DeleteUserUseCase,

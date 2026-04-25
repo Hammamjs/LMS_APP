@@ -1,21 +1,21 @@
-import { Match } from '@/core/common/infrastructure/decorators/match.decorator';
+import { Match } from '@/core/common/decorators/match.decorator';
 import { IsEmail, IsOptional, IsString, MinLength } from 'class-validator';
 
 export class SignUpDto {
   @IsEmail()
-  email!: string;
+  email: string;
 
   @IsString()
   @MinLength(6)
-  password!: string;
+  password: string;
 
   @Match('password', { message: 'Passwords do not match' })
-  confirmPassword!: string;
+  confirmPassword: string;
 
   @IsOptional()
   @IsString()
   phone?: string;
 
   @IsString()
-  username!: string;
+  username: string;
 }

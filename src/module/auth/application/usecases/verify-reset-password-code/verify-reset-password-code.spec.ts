@@ -1,7 +1,7 @@
 import { Test, TestingModule } from '@nestjs/testing';
 import { VerifyResetPasswordCodeUseCase } from './verify-reset-password-code.usecase';
 import { IUSER_REPOSITORY } from '@/module/users/domain/constants/injection.token';
-import { ICACHE_REPOSITORY } from '@/module/auth/domain/constants/injection.token';
+import { IOTP_REPOSITORY } from '@/module/auth/domain/constants/injection.token';
 import { User } from '@/module/users/domain/entity/user.entity';
 import { UserRole } from '@/module/users/domain/interface/role.interface';
 import { createHash } from 'crypto';
@@ -9,7 +9,7 @@ import { createHash } from 'crypto';
 describe('Verify reset password test cases', () => {
   let usecase: VerifyResetPasswordCodeUseCase;
   let mockUserRepo: { findByEmail: jest.Mock; save: jest.Mock };
-  let mockCacheRepo: { get: jest.Mock; del: jest.Mock };
+  let mockOTPRepo: { getResetCode: jest.Mock; delResetCode: jest.Mock };
 
   const createUser = (override?: Partial<any>) => {
     return User.rehydrate({
@@ -35,9 +35,9 @@ describe('Verify reset password test cases', () => {
       findByEmail: jest.fn(),
       save: jest.fn(),
     };
-    mockCacheRepo = {
-      get: jest.fn(),
-      del: jest.fn(),
+    mockOTPRepo = {
+      getResetCode: jest.fn(),
+      delResetCode: jest.fn(),
     };
 
     const module: TestingModule = await Test.createTestingModule({
@@ -48,8 +48,8 @@ describe('Verify reset password test cases', () => {
           useValue: mockUserRepo,
         },
         {
-          provide: ICACHE_REPOSITORY,
-          useValue: mockCacheRepo,
+          provide: IOTP_REPOSITORY,
+          useValue: mockOTPRepo,
         },
       ],
     }).compile();
@@ -67,7 +67,7 @@ describe('Verify reset password test cases', () => {
     const expectedHash = createHash('sha256').update(rawCode).digest('hex');
 
     mockUserRepo.findByEmail.mockResolvedValue({ ok: true, value: user });
-    mockCacheRepo.get.mockResolvedValue({
+    mockOTPRepo.getResetCode.mockResolvedValue({
       ok: true,
       value: expectedHash,
     });
@@ -79,7 +79,7 @@ describe('Verify reset password test cases', () => {
 
     expect(result.ok).toBeTruthy();
     expect(mockUserRepo.save).toHaveBeenCalled();
-    expect(mockCacheRepo.del).toHaveBeenCalledWith(
+    expect(mockOTPRepo.delResetCode).toHaveBeenCalledWith(
       `reset_password:${user.getId()}`,
     );
   });
@@ -89,7 +89,7 @@ describe('Verify reset password test cases', () => {
     const rawCode = '775858';
     const expectedHash = createHash('sha256').update(rawCode).digest('hex');
     mockUserRepo.findByEmail.mockResolvedValue({ ok: true, value: user });
-    mockCacheRepo.get.mockResolvedValue({
+    mockOTPRepo.getResetCode.mockResolvedValue({
       ok: true,
       value: expectedHash,
     });
@@ -100,7 +100,7 @@ describe('Verify reset password test cases', () => {
     });
 
     expect(result.ok).toBe(false);
-    expect(mockCacheRepo.del).not.toHaveBeenCalled();
+    expect(mockOTPRepo.delResetCode).not.toHaveBeenCalled();
     expect(mockUserRepo.save).not.toHaveBeenCalled();
   });
 });

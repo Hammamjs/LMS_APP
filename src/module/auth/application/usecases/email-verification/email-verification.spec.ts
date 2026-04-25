@@ -15,9 +15,9 @@ describe('Code verification test cases', () => {
     generate: jest.fn(),
   };
 
-  const mockCacheRepo = {
-    get: jest.fn(),
-    del: jest.fn(),
+  const mockOTPRepo = {
+    getResetCode: jest.fn(),
+    delResetCode: jest.fn(),
   };
 
   const mockConfig = {
@@ -28,7 +28,7 @@ describe('Code verification test cases', () => {
     useCase = new EmailVerificationUseCase(
       mockUserRepo as any,
       mockJwtService as any,
-      mockCacheRepo as any,
+      mockOTPRepo as any,
       mockConfig as any,
     );
 
@@ -66,7 +66,7 @@ describe('Code verification test cases', () => {
       value: user,
     });
 
-    mockCacheRepo.get.mockResolvedValue({
+    mockOTPRepo.getResetCode.mockResolvedValue({
       ok: true,
       value: hashedCode,
     });
@@ -81,14 +81,16 @@ describe('Code verification test cases', () => {
       expect(result.value.user.getIsVerified()).toBe(true);
     }
     expect(mockUserRepo.save).toHaveBeenCalled();
-    expect(mockCacheRepo.del).toHaveBeenCalledWith(`verify:${user.getId()}`);
+    expect(mockOTPRepo.delResetCode).toHaveBeenCalledWith(
+      `verify:${user.getId()}`,
+    );
   });
 
   it('should fail when verification code expired in redis', async () => {
     const user = createUser();
 
     mockUserRepo.findByEmail.mockResolvedValue({ ok: true, value: user });
-    mockCacheRepo.get.mockResolvedValue({
+    mockOTPRepo.getResetCode.mockResolvedValue({
       ok: true,
       value: null,
     });
@@ -118,7 +120,7 @@ describe('Code verification test cases', () => {
     if (!result.ok) {
       expect(result.error.message).toBe('Email already verified');
     }
-    expect(mockCacheRepo.del).not.toHaveBeenCalled();
+    expect(mockOTPRepo.delResetCode).not.toHaveBeenCalled();
     expect(mockUserRepo.save).not.toHaveBeenCalled();
   });
 });

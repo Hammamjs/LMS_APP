@@ -23,14 +23,17 @@
     "@nestjs-modules/ioredis": "^2.2.1",
     "@nestjs-modules/mailer": "^2.3.4",
     "@nestjs/common": "^11.0.1",
-    "@nestjs/config": "^4.0.4",
+    "@nestjs/config": "^4.0.3",
     "@nestjs/core": "^11.0.1",
     "@nestjs/cqrs": "^11.0.3",
     "@nestjs/jwt": "^11.0.2",
-    "@nestjs/mapped-types": "^2.1.1",
     "@nestjs/platform-express": "^11.0.1",
+<<<<<<< Updated upstream
+=======
     "@nestjs/platform-socket.io": "^11.1.19",
+    "@nestjs/throttler": "^6.5.0",
     "@nestjs/websockets": "^11.1.19",
+>>>>>>> Stashed changes
     "@prisma/adapter-neon": "^7.5.0",
     "@prisma/adapter-pg": "^7.5.0",
     "@prisma/client": "^7.5.0",
@@ -39,12 +42,9 @@
     "cookie-parser": "^1.4.7",
     "dotenv": "^17.3.1",
     "ioredis": "^5.10.1",
-    "nestjs-stripe": "^1.0.0",
     "nodemailer": "^8.0.4",
     "reflect-metadata": "^0.2.2",
-    "rxjs": "^7.8.1",
-    "socket.io": "^4.8.3",
-    "stripe": "^22.0.2"
+    "rxjs": "^7.8.1"
   },
   "devDependencies": {
     "@eslint/eslintrc": "^3.2.0",
@@ -73,7 +73,7 @@
     "ts-loader": "^9.5.2",
     "ts-node": "^10.9.2",
     "tsconfig-paths": "^4.2.0",
-    "typescript": "^6.0.2",
+    "typescript": "^5.7.3",
     "typescript-eslint": "^8.20.0"
   },
   "jest": {
