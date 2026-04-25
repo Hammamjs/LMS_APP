@@ -3,6 +3,7 @@ import { Enrollment } from '../entity/enrollment.entity';
 import { EnrollmentPaginationResult } from '../entity/enrollment.types';
 
 export interface IEnrollmentRepository {
+  findAllByCourseId: (courseId: string) => Promise<Result<Enrollment[]>>;
   findById: (id: string) => Promise<Result<Enrollment>>;
   save: (enrollment: Enrollment) => Promise<Result<Enrollment>>;
 
