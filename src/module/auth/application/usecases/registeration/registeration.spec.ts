@@ -13,8 +13,8 @@ describe('Registeration test cases', () => {
     hash: jest.fn(),
   };
 
-  const mockCacheRepo = {
-    set: jest.fn(),
+  const mockOTPRepo = {
+    setResetCode: jest.fn(),
   };
 
   const mockEventPublisher = {
@@ -25,7 +25,7 @@ describe('Registeration test cases', () => {
     useCase = new RegisterationUseCase(
       mockUserRepo as any,
       mockBcryptService as any,
-      mockCacheRepo as any,
+      mockOTPRepo as any,
       mockEventPublisher as any,
     );
 
@@ -49,7 +49,6 @@ describe('Registeration test cases', () => {
       email: 'test@example.com',
       password: 'hashed-pass',
       username: 'test',
-      confirmPassword: 'hashed-pass',
     });
 
     expect(result.ok).toBe(true);
@@ -57,7 +56,7 @@ describe('Registeration test cases', () => {
       expect(mockBcryptService.hash).toHaveBeenCalledWith('hashed-pass');
       expect(mockUserRepo.save).toHaveBeenCalled();
       expect(mockEventPublisher.publish).toHaveBeenCalled();
-      expect(mockCacheRepo.set).toHaveBeenCalledWith(
+      expect(mockOTPRepo.setResetCode).toHaveBeenCalledWith(
         `verify:user-123`,
         hashedCode,
         600,
@@ -78,7 +77,6 @@ describe('Registeration test cases', () => {
       email: 'test@example.com',
       password: 'hashed-pass',
       username: 'test',
-      confirmPassword: 'hashed-pass',
     });
 
     expect(result.ok).toBe(false);

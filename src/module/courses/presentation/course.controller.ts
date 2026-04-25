@@ -21,7 +21,9 @@ import { RoleGuard, VerifyJwt } from '@/core';
 import { JwtPayload } from '@/module/auth';
 import { UserRole } from '@/module/users';
 import { Roles } from '@/core/common/infrastructure/decorators/roles.decorator';
+import { SkipThrottle } from '@nestjs/throttler';
 
+@SkipThrottle()
 @Controller('courses')
 export class CourseController {
   constructor(private readonly course: CourseFacade) {}

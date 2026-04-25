@@ -17,7 +17,7 @@ enum Role {
  Admin
 }
 
-model Users {
+model users {
  id   String   @id @default(uuid())
  email String @unique 
  username String 
@@ -32,10 +32,10 @@ model Users {
  passwordUpdatedAt DateTime?
  isPasswordCodeVerified Boolean @default(false)
 
- authorCourses Courses[] 
+ authorCourses courses[] 
 }
 
-model Courses {
+model courses {
  id String  @id @default(uuid())
   title String
   price Int
@@ -48,89 +48,31 @@ model Courses {
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
   category String
-  isDeleted Boolean @default(false)
 
   instructorId String
 
  //  relation
- instructor Users @relation(fields: [instructorId], references: [id])
- lessons  Lessons[]
+ instructor users @relation(fields: [instructorId], references: [id])
+ lessons  lessons[]
 
  // indexing
   @@index([slug])
 }
 
-model Lessons {
+model lessons {
   id          String   @id @default(uuid())
   title       String
   video       String?  // Video URL
   sourceLink  String?  // PDF or Github links
   order       Int      // To keep lessons in the right sequence (1, 2, 3...)
   rating Int @default(0)
-  description String
-  isFree Boolean @default(false)
   
   // Foreign Key
   courseId    String
-  // is deleted for soft deletion
-  isDeleted Boolean @default(false)
   
   // Relation back to course
-  course      Courses  @relation(fields: [courseId], references: [id], onDelete: Cascade)
+  course      courses  @relation(fields: [courseId], references: [id], onDelete: Cascade)
 
   createdAt   DateTime @default(now())
   updatedAt   DateTime @updatedAt
-}
-
-enum Status {
- ACTIVE
- COMPLETED
- REFUND
-}
-
-model Enrollment {
- id String @id @default(uuid())
- userId String 
- courseId String
- createdAt DateTime @default(now())
- enrolledAt DateTime @default(now())
- progressPercentage Int @default(0)
- status Status @default(ACTIVE) 
- completedLessonsIds String[]
-
- @@unique([userId, courseId]) 
-}
-
-enum PaymenStatus {
- SUCCESS
- FAILED
- PENDING
-}
-
-
-enum PaymentProvider {
- BANK
- STRIPE
-}
-
-model Payment {
- id String @id @default(uuid())
- userId String
- amount Float
- status PaymenStatus
- courseId String
- paymentId String
- provider PaymentProvider @default(BANK)
- createdAt DateTime @default(now()) 
-}
-
-
-model Notification {
- id String @id @default(uuid())
- userId String
- text String
- title String
- read Boolean @default(false)
- createdAt DateTime @default(now())
- isDeleted Boolean @default(false)
 }

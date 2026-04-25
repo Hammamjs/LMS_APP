@@ -1,7 +1,7 @@
-import { IUseCase } from '@/core/common/domain/use-case-interface';
+import { IUseCase } from '@/core/common/use-case-interface';
 import type { IUserRepository } from '@/module/users/domain/repositories/user.repository.interface';
 import { Inject } from '@nestjs/common';
-import { Result } from '@/core/common/domain/result.pattern';
+import { Result } from '@/core/common/result.pattern';
 import { IUSER_REPOSITORY } from '@/module/users/domain/constants/injection.token';
 
 export class DeleteUserUseCase implements IUseCase<

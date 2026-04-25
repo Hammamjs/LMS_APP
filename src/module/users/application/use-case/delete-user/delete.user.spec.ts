@@ -1,6 +1,6 @@
 import { Test, TestingModule } from '@nestjs/testing';
 import { DeleteUserUseCase } from './delete-user.usecase';
-import { failure } from '@/core/common/domain/err.utils';
+import { failure } from '@/core/common/err.utils';
 import { IUSER_REPOSITORY } from '@/module/users/domain/constants/injection.token';
 
 describe('Delet user test cases', () => {

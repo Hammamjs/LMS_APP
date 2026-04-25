@@ -1,4 +1,4 @@
-import { Users as UserPrisma } from '@prisma/client';
+import { users as UserPrisma } from '@prisma/client';
 import { UserRole } from '../../domain/interface/role.interface';
 import { User } from '../../domain/entity/user.entity';
 export class MapperUser {

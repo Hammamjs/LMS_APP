@@ -1,4 +1,4 @@
-import { forwardRef, Module, Provider } from '@nestjs/common';
+import { Module, Provider } from '@nestjs/common';
 import { PrismaUserRepository } from './infrastructure/prisma.user.repository';
 import { UserController } from './presentation/users.controller';
 import { FacadeUsers } from './application/facade.users';
@@ -8,7 +8,8 @@ import { FindAllUsersUseCase } from './application/use-case/find-all-users/find-
 import { FindUserUseCase } from './application/use-case/find-user/find-user.usecase';
 import { DeleteUserUseCase } from './application/use-case/delete-user/delete-user.usecase';
 import { IUSER_REPOSITORY } from './domain/constants/injection.token';
-import { AuthModule } from '../auth/auth.module';
+import { BcryptService } from '../auth/infrastructure/security/bcrypt.service';
+import { IBCRYPT_SERVICE } from '../auth/domain/constants/injection.token';
 
 const useCases: Provider[] = [
   FacadeUsers,
@@ -21,9 +22,14 @@ const useCases: Provider[] = [
 
 const infrastructure: Provider[] = [
   PrismaUserRepository,
+  BcryptService,
   {
-    useClass: PrismaUserRepository,
+    useExisting: PrismaUserRepository,
     provide: IUSER_REPOSITORY,
+  },
+  {
+    useExisting: BcryptService,
+    provide: IBCRYPT_SERVICE,
   },
 ];
 
@@ -31,6 +37,5 @@ const infrastructure: Provider[] = [
   providers: [...useCases, ...infrastructure],
   controllers: [UserController],
   exports: [...useCases, IUSER_REPOSITORY],
-  imports: [forwardRef(() => AuthModule)],
 })
 export class UserModule {}

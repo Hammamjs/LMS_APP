@@ -9,7 +9,7 @@ import {
 } from '@nestjs/common';
 import { AuthFacade } from '../application/auth.facade';
 import { SignInDto } from './dto/sign-in.dto';
-import { DomainException } from '@/core/common/domain/domain.exception';
+import { DomainException } from '@/core/common/filters/domain.exception';
 import { SignUpDto } from './dto/sign-up.dto';
 import { EmailVerification } from './dto/email-verification.dto';
 import { ResendCode } from './dto/resend-code.dto';
@@ -18,8 +18,9 @@ import { ForgotPassword } from './dto/forgot-password.dto';
 import { VerifyPasswordResetCode } from './dto/verify-reset-code.dto';
 import { ResetPassword } from './dto/reset-password.dto';
 import type { Request, Response } from 'express';
-import { Errors } from '@/core/common/domain/err.utils';
+import { Errors } from '@/core/common/err.utils';
 import { ConfigService } from '@nestjs/config';
+import { Throttle } from '@nestjs/throttler';
 
 @Controller('auth')
 export class AuthController {
@@ -33,6 +34,7 @@ export class AuthController {
 
   @Post('/signin')
   @HttpCode(200)
+  @Throttle({ default: { ttl: 60000, limit: 3 } })
   async singIn(
     @Body() dto: SignInDto,
     @Res({ passthrough: true }) res: Response,
@@ -85,6 +87,7 @@ export class AuthController {
   }
 
   @Post('resend-code')
+  @Throttle({ default: { ttl: 60000, limit: 3 } })
   async ResendCodeVerificaion(@Body() dto: ResendCode) {
     const result = await this.authFacade.resendCode.execute({
       email: dto.email,

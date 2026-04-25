@@ -1,7 +1,6 @@
 import { Injectable } from '@nestjs/common';
 import { IEmailService } from '../../domain/service/email.service.interface';
 import * as nodemailer from 'nodemailer';
-import { EmailServiceTemplate } from '@/module/users/application/ports/email-service';
 
 @Injectable()
 export class NodemailerService implements IEmailService {
@@ -17,12 +16,12 @@ export class NodemailerService implements IEmailService {
     });
   }
 
-  async send(email: string, subject: string, code: string): Promise<void> {
+  async send(email: string, subject: string, content: string): Promise<void> {
     await this.transporter.sendMail({
       from: 'LMS support <support@lms.com>',
       to: email,
       subject,
-      html: EmailServiceTemplate(subject, code),
+      html: content,
     });
   }
 }
