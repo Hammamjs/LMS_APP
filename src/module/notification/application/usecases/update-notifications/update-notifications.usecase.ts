@@ -5,7 +5,7 @@ import { Inject, Injectable } from '@nestjs/common';
 
 @Injectable()
 export class UpdateNotificationsUseCase implements IUseCase<
-  string[],
+  string,
   Promise<Result<void>>
 > {
   constructor(
@@ -13,10 +13,21 @@ export class UpdateNotificationsUseCase implements IUseCase<
     private readonly notificationRepo: INotificationSystemRepository,
   ) {}
 
-  async execute(params: string[]): Promise<Result<void>> {
-    if (!params || !params.length)
-      return Result.fail(Errors.validation('No notification IDs provided'));
+  async execute(userId: string): Promise<Result<void>> {
+    const notificationsResult = await this.notificationRepo.findAll({ userId });
 
-    return await this.notificationRepo.markAllAsRead(params);
+    if (!notificationsResult.ok) return notificationsResult;
+
+    const unreadedMessages = notificationsResult.value.data.filter(
+      (n) => !n.getRead,
+    );
+
+    if (!unreadedMessages.length)
+      return Result.fail(Errors.notFound('All messages are readed'));
+
+    // if we reach here we need to return the ids of unreaded messages
+    const unreadedMessagesIds = unreadedMessages.map((msg) => msg.getId);
+
+    return await this.notificationRepo.markAllAsRead(unreadedMessagesIds);
   }
 }

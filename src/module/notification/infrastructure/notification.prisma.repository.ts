@@ -89,6 +89,22 @@ export class NotificationPrismaRepository implements INotificationSystemReposito
     }
   }
 
+  async saveMany(notifications: Notification[]): Promise<Result<void>> {
+    try {
+      const manyRecord = notifications.map((n) => n.toPersistence());
+      const result = await this._db.notification.createMany({
+        data: manyRecord,
+      });
+
+      if (result.count <= 0)
+        return Result.fail(Errors.internal('Update records failed'));
+
+      return Result.ok(undefined);
+    } catch (err) {
+      return ErrorMapper.toResult(err, this._entityName);
+    }
+  }
+
   async save(notification: Notification): Promise<Result<Notification>> {
     try {
       const data: PrismaNotification = await this._db.notification.upsert({

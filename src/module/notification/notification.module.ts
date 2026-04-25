@@ -31,7 +31,7 @@ const infrastructure: Provider[] = [
 ];
 
 @Module({
-  exports: [],
+  exports: [INOTIFICATION_REPOSITORY],
   imports: [JwtModule, ConfigModule],
   controllers: [NotificationController],
   providers: [...usecases, ...infrastructure],

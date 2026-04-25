@@ -45,8 +45,9 @@ export class NotificationController {
   }
 
   @Patch('update-all')
-  async updateAll(@Body() dto: NotificationIdsDto) {
-    return await this.notificationFacade.updateNotifications.execute(dto.ids);
+  async updateAll(@Req() request: Request) {
+    const { id: userId } = request['user'] as JwtPayload;
+    return await this.notificationFacade.updateNotifications.execute(userId);
   }
 
   @Delete('delete')
