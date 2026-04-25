@@ -13,6 +13,8 @@ export interface INotificationSystemRepository {
   markAllAsRead: (ids: string[]) => Promise<Result<void>>;
 
   save: (notification: Notification) => Promise<Result<Notification>>;
+
+  saveMany: (notifications: Notification[]) => Promise<Result<void>>;
   // soft deletion
   delete: (id: string) => Promise<Result<void>>;
 
