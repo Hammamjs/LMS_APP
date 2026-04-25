@@ -27,6 +27,23 @@ export class EnrollmentPrimsaRepository implements IEnrollmentRepository {
     return store?.tx || this.prisma;
   }
 
+  async findAllByCourseId(courseId: string): Promise<Result<Enrollment[]>> {
+    try {
+      const result = await this._db.enrollment.findMany({
+        where: { courseId },
+      });
+
+      if (!result)
+        Result.fail(Errors.notFound('No users enrolled at this course yet'));
+
+      const toDomain = result.map(EnrollmentMapper.toDomain);
+
+      return Result.ok(toDomain);
+    } catch (err) {
+      return ErrorMapper.toResult(err, this._entityName);
+    }
+  }
+
   async findById(id: string): Promise<Result<Enrollment>> {
     try {
       const result = await this._db.enrollment.findFirst({ where: { id } });
