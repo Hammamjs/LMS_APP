@@ -13,6 +13,9 @@ import { DeleteLessonUseCase } from './application/usecases/delete-lesson/delete
 import { UpdateLessonUseCase } from './application/usecases/update-lesson/update-lesson.usecase';
 import { EnrollmentPrimsaRepository } from '../enrollment/infrastructure/enrollement.prisma.repository';
 import { IENROLLMENT_REPOSITORY } from '../enrollment';
+import { CqrsModule } from '@nestjs/cqrs';
+import { NotifyStudentsOnLessonCreatedHandler } from './application/handler/notifiy-student.hander';
+import { NotificationModule } from '../notification/notification.module';
 
 const usecase: Provider[] = [
   CreateLessonUsecase,
@@ -22,6 +25,8 @@ const usecase: Provider[] = [
   UpdateLessonUseCase,
   LessonFacade,
 ];
+
+const eventHandler: Provider[] = [NotifyStudentsOnLessonCreatedHandler];
 
 const infrastructure: Provider[] = [
   LessonPrismaRepository,
@@ -37,9 +42,15 @@ const infrastructure: Provider[] = [
 ];
 
 @Module({
-  providers: [...usecase, ...infrastructure],
+  providers: [...usecase, ...infrastructure, ...eventHandler],
   controllers: [LessonController],
   exports: [],
-  imports: [UserModule, CourseModule, JwtModule],
+  imports: [
+    UserModule,
+    CourseModule,
+    JwtModule,
+    CqrsModule,
+    NotificationModule,
+  ],
 })
 export class LessonModule {}

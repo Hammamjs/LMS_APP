@@ -11,6 +11,8 @@ import {
   LessonMapper,
   LessonResponseType,
 } from '../../mapper/lesson-mapper.response';
+import { EventBus } from '@nestjs/cqrs';
+import { LessonCreatedEvent } from '@/module/lessons/domain/entity/events/lesson-created.event';
 
 @Injectable()
 export class CreateLessonUsecase implements IUseCase<
@@ -21,6 +23,7 @@ export class CreateLessonUsecase implements IUseCase<
     @Inject(ILESSON_REPOSITORY) private readonly lessonRepo: ILessonRepository,
     @Inject(ICOURSE_REPOSITORY) private readonly courseRepo: ICourseRepository,
     @Inject(IUSER_REPOSITORY) private readonly userRepo: IUserRepository,
+    public readonly eventBus: EventBus,
   ) {}
 
   async execute(
@@ -71,6 +74,12 @@ export class CreateLessonUsecase implements IUseCase<
       return Result.fail(Errors.internal('Save new lesson failed'));
 
     const response = LessonMapper.toResponse(saveInDbResult.value);
+    // Before send response we need to send notification for subscriber
+    // we need to get who enrolled to this course
+
+    this.eventBus.publish(
+      new LessonCreatedEvent(params.title, params.courseId, course.getTitle()),
+    );
     return Result.ok(response);
   }
 }
