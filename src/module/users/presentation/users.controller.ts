@@ -13,7 +13,7 @@ import { FacadeUsers } from '../application/facade.users';
 import { CreatUserDto } from './dto/users/create-user.dto';
 import { UpdateUserDto } from './dto/users/update-user.dto';
 import { UserResponse } from './dto/users/user.response';
-import { DomainException } from '../../../core/common/filters/domain.exception';
+import { DomainException } from '../../../core/common/domain/domain.exception';
 import { PaginationQuery } from './dto/users/pagination-params';
 
 @Controller('users')
@@ -26,13 +26,12 @@ export class UserController {
 
     if (!result.ok) throw new DomainException(result.error);
 
-    const users = result.value.data.map((u) => UserResponse.from(u));
-    return { data: users, meta: result.value.meta };
+    return result;
   }
 
   @Get('/:id')
-  async findOne(@Param('id') id: string) {
-    const result = await this.facadeUser.findOne.execute(id);
+  async findById(@Param('id') id: string) {
+    const result = await this.facadeUser.findById.execute(id);
     if (!result.ok) throw new DomainException(result.error);
 
     const user = result.value ? UserResponse.from(result.value) : null;

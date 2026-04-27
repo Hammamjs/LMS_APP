@@ -1,19 +1,19 @@
-import { IUseCase } from '@/core/common/use-case-interface';
-import { Result } from '@/core/common/result.pattern';
+import { IUseCase } from '@/core/common/domain/use-case-interface';
+import { Result } from '@/core/common/domain/result.pattern';
 import type { IUserRepository } from '@/module/users/domain/repositories/user.repository.interface';
 import { Inject, Injectable } from '@nestjs/common';
 import { IUSER_REPOSITORY } from '@/module/users/domain/constants/injection.token';
 import {
   IJWTTOKEN_SERVICE,
-  IOTP_REPOSITORY,
+  ICACHE_REPOSITORY,
 } from '@/module/auth/domain/constants/injection.token';
 import type { IJWTTokenService } from '@/module/auth/domain/service/token.service.interface';
 import { EmailVerificationRequest } from './email-verification.request';
 import { EmailVerificationResponse } from './email-verification.response';
-import { Errors, failure } from '@/core/common/err.utils';
+import { Errors } from '@/core/common/domain/err.utils';
 import { createHash } from 'crypto';
 import { ConfigService } from '@nestjs/config';
-import type { IOTPRepository } from '@/module/auth/domain/repository/otp.repsoitory.interface';
+import type { ICacheRepository } from '@/module/auth/domain/repository/cache.repsoitory.interface';
 
 @Injectable()
 export class EmailVerificationUseCase implements IUseCase<
@@ -23,7 +23,7 @@ export class EmailVerificationUseCase implements IUseCase<
   constructor(
     @Inject(IUSER_REPOSITORY) private readonly userRepo: IUserRepository,
     @Inject(IJWTTOKEN_SERVICE) private readonly tokenService: IJWTTokenService,
-    @Inject(IOTP_REPOSITORY) private readonly otpRepo: IOTPRepository,
+    @Inject(ICACHE_REPOSITORY) private readonly cacheRepo: ICacheRepository,
     private readonly config: ConfigService,
   ) {}
 
@@ -37,24 +37,22 @@ export class EmailVerificationUseCase implements IUseCase<
     const user = userResult.value;
 
     if (user.getIsVerified())
-      return failure(Errors.validation('Email already verified'));
+      return Result.fail(Errors.validation('Email already verified'));
 
     const inputHash = createHash('sha256').update(dto.code).digest('hex');
 
-    const savedCodeResult = await this.otpRepo.getResetCode(
-      `verify:${user.getId()}`,
-    );
+    const savedCodeResult = await this.cacheRepo.get(`verify:${user.getId()}`);
 
     if (!savedCodeResult.ok)
-      return failure(Errors.internal('Failed to retrive code'));
+      return Result.fail(Errors.internal('Failed to retrive code'));
 
     if (!savedCodeResult.value)
-      return failure(
+      return Result.fail(
         Errors.internal('Verification code has expired or was never sent'),
       );
 
     if (inputHash !== savedCodeResult.value)
-      return failure(Errors.validation('Incorrect verification code'));
+      return Result.fail(Errors.validation('Incorrect verification code'));
 
     const id = user.getId(),
       email = user.getEmail(),
@@ -80,13 +78,10 @@ export class EmailVerificationUseCase implements IUseCase<
 
     // atomic clean up and save
     await Promise.all([
-      this.otpRepo.delResetCode(`verify:${user.getId()}`),
+      this.cacheRepo.del(`verify:${user.getId()}`),
       this.userRepo.save(finalUser),
     ]);
 
-    return {
-      ok: true,
-      value: { user: finalUser, accessToken, refreshToken },
-    };
+    return Result.ok({ user: finalUser, accessToken, refreshToken });
   }
 }

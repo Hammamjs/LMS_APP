@@ -2,7 +2,7 @@ import { User } from '@/module/users/domain/entity/user.entity';
 import { ResendVerificationCodeUseCase } from './resend-verification-code.usecase';
 import { UserRole } from '@/module/users/domain/interface/role.interface';
 import { createHash } from 'crypto';
-import { Errors } from '@/core/common/err.utils';
+import { Errors } from '@/core/common/domain/err.utils';
 
 describe('Resend Code verification test cases', () => {
   let usecase: ResendVerificationCodeUseCase;
@@ -15,14 +15,14 @@ describe('Resend Code verification test cases', () => {
     publish: jest.fn(),
   };
 
-  const mockOTPRepo = {
-    setResetCode: jest.fn(),
+  const mockCacheRepo = {
+    set: jest.fn(),
   };
 
   beforeEach(() => {
     usecase = new ResendVerificationCodeUseCase(
       mockUserRepo as any,
-      mockOTPRepo as any,
+      mockCacheRepo as any,
       mockEventPublisher as any,
     );
 
@@ -68,7 +68,7 @@ describe('Resend Code verification test cases', () => {
     }
 
     expect(mockEventPublisher.publish).toHaveBeenCalled();
-    expect(mockOTPRepo.setResetCode).toHaveBeenCalledWith(
+    expect(mockCacheRepo.set).toHaveBeenCalledWith(
       `verify:${user.getId()}`,
       hashingCode,
       600,
@@ -89,7 +89,7 @@ describe('Resend Code verification test cases', () => {
       expect(result.error).toEqual(Errors.validation('Email already verified'));
     }
     expect(mockUserRepo.findByEmail).toHaveBeenCalledTimes(1);
-    expect(mockOTPRepo.setResetCode).not.toHaveBeenCalled();
+    expect(mockCacheRepo.set).not.toHaveBeenCalled();
     expect(mockEventPublisher.publish).not.toHaveBeenCalled();
   });
 });

@@ -1,5 +1,5 @@
-import { Errors, failure } from '@/core/common/err.utils';
-import { IUseCase } from '@/core/common/use-case-interface';
+import { Errors, failure } from '@/core/common/domain/err.utils';
+import { IUseCase } from '@/core/common/domain/use-case-interface';
 import {
   IBCRYPT_SERVICE,
   IJWTTOKEN_SERVICE,
@@ -9,7 +9,7 @@ import type { IJWTTokenService } from '@/module/auth/domain/service/token.servic
 import { IUSER_REPOSITORY } from '@/module/users/domain/constants/injection.token';
 import { User } from '@/module/users/domain/entity/user.entity';
 import type { IUserRepository } from '@/module/users/domain/repositories/user.repository.interface';
-import { Result } from '@core/common/result.pattern';
+import { Result } from '@/core/common/domain/result.pattern';
 import { Inject, Injectable } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 

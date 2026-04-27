@@ -1,7 +1,9 @@
+import { PaginationParams } from '@/core';
+
 export interface LessonState {
   id: string;
   title: string;
-  url: string | null;
+  sourceLink: string | null;
   video: string | null;
   rating: number;
   description: string;
@@ -11,6 +13,8 @@ export interface LessonState {
   order: number; // for sorting
   // for preview
   isFree: boolean;
+
+  isDeleted: boolean;
 
   // aggergate root
   courseId: string;
@@ -19,7 +23,7 @@ export interface LessonState {
 export interface LessonProps {
   id: string;
   title: string;
-  url: string | null;
+  sourceLink: string | null;
   video: string | null;
   rating: number;
   description: string;
@@ -30,6 +34,20 @@ export interface LessonProps {
   // for preview
   isFree: boolean;
 
+  // Soft deletion
+  isDeleted: boolean;
+
   // aggergate root
+  courseId: string;
+}
+
+export type ExcludedProps =
+  | 'id'
+  | 'createdAt'
+  | 'updatedAt'
+  | 'rating'
+  | 'isDeleted';
+
+export interface LessonPaginationParams extends PaginationParams {
   courseId: string;
 }

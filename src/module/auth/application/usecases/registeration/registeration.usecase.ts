@@ -1,42 +1,45 @@
-import type { IUseCase } from '@/core/common/use-case-interface';
+import { type IUseCase, Errors, Result } from '@/core';
 import { RegisterationRequest } from './registeration.request';
-import { Result } from '@core/common/result.pattern';
 import { Inject, Injectable } from '@nestjs/common';
-import type { IUserRepository } from '@/module/users/domain/repositories/user.repository.interface';
-import { IUSER_REPOSITORY } from '@/module/users/domain/constants/injection.token';
+import {
+  type IUserRepository,
+  IUSER_REPOSITORY,
+  UserRole,
+} from '@/module/users';
 import type { IBcryptService } from '@/module/auth/domain/service/bcrypt.service.interface';
 import {
   IBCRYPT_SERVICE,
-  IOTP_REPOSITORY,
+  ICACHE_REPOSITORY,
 } from '@/module/auth/domain/constants/injection.token';
-import { Errors, failure } from '@/core/common/err.utils';
 import { User } from '@/module/users/domain/entity/user.entity';
-import { UserRole } from '@/module/users/domain/interface/role.interface';
 import { createHash } from 'crypto';
-import type { IOTPRepository } from '@/module/auth/domain/repository/otp.repsoitory.interface';
+import type { ICacheRepository } from '@/module/auth/domain/repository/cache.repsoitory.interface';
 import { EventBus } from '@nestjs/cqrs';
 import { RegisterationCodeRequedEvent } from '@/module/auth/domain/events/registeration-code.requested';
 
 @Injectable()
 export class RegisterationUseCase implements IUseCase<
   RegisterationRequest,
-  Promise<Result<string>>
+  Promise<Result<{ message: string }>>
 > {
   constructor(
     @Inject(IUSER_REPOSITORY) private readonly userRepo: IUserRepository,
     @Inject(IBCRYPT_SERVICE) private readonly hashService: IBcryptService,
-    @Inject(IOTP_REPOSITORY) private readonly otpRepo: IOTPRepository,
+    @Inject(ICACHE_REPOSITORY) private readonly cacheRepo: ICacheRepository,
     private readonly eventPublisher: EventBus,
   ) {}
 
-  async execute(dto: RegisterationRequest): Promise<Result<string>> {
+  async execute(
+    dto: RegisterationRequest,
+  ): Promise<Result<{ message: string }>> {
     const emailResult = await this.userRepo.findByEmail(dto.email);
 
-    if (emailResult.ok) return failure(Errors.conflict('Email already exists'));
+    if (emailResult.ok)
+      return Result.fail(Errors.conflict('Email already exists'));
 
     // we need to confirm the passwords matched
     if (dto.confirmPassword !== dto.password)
-      return failure(Errors.validation('Passwords do not match'));
+      return Result.fail(Errors.validation('Passwords do not match'));
 
     // hashing user password
     const hashedPassword = await this.hashService.hash(dto.password);
@@ -46,7 +49,7 @@ export class RegisterationUseCase implements IUseCase<
       username: dto.username,
       password: hashedPassword,
       phone: dto.phone || null,
-      role: 'Student' as UserRole,
+      role: UserRole.Student,
     });
 
     await this.userRepo.save(user);
@@ -63,23 +66,16 @@ export class RegisterationUseCase implements IUseCase<
 
     try {
       // save the digits to redis
-      await this.otpRepo.setResetCode(
-        `verify:${user.getId()}`,
-        hashedCode,
-        600,
-      );
+      await this.cacheRepo.set(`verify:${user.getId()}`, hashedCode, 600);
 
       // Trigger event to send mail
       this.eventPublisher.publish(
         new RegisterationCodeRequedEvent(user.getEmail(), verificationCode),
       );
 
-      return {
-        ok: true,
-        value: 'Please verify your account',
-      };
+      return Result.ok({ message: 'Please verify your account' });
     } catch {
-      return failure(
+      return Result.fail(
         Errors.internal(
           'Account created, but failed to send verification email',
         ),

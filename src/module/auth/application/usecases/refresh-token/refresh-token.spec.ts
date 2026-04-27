@@ -1,13 +1,11 @@
+import { ConfigService } from '@nestjs/config';
 import { Test, TestingModule } from '@nestjs/testing';
 import { RefreshTokenUseCase } from './refresh-token.usecase';
-import { IUSER_REPOSITORY } from '@/module/users/domain/constants/injection.token';
 import {
   IBCRYPT_SERVICE,
   IJWTTOKEN_SERVICE,
 } from '@/module/auth/domain/constants/injection.token';
-import { User } from '@/module/users/domain/entity/user.entity';
-import { UserRole } from '@/module/users/domain/interface/role.interface';
-import { ConfigService } from '@nestjs/config';
+import { User, UserRole, IUSER_REPOSITORY } from '@/module/users';
 
 describe('Refresh token usecase', () => {
   const createUser = (override?: Partial<any>) => {

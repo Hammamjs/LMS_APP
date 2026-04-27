@@ -1,7 +1,6 @@
 import { createHash } from 'crypto';
 import { EmailVerificationUseCase } from './email-verification.usecase';
-import { User } from '@/module/users/domain/entity/user.entity';
-import { UserRole } from '@/module/users/domain/interface/role.interface';
+import { User, UserRole } from '@/module/users';
 
 describe('Code verification test cases', () => {
   let useCase: EmailVerificationUseCase;
@@ -15,9 +14,9 @@ describe('Code verification test cases', () => {
     generate: jest.fn(),
   };
 
-  const mockOTPRepo = {
-    getResetCode: jest.fn(),
-    delResetCode: jest.fn(),
+  const mockCache = {
+    get: jest.fn(),
+    del: jest.fn(),
   };
 
   const mockConfig = {
@@ -28,7 +27,7 @@ describe('Code verification test cases', () => {
     useCase = new EmailVerificationUseCase(
       mockUserRepo as any,
       mockJwtService as any,
-      mockOTPRepo as any,
+      mockCache as any,
       mockConfig as any,
     );
 
@@ -66,7 +65,7 @@ describe('Code verification test cases', () => {
       value: user,
     });
 
-    mockOTPRepo.getResetCode.mockResolvedValue({
+    mockCache.get.mockResolvedValue({
       ok: true,
       value: hashedCode,
     });
@@ -81,16 +80,14 @@ describe('Code verification test cases', () => {
       expect(result.value.user.getIsVerified()).toBe(true);
     }
     expect(mockUserRepo.save).toHaveBeenCalled();
-    expect(mockOTPRepo.delResetCode).toHaveBeenCalledWith(
-      `verify:${user.getId()}`,
-    );
+    expect(mockCache.del).toHaveBeenCalledWith(`verify:${user.getId()}`);
   });
 
   it('should fail when verification code expired in redis', async () => {
     const user = createUser();
 
     mockUserRepo.findByEmail.mockResolvedValue({ ok: true, value: user });
-    mockOTPRepo.getResetCode.mockResolvedValue({
+    mockCache.get.mockResolvedValue({
       ok: true,
       value: null,
     });
@@ -120,7 +117,7 @@ describe('Code verification test cases', () => {
     if (!result.ok) {
       expect(result.error.message).toBe('Email already verified');
     }
-    expect(mockOTPRepo.delResetCode).not.toHaveBeenCalled();
+    expect(mockCache.del).not.toHaveBeenCalled();
     expect(mockUserRepo.save).not.toHaveBeenCalled();
   });
 });
