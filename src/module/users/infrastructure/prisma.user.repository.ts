@@ -1,53 +1,58 @@
-import { PrismaService } from 'src/core/database/prisma.service';
-import { IUserRepository } from '../domain/repositories/user.repository.interface';
+import { PrismaService } from '@/core';
+import {
+  IUserRepository,
+  UserPaginationParams,
+} from '../domain/repositories/user.repository.interface';
 import { User } from '../domain/entity/user.entity';
 import { Injectable } from '@nestjs/common';
-import { users as PrismaUser } from '@prisma/client';
-import { Result } from '@/core/common/result.pattern';
-import { handleError } from '@/core/common/handleError';
-import { Errors, failure } from '@/core/common/err.utils';
+import { Prisma, Users as PrismaUser } from '@prisma/client';
+import {
+  Result,
+  Errors,
+  ErrorMapper,
+  TransactionContext,
+  PaginationResult,
+  paginate,
+} from '@/core';
 import { MapperUser } from './mapper/user.mapper';
 
 @Injectable()
 export class PrismaUserRepository implements IUserRepository {
-  constructor(private readonly prisma: PrismaService) {}
+  private readonly _entityName = 'User';
+  constructor(
+    private readonly prisma: PrismaService,
+    private readonly context: TransactionContext,
+  ) {}
 
-  async findOne(id: string): Promise<Result<User>> {
+  private get _db() {
+    const store = this.context.getStore();
+    return store?.tx ?? this.prisma;
+  }
+
+  async findById(id: string): Promise<Result<User>> {
     try {
-      if (!id) return failure(Errors.validation('User id not provided'));
-      const user = await this.prisma.users.findUnique({ where: { id } });
+      if (!id) return Result.fail(Errors.validation('User id not provided'));
+      const user = await this._db.users.findUnique({ where: { id } });
 
-      if (!user) return failure(Errors.notFound('User not exists'));
+      if (!user) return Result.fail(Errors.notFound('User not exists'));
 
       return { ok: true, value: MapperUser.toDomain(user) };
     } catch (err: unknown) {
-      return {
-        ok: false,
-        error: handleError(err),
-      };
+      return ErrorMapper.toResult(err, this._entityName);
     }
   }
 
   async delete(id: string): Promise<Result<void>> {
     try {
-      if (!id)
-        return {
-          ok: false,
-          error: { type: 'VALIDATION', message: 'Id is required' },
-        };
-      const user = await this.prisma.users.delete({ where: { id } });
+      if (!id) return Result.fail(Errors.notFound('Id is required'));
 
-      if (!user) return failure(Errors.notFound('User not found'));
+      const user = await this._db.users.delete({ where: { id } });
 
-      return {
-        ok: true,
-        value: undefined,
-      };
+      if (!user) return Result.fail(Errors.notFound('User not found'));
+
+      return Result.ok(undefined);
     } catch (err: unknown) {
-      return {
-        ok: false,
-        error: handleError(err),
-      };
+      return ErrorMapper.toResult(err, this._entityName);
     }
   }
 
@@ -57,63 +62,53 @@ export class PrismaUserRepository implements IUserRepository {
 
     try {
       if (!user.isNew) {
-        data = await this.prisma.users.update({
+        data = await this._db.users.update({
           data: user.toPersistence(),
           where: { id: user.getId() },
         });
       } else {
-        data = await this.prisma.users.create({
+        data = await this._db.users.create({
           data: user.toPersistence(),
         });
       }
 
       return { ok: true, value: MapperUser.toDomain(data) };
     } catch (err: unknown) {
-      return {
-        ok: false,
-        error: handleError(err),
-      };
+      return ErrorMapper.toResult(err, this._entityName);
     }
   }
 
-  async findAll(params: {
-    take: number;
-    skip: number;
-  }): Promise<Result<{ users: User[]; total: number }>> {
+  async findAll(
+    params: UserPaginationParams,
+  ): Promise<Result<PaginationResult<User>>> {
+    const { isVerified, limit, page, role } = params;
     try {
-      const [users, total] = await Promise.all([
-        this.prisma.users.findMany({
-          skip: params.skip,
-          take: params.take,
-          orderBy: { createdAt: 'desc' },
-        }),
-        this.prisma.users.count(),
-      ]);
+      const where: Prisma.UsersWhereInput = {
+        ...(role && { role }),
+        ...(isVerified !== undefined ? { isVerified } : {}),
+      };
 
-      return {
-        ok: true,
-        value: { users: users.map((user) => MapperUser.toDomain(user)), total },
-      };
+      const paginationData = await paginate(
+        { limit, page },
+        (args) => this._db.users.findMany({ ...args, where }),
+        (args) => this._db.users.count({ ...args, where }),
+        (row) => MapperUser.toDomain(row),
+      );
+
+      return paginationData;
     } catch (err: unknown) {
-      return {
-        ok: false,
-        error: handleError(err),
-      };
+      return ErrorMapper.toResult(err, this._entityName);
     }
   }
 
   async findByEmail(email: string): Promise<Result<User>> {
     try {
-      const user = await this.prisma.users.findUnique({ where: { email } });
+      const user = await this._db.users.findUnique({ where: { email } });
+      if (!user) return Result.fail(Errors.notFound('User not found'));
 
-      if (!user) return failure(Errors.notFound('User not found'));
-
-      return { ok: true, value: MapperUser.toDomain(user) };
+      return Result.ok(MapperUser.toDomain(user));
     } catch (err: unknown) {
-      return {
-        ok: false,
-        error: handleError(err),
-      };
+      return ErrorMapper.toResult(err, this._entityName);
     }
   }
 }

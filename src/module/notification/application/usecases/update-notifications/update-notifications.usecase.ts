@@ -1,0 +1,33 @@
+import { Errors, IUseCase, Result } from '@/core';
+import { INOTIFICATION_REPOSITORY } from '@/module/notification/domain/constant/injection.token';
+import { type INotificationSystemRepository } from '@/module/notification/domain/repository/notification.repository.interface';
+import { Inject, Injectable } from '@nestjs/common';
+
+@Injectable()
+export class UpdateNotificationsUseCase implements IUseCase<
+  string,
+  Promise<Result<void>>
+> {
+  constructor(
+    @Inject(INOTIFICATION_REPOSITORY)
+    private readonly notificationRepo: INotificationSystemRepository,
+  ) {}
+
+  async execute(userId: string): Promise<Result<void>> {
+    const notificationsResult = await this.notificationRepo.findAll({ userId });
+
+    if (!notificationsResult.ok) return notificationsResult;
+
+    const unreadedMessages = notificationsResult.value.data.filter(
+      (n) => !n.getRead,
+    );
+
+    if (!unreadedMessages.length)
+      return Result.fail(Errors.notFound('All messages are readed'));
+
+    // if we reach here we need to return the ids of unreaded messages
+    const unreadedMessagesIds = unreadedMessages.map((msg) => msg.getId);
+
+    return await this.notificationRepo.markAllAsRead(unreadedMessagesIds);
+  }
+}

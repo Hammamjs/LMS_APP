@@ -1,16 +1,14 @@
-import { Errors, failure } from '@/core/common/err.utils';
-import { IUseCase } from '@/core/common/use-case-interface';
+import { Inject, Injectable } from '@nestjs/common';
+import { IUseCase, Errors, Result } from '@/core';
+import { ConfigService } from '@nestjs/config';
 import {
   IBCRYPT_SERVICE,
   IJWTTOKEN_SERVICE,
 } from '@/module/auth/domain/constants/injection.token';
 import type { IBcryptService } from '@/module/auth/domain/service/bcrypt.service.interface';
 import type { IJWTTokenService } from '@/module/auth/domain/service/token.service.interface';
-import { IUSER_REPOSITORY } from '@/module/users/domain/constants/injection.token';
 import type { IUserRepository } from '@/module/users/domain/repositories/user.repository.interface';
-import { Result } from '@core/common/result.pattern';
-import { Inject, Injectable } from '@nestjs/common';
-import { ConfigService } from '@nestjs/config';
+import { IUSER_REPOSITORY } from '@/module/users';
 
 @Injectable()
 export class RefreshTokenUseCase implements IUseCase<
@@ -35,7 +33,9 @@ export class RefreshTokenUseCase implements IUseCase<
     );
 
     if (!verifyingToken)
-      return failure(Errors.unauthroized('Invalid or expired refreshToken'));
+      return Result.fail(
+        Errors.unauthroized('Invalid or expired refreshToken'),
+      );
 
     const payload = {
       id: verifyingToken.id,
@@ -43,12 +43,13 @@ export class RefreshTokenUseCase implements IUseCase<
       role: verifyingToken.role,
     };
 
-    if (!payload) return failure(Errors.validation('Invalid token signature'));
+    if (!payload)
+      return Result.fail(Errors.validation('Invalid token signature'));
 
     const userResult = await this.userRepo.findByEmail(payload.email);
 
     if (!userResult.ok)
-      return failure(Errors.notFound('User not found it may be deleted'));
+      return Result.fail(Errors.notFound('User not found it may be deleted'));
 
     const user = userResult.value;
 
@@ -61,10 +62,10 @@ export class RefreshTokenUseCase implements IUseCase<
     if (!isTokensMatched) {
       const removeRefreshToken = user.updateRefreshToken(null);
       await this.userRepo.save(removeRefreshToken);
-      return failure(Errors.unauthroized('Session expired or compromised'));
+      return Result.fail(Errors.unauthroized('Session expired or compromised'));
     }
 
-    if (!user) return failure(Errors.unauthroized('User not authorized'));
+    if (!user) return Result.fail(Errors.unauthroized('User not authorized'));
 
     // generate new rotation
     const tokens = await this.tokenServie.generateAuthToken(payload);

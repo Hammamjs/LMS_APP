@@ -12,7 +12,6 @@
     "target": "ES2023",
     "sourceMap": true,
     "outDir": "./dist",
-    "baseUrl": "./",
     "incremental": true,
     "skipLibCheck": true,
     "strictNullChecks": true,
@@ -21,9 +20,10 @@
     "strictBindCallApply": false,
     "rootDir": ".",
     "noFallthroughCasesInSwitch": false,
+    "types": ["node", "jest"],
     "paths": {
-      "@/*": ["src/*"],
-      "@core/*": ["src/core/*"]
+      "@/*": ["./src/*"],
+      "@core/*": ["./src/core/*"]
     }
   },
   "include": ["src/**/*.ts", "test/**/*.ts", "**/*.config.ts"],

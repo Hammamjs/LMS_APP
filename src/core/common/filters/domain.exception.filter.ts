@@ -6,9 +6,12 @@ import { Response } from 'express';
 @Catch(DomainException)
 export class DomainExceptionFilter implements ExceptionFilter {
   catch(exception: DomainException, host: ArgumentsHost) {
-    const httpEx = mapDomainErrorTOHttp(exception.error);
+    const ctx = mapDomainErrorTOHttp(exception.error)!;
     const response = host.switchToHttp().getResponse<Response>();
+    if (exception instanceof DomainException) {
+      response.status(ctx.getStatus()).json(ctx.getResponse());
+    }
 
-    response.status(httpEx.getStatus()).json(httpEx.getResponse());
+    response.status(500).json({ ok: false, error: 'Internal Server Error' });
   }
 }

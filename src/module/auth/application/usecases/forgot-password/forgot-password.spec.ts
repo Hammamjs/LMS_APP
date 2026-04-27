@@ -29,8 +29,8 @@ describe('Forgot password test cases', () => {
     findByEmail: jest.fn(),
   };
 
-  const mockOTPRepo = {
-    setResetCode: jest.fn(),
+  const mockCacheRepo = {
+    set: jest.fn(),
   };
 
   const mockEventPublisher = {
@@ -40,7 +40,7 @@ describe('Forgot password test cases', () => {
   beforeEach(() => {
     useCase = new ForgotPasswordUseCase(
       mockUserRepo as any,
-      mockOTPRepo as any,
+      mockCacheRepo as any,
       mockEventPublisher as any,
     );
 
@@ -66,7 +66,7 @@ describe('Forgot password test cases', () => {
       expect(result.value).toBe('Code successfully sent to your email');
     }
 
-    expect(mockOTPRepo.setResetCode).toHaveBeenCalledWith(
+    expect(mockCacheRepo.set).toHaveBeenCalledWith(
       `reset_password:${user.getId()}`,
       hashedCode,
       600,
