@@ -3,10 +3,13 @@ import { EventsHandler, IEventHandler } from '@nestjs/cqrs';
 import { type INotificationSystemRepository } from '../../domain/repository/notification.repository.interface';
 import { NotificationDispatcher } from './notification.dispatcher';
 import { Notification } from '../../domain/entity/notification.entity';
+import { Inject } from '@nestjs/common';
+import { INOTIFICATION_REPOSITORY } from '../../domain/constant/injection.token';
 
 @EventsHandler(CoursePurchasedEvent)
 export class CoursePurchasedDispatcher implements IEventHandler<CoursePurchasedEvent> {
   constructor(
+    @Inject(INOTIFICATION_REPOSITORY)
     private readonly notifyRepo: INotificationSystemRepository,
     private readonly dispatcher: NotificationDispatcher,
   ) {}
@@ -18,8 +21,12 @@ export class CoursePurchasedDispatcher implements IEventHandler<CoursePurchasedE
       text: `You are enrolled in ${event.courseName}`,
     });
 
-    await this.notifyRepo.save(notification);
-    // real time connection
-    this.dispatcher.send(notification);
+    try {
+      await this.notifyRepo.save(notification);
+      // real time connection
+      this.dispatcher.send(notification);
+    } catch (err) {
+      console.log('Purchased error', err);
+    }
   }
 }

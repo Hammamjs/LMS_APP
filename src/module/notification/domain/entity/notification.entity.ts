@@ -4,31 +4,31 @@ import { NotificationState } from './notification.type';
 export class Notification {
   private constructor(private readonly props: NotificationState) {}
 
-  public get getId(): string {
+  public get id(): string {
     return this.props.id;
   }
 
-  public get getTitle(): string {
+  public get title(): string {
     return this.props.title;
   }
 
-  public get getText(): string {
+  public get text(): string {
     return this.props.text;
   }
 
-  public get getRead(): boolean {
+  public get read(): boolean {
     return this.props.read;
   }
 
-  public get getCreatedAt(): Date {
+  public get createdAt(): Date {
     return this.props.createdAt;
   }
 
-  public get getUserId(): string {
+  public get userId(): string {
     return this.props.userId;
   }
 
-  public get getIsDeleted(): boolean {
+  public get isDeleted(): boolean {
     return this.props.isDeleted;
   }
 

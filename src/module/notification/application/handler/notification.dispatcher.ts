@@ -6,14 +6,14 @@ import { NotificationGateWay } from '../../infrastructure/getaway/notification.g
 export class NotificationDispatcher {
   constructor(private readonly gateway: NotificationGateWay) {}
   send(notification: Notification) {
-    this.gateway.pushToUser(notification.getUserId, {
-      id: notification.getId,
-      userId: notification.getUserId,
-      text: notification.getText,
-      title: notification.getTitle,
-      isDeleted: notification.getIsDeleted,
-      createdAt: notification.getCreatedAt,
-      read: notification.getRead,
+    this.gateway.pushToUser(notification.userId, {
+      id: notification.id,
+      userId: notification.userId,
+      text: notification.text,
+      title: notification.title,
+      isDeleted: notification.isDeleted,
+      createdAt: notification.createdAt,
+      read: notification.read,
     });
   }
 }

@@ -6,11 +6,11 @@ export class NotificationMapper {
 
   static toResponse(this: void, notification: Notification) {
     return {
-      id: notification.getId,
-      text: notification.getText,
-      title: notification.getTitle,
-      read: notification.getRead,
-      createdAt: notification.getCreatedAt,
+      id: notification.id,
+      text: notification.text,
+      title: notification.title,
+      read: notification.read,
+      createdAt: notification.createdAt,
     };
   }
 }

@@ -1,4 +1,4 @@
-import { Module, Provider } from '@nestjs/common';
+import { forwardRef, Module, Provider } from '@nestjs/common';
 import { GetUserNotificationUseCase } from './application/usecases/get-user-notification/get-user-notification.usecase';
 import { GetUserNotificationsUseCase } from './application/usecases/get-user-notifications/get-user-notification.usecase';
 import { DeleteNotificationUsecase } from './application/usecases/delete-notification/delete-notification.usecase';
@@ -11,6 +11,10 @@ import { INOTIFICATION_REPOSITORY } from './domain/constant/injection.token';
 import { NotificationController } from './presentation/notification.controller';
 import { JwtModule } from '@nestjs/jwt';
 import { ConfigModule } from '@nestjs/config';
+import { NotificationGateWay } from './infrastructure/getaway/notification.gateway';
+import { NotificationDispatcher } from './application/handler/notification.dispatcher';
+import { EnrollmentModule } from '../enrollment/enrollment.module';
+import { CoursePurchasedDispatcher } from './application/handler/course-purchased.dispatcher';
 
 const usecases: Provider[] = [
   GetUserNotificationUseCase,
@@ -31,9 +35,19 @@ const infrastructure: Provider[] = [
 ];
 
 @Module({
-  exports: [INOTIFICATION_REPOSITORY],
-  imports: [JwtModule, ConfigModule],
+  imports: [JwtModule, ConfigModule, forwardRef(() => EnrollmentModule)],
+  exports: [
+    INOTIFICATION_REPOSITORY,
+    NotificationDispatcher,
+    NotificationGateWay,
+  ],
   controllers: [NotificationController],
-  providers: [...usecases, ...infrastructure],
+  providers: [
+    ...usecases,
+    ...infrastructure,
+    NotificationGateWay,
+    NotificationDispatcher,
+    CoursePurchasedDispatcher,
+  ],
 })
 export class NotificationModule {}
