@@ -1,136 +1,181 @@
-// This is your Prisma schema file,
-// learn more about it in the docs: https://pris.ly/d/prisma-schema
-
-// Get a free hosted Postgres database in seconds: `npx create-db`
-
 generator client {
   provider = "prisma-client-js"
 }
 
 datasource db {
-  provider  = "postgresql"
-  }
-
-enum Role {
- Student
- Instructor
- Admin
+  provider = "postgresql"
 }
 
-model Users {
- id   String   @id @default(uuid())
- email String @unique 
- username String 
- role Role @default(Student)
- createdAt DateTime @default(now())
- updatedAt DateTime @updatedAt
- isVerified Boolean @default(false)
- password String
- emailVerified DateTime?
- refreshToken String?
- phone String?
- passwordUpdatedAt DateTime?
- isPasswordCodeVerified Boolean @default(false)
+model User {
+  id       String @id @default(uuid())
+  email    String @unique
+  username String
 
- authorCourses Courses[] 
-}
+  role Role @default(Student)
 
-model Courses {
- id String  @id @default(uuid())
-  title String
-  price Int
-  hours Int
-  slug String @unique
-  description String
-  rating Int @default(0)
-  purchaseCount Int  @default(0)
-  image String?
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
+
+  isVerified Boolean @default(false)
+
+  password String
+
+  emailVerified DateTime?
+  refreshToken  String?
+  phone         String?
+
+  passwordUpdatedAt DateTime?
+
+  isPasswordCodeVerified Boolean @default(false)
+
+  avatar String?
+  bio    String?
+
+  authorCourses Course[]
+
+  enrollments Enrollment[]
+}
+
+model Course {
+  id String @id @default(uuid())
+
+  title String
+
+  originalPrice Int
+  discountPrice Int
+
+  duration Int
+
+  slug String @unique
+
+  subtitle String
+
+  requirements String[]
+
+  whatYouLearn String[]
+
+  language String?
+
+  targetAudience String[]
+
+  description String
+
+  rating Int @default(0)
+
+  purchaseCount Int @default(0)
+
+  image String?
+
+  createdAt DateTime @default(now())
+
+  updatedAt DateTime @updatedAt
+
   category String
+
   isDeleted Boolean @default(false)
 
   instructorId String
 
- //  relation
- instructor Users @relation(fields: [instructorId], references: [id])
- lessons  Lessons[]
+  level Level @default(Beginner)
 
- // indexing
+  instructor User @relation(fields: [instructorId], references: [id])
+
+  lessons Lesson[]
+
+  enrollments Enrollment[]
+
+  payments Payment[]
+
   @@index([slug])
 }
 
-model Lessons {
+model Lesson {
   id          String   @id @default(uuid())
   title       String
-  video       String?  // Video URL
-  sourceLink  String?  // PDF or Github links
-  order       Int      // To keep lessons in the right sequence (1, 2, 3...)
-  rating Int @default(0)
+  url         String
+  order       Int
+  rating      Int      @default(0)
   description String
-  isFree Boolean @default(false)
-  
-  // Foreign Key
+  isFree      Boolean  @default(false)
   courseId    String
-  // is deleted for soft deletion
-  isDeleted Boolean @default(false)
-  
-  // Relation back to course
-  course      Courses  @relation(fields: [courseId], references: [id], onDelete: Cascade)
-
+  isDeleted   Boolean  @default(false)
   createdAt   DateTime @default(now())
+  duration    Int 
   updatedAt   DateTime @updatedAt
-}
-
-enum Status {
- ACTIVE
- COMPLETED
- REFUND
+  course      Course   @relation(fields: [courseId], references: [id], onDelete: Cascade)
 }
 
 model Enrollment {
- id String @id @default(uuid())
- userId String 
- courseId String
- createdAt DateTime @default(now())
- enrolledAt DateTime @default(now())
- progressPercentage Int @default(0)
- status Status @default(ACTIVE) 
- completedLessonsIds String[]
+  id String @id @default(uuid())
 
- @@unique([userId, courseId]) 
-}
+  userId   String
+  courseId String
 
-enum PaymenStatus {
- SUCCESS
- FAILED
- PENDING
-}
+  user User @relation(fields: [userId], references: [id])
 
+  course Course @relation(fields: [courseId], references: [id])
 
-enum PaymentProvider {
- BANK
- STRIPE
+  totalLessonsCount Int
+
+  createdAt DateTime @default(now())
+
+  enrolledAt DateTime @default(now())
+
+  status Status @default(ACTIVE)
+
+  completedLessonsIds String[]
+
+  @@unique([userId, courseId])
 }
 
 model Payment {
- id String @id @default(uuid())
- userId String
- amount Float
- status PaymenStatus
- courseId String
- paymentId String
- provider PaymentProvider @default(BANK)
- createdAt DateTime @default(now()) 
+  id        String          @id @default(uuid())
+  userId    String
+  amount    Float
+  status    PaymenStatus
+  courseId  String
+  paymentId String
+  provider  PaymentProvider @default(BANK)
+  createdAt DateTime        @default(now())
+
+  course Course @relation(fields: [courseId], references: [id])
 }
 
-
 model Notification {
- id String @id @default(uuid())
- userId String
- text String
- title String
- read Boolean @default(false)
- createdAt DateTime @default(now())
- isDeleted Boolean @default(false)
+  id        String   @id @default(uuid())
+  userId    String
+  text      String
+  title     String
+  read      Boolean  @default(false)
+  createdAt DateTime @default(now())
+  isDeleted Boolean  @default(false)
+}
+
+enum Role {
+  Student
+  Instructor
+  Admin
+}
+
+enum Level {
+  Beginner
+  Intermediate
+  Advanced
+}
+
+enum Status {
+  ACTIVE
+  COMPLETED
+  REFUND
+}
+
+enum PaymenStatus {
+  SUCCESS
+  FAILED
+  PENDING
+}
+
+enum PaymentProvider {
+  BANK
+  STRIPE
 }
