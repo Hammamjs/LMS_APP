@@ -1,7 +1,6 @@
-export const isDevMode = process.env.NODE_ENV == 'development';
-const isProdMode = process.env.NODE_ENV == 'production';
-const origins = process.env.ALLOWED_URLS!.split(', ');
 export const allowedOrigins = [
-  ...(isDevMode ? ['http://localhost:*', 'http://127.0.0.1:*'] : []),
-  ...(isProdMode ? origins : []),
+  'http://localhost:3000',
+  'http://127.0.0.1:3000',
+  'http://localhost:3001',
+  'http://127.0.0.1:3001',
 ];

@@ -8,6 +8,8 @@ export interface IUserRepository {
     params: UserPaginationParams,
   ) => Promise<Result<PaginationResult<User>>>;
 
+  findByToken: (token: string) => Promise<Result<User>>;
+
   findById: (id: string) => Promise<Result<User>>;
   delete: (id: string) => Promise<Result<void>>;
   findByEmail: (email: string) => Promise<Result<User>>;

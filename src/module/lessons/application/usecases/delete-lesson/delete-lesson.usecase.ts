@@ -20,27 +20,28 @@ export class DeleteLessonUseCase implements IUseCase<
   async execute(params: DeleteLessonParams): Promise<Result<undefined>> {
     // we need to check user at first
 
-    const [courseResult, lessonResult, userResult] = await Promise.all([
-      this.courseRepo.findById(params.courseId),
-      this.lessonRepo.findById(params.id),
-      this.userRepo.findById(params.userId),
-    ]);
-
+    const userResult = await this.userRepo.findById(params.userId);
     if (!userResult.ok) return userResult;
-    if (!courseResult.ok) return courseResult;
+
+    const lessonResult = await this.lessonRepo.findById(params.id);
+
     if (!lessonResult.ok) return lessonResult;
 
-    const user = userResult.value;
-    const course = courseResult.value;
     const lesson = lessonResult.value;
 
-    if (!user.isInstructor() || !course.isOwnedBy(user.getId()))
+    const courseResult = await this.courseRepo.findById(lesson.courseId);
+    if (!courseResult.ok) return courseResult;
+
+    const user = userResult.value;
+    const { course: courseEntity } = courseResult.value;
+
+    if (!user.isInstructor() || !courseEntity.isOwnedBy(user.id))
       return Result.fail(
         Errors.forbidden('You are not allowed to perform this action'),
       );
 
     // we need to check if this lesson belong to the course
-    if (lesson.getCourseId() !== course.getId())
+    if (lesson.courseId !== courseEntity.id)
       return Result.fail(
         Errors.forbidden(
           'This lesson does not belong to the specified course.',
@@ -50,7 +51,7 @@ export class DeleteLessonUseCase implements IUseCase<
     // mark video as deleted
     const deletedLesson = lesson.markAsDeleted();
 
-    // Hard delete
+    // soft delete
     const deletedResult = await this.lessonRepo.save(deletedLesson);
 
     if (!deletedResult.ok) return Result.fail(Errors.internal('Delete failed'));

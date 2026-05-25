@@ -1,4 +1,4 @@
-import { Users as UserPrisma } from '@prisma/client';
+import { User as UserPrisma } from '@prisma/client';
 import { UserRole } from '../../domain/interface/role.interface';
 import { User } from '../../domain/entity/user.entity';
 export class MapperUser {
@@ -19,6 +19,8 @@ export class MapperUser {
       refreshToken: raw.refreshToken,
       isPasswordCodeVerified: raw.isPasswordCodeVerified,
       passwordUpdatedAt: raw.passwordUpdatedAt,
+      avatar: raw.avatar,
+      bio: raw.bio,
     });
   }
 }

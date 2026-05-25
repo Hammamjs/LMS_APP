@@ -1,29 +1,50 @@
 import { PrismaService } from '@/core/database/prisma.service';
-import { ICourseRepository } from '../domain/repository/course.repository.interface';
-import { Result } from '@/core/common/domain/result.pattern';
 import { Course } from '../domain/entity/course.entity';
 import {
   PaginationParams,
   PaginationResult,
-} from '@/core/common/domain/pagination.interface';
-import { paginate } from '@/core/database/prisma-helper';
-import { CourseMapper } from './mapper/course.mapper';
-import { Errors, failure } from '@/core/common/domain/err.utils';
-import { Prisma, Courses as PrismaCourse } from '@prisma/client';
-import { ErrorMapper } from '@/core/database/prisma-global.mapper';
+  paginate,
+  Errors,
+  failure,
+  ErrorMapper,
+  Result,
+} from '@/core';
+import { CourseMapper, CourseWithInstructorData } from './mapper/course.mapper';
+import { Prisma, Course as PrismaCourse } from '@prisma/client';
 import { Injectable } from '@nestjs/common';
+import { ICourseRepository } from '../domain/repository/course.repository.interface';
 @Injectable()
 export class CourseRepository implements ICourseRepository {
   constructor(private readonly prisma: PrismaService) {}
 
   readonly _entityName: string = 'Courses';
 
+  async findAllCategories(): Promise<Result<string[]>> {
+    try {
+      const courseCategories = await this.prisma.course.findMany({
+        where: { isDeleted: false },
+        distinct: ['category'],
+        select: { category: true },
+      });
+
+      if (!courseCategories.length)
+        return Result.fail(Errors.notFound('Categories not found yet'));
+
+      const formattedCategories = courseCategories.map((c) => c.category);
+
+      return Result.ok(formattedCategories);
+    } catch (err) {
+      return ErrorMapper.toResult(err, this._entityName);
+    }
+  }
+
   async findAll(
     params: PaginationParams,
-  ): Promise<Result<PaginationResult<Course>>> {
+  ): Promise<Result<PaginationResult<CourseWithInstructorData>>> {
+    // 💡 Updated Return Type signature
     const { limit, page, search, category, instructorId } = params;
     try {
-      const where: Prisma.CoursesWhereInput = {
+      const where: Prisma.CourseWhereInput = {
         isDeleted: false,
         // Filter by instructor
         ...(instructorId && { instructorId }),
@@ -40,13 +61,15 @@ export class CourseRepository implements ICourseRepository {
       const paginationData = await paginate(
         { limit, page },
         (args) =>
-          this.prisma.courses.findMany({
+          this.prisma.course.findMany({
             ...args,
             where,
             orderBy: { createdAt: 'desc' },
+            include: { instructor: true },
           }),
-        (args) => this.prisma.courses.count({ ...args, where }),
-        (row) => CourseMapper.toDomain(row),
+        (args) => this.prisma.course.count({ ...args, where }),
+        // 💡 THE FIX: Update this line to use your new mapper method
+        (row) => CourseMapper.toDomainWithInstructor(row),
       );
 
       return paginationData;
@@ -55,19 +78,28 @@ export class CourseRepository implements ICourseRepository {
     }
   }
 
-  async findById(id: string): Promise<Result<Course>> {
+  async findById(id: string): Promise<Result<CourseWithInstructorData>> {
     try {
-      const result = await this.prisma.courses.findUnique({
+      const result = await this.prisma.course.findUnique({
         where: { id, isDeleted: false },
+        include: {
+          instructor: true,
+          _count: {
+            select: { lessons: true },
+          },
+        },
       });
 
-      if (!result) return failure(Errors.notFound('Course not found'));
+      if (!result) {
+        return Result.fail(Errors.notFound('Course not found'));
+      }
 
-      const domainData = CourseMapper.toDomain(result);
+      const domainData = CourseMapper.toDomainWithInstructor(result);
 
       return Result.ok(domainData);
     } catch (err: unknown) {
-      return ErrorMapper.toResult(err, this._entityName);
+      const errorInstance = err instanceof Error ? err : new Error(String(err));
+      return ErrorMapper.toResult(errorInstance, this._entityName);
     }
   }
 
@@ -76,13 +108,13 @@ export class CourseRepository implements ICourseRepository {
       let data: PrismaCourse;
 
       if (props.isNew)
-        data = await this.prisma.courses.create({
-          data: props.toPersistence(),
+        data = await this.prisma.course.create({
+          data: props.toPersistence,
         });
       else
-        data = await this.prisma.courses.update({
-          data: props.toPersistence(),
-          where: { id: props.getId() },
+        data = await this.prisma.course.update({
+          data: props.toPersistence,
+          where: { id: props.id },
         });
 
       const domain = CourseMapper.toDomain(data);
@@ -93,13 +125,23 @@ export class CourseRepository implements ICourseRepository {
     }
   }
 
-  async findBySlug(slug: string): Promise<Result<Course>> {
+  async findBySlug(slug: string): Promise<Result<CourseWithInstructorData>> {
     try {
-      const result = await this.prisma.courses.findUnique({ where: { slug } });
+      const result = await this.prisma.course.findUnique({
+        where: { slug },
+        include: {
+          instructor: true,
+          _count: {
+            select: {
+              lessons: true,
+            },
+          },
+        },
+      });
 
       if (!result) return failure(Errors.notFound('Course not found'));
 
-      const domain = CourseMapper.toDomain(result);
+      const domain = CourseMapper.toDomainWithInstructor(result);
 
       return Result.ok(domain);
     } catch (err: unknown) {
@@ -116,9 +158,9 @@ export class CourseRepository implements ICourseRepository {
       const paginationData = await paginate(
         params ?? { limit: 20, page: 1 },
         (args) =>
-          this.prisma.courses.findMany({ ...args, where: { instructorId } }),
+          this.prisma.course.findMany({ ...args, where: { instructorId } }),
         (args) =>
-          this.prisma.courses.count({ ...args, where: { instructorId } }),
+          this.prisma.course.count({ ...args, where: { instructorId } }),
         (row) => CourseMapper.toDomain(row),
       );
 
@@ -138,9 +180,8 @@ export class CourseRepository implements ICourseRepository {
     try {
       const paginationData = await paginate(
         params ?? { limit: 20, page: 1 },
-        (args) =>
-          this.prisma.courses.findMany({ ...args, where: { category } }),
-        (args) => this.prisma.courses.count({ ...args, where: { category } }),
+        (args) => this.prisma.course.findMany({ ...args, where: { category } }),
+        (args) => this.prisma.course.count({ ...args, where: { category } }),
         (row) => CourseMapper.toDomain(row),
       );
 
@@ -155,7 +196,7 @@ export class CourseRepository implements ICourseRepository {
 
   async delete(id: string): Promise<Result<void>> {
     try {
-      const result = await this.prisma.courses.delete({ where: { id } });
+      const result = await this.prisma.course.delete({ where: { id } });
       if (!result)
         return failure(Errors.notFound('Course not found operation failed'));
 

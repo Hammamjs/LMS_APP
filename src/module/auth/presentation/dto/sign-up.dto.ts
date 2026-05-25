@@ -16,6 +16,10 @@ export class SignUpDto {
   @IsString()
   phone?: string;
 
+  @IsOptional()
+  @IsString()
+  bio!: string | null;
+
   @IsString()
   username!: string;
 }

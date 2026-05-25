@@ -36,14 +36,17 @@ export class VerifyJwt implements CanActivate {
   }
 
   private _extractTokenFromHeader(request: Request): string | undefined {
-    const authHeader =
-      request.headers.authorization ||
-      (request.headers['authorization'] as string);
+    // 1. Check Standard Authorization Header
+    const authHeader = request.headers?.authorization;
+    if (authHeader) {
+      const [type, token] = authHeader.split(' ');
+      if (type === 'Bearer') return token;
+    }
 
-    if (!authHeader) return undefined;
-
-    const [type, token] = authHeader.split(' ');
-
-    return type === 'Bearer' ? token : undefined;
+    // 2. Check Cookies (if header is missing)
+    return (
+      (request.cookies?.['accessToken'] as string) ||
+      (request.cookies?.['refreshToken'] as string)
+    );
   }
 }

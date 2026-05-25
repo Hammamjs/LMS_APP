@@ -23,6 +23,8 @@ describe('Refresh token usecase', () => {
       role: 'Studen' as UserRole,
       updatedAt: new Date(),
       createdAt: new Date(),
+      avatar: '',
+      bio: '',
       ...override,
     });
   };
@@ -97,9 +99,9 @@ describe('Refresh token usecase', () => {
     const user = createUser();
 
     mockTokenService.verify.mockResolvedValue({
-      id: user.getId(),
-      email: user.getEmail(),
-      role: user.getRole(),
+      id: user.id,
+      email: user.email,
+      role: user.role,
     });
 
     mockUserRepo.findByEmail.mockResolvedValue({
@@ -134,9 +136,9 @@ describe('Refresh token usecase', () => {
     const user = createUser();
 
     mockTokenService.verify.mockResolvedValue({
-      id: user.getId(),
-      email: user.getEmail(),
-      role: user.getRole(),
+      id: user.id,
+      email: user.email,
+      role: user.role,
     });
 
     mockUserRepo.findByEmail.mockResolvedValue({ ok: true, value: user });

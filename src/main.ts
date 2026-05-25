@@ -6,13 +6,12 @@ import { ResultInterceptor, DomainExceptionFilter } from '@/core';
 import { corsOption } from './core/common/infrastructure/config/cors-option';
 
 async function bootstrap() {
-  const app = await NestFactory.create(AppModule);
+  const app = await NestFactory.create(AppModule, { rawBody: true });
+  app.use(cookieParser());
 
   app.enableCors(corsOption);
 
   app.useGlobalInterceptors(new ResultInterceptor());
-
-  app.use(cookieParser());
 
   app.setGlobalPrefix('api');
 

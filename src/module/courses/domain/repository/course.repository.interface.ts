@@ -4,15 +4,18 @@ import {
   PaginationParams,
   PaginationResult,
 } from '@/core/common/domain/pagination.interface';
+import { CourseWithInstructorData } from '../../infrastructure/mapper/course.mapper';
 
 export interface ICourseRepository {
   findAll: (
     params: PaginationParams,
-  ) => Promise<Result<PaginationResult<Course>>>;
+  ) => Promise<Result<PaginationResult<CourseWithInstructorData>>>;
   // This for course
-  findById: (id: string) => Promise<Result<Course>>;
+  findById: (id: string) => Promise<Result<CourseWithInstructorData>>;
   save: (props: Course) => Promise<Result<Course>>;
-  findBySlug: (slug: string) => Promise<Result<Course>>;
+  findBySlug: (slug: string) => Promise<Result<CourseWithInstructorData>>;
+
+  findAllCategories: () => Promise<Result<string[]>>;
 
   delete: (id: string) => Promise<Result<void>>;
 }

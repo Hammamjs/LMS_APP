@@ -16,11 +16,11 @@ import { ICOURSE_REPOSITORY } from '../courses';
 import { ICACHE_REPOSITORY } from '../auth';
 import { IPAYMENT_REPOSITORY } from './domain/constants/injection.token';
 import { PaymentFactory } from './infrastructure/gateway/payment.factory';
-import { CqrsModule } from '@nestjs/cqrs';
 import { BankGatewayService } from './infrastructure/gateway/bank.gateway';
 import { StripeGatewayService } from './infrastructure/gateway/stripe.gateway';
 import { WebhookService } from './infrastructure/webhook/webhook.service';
 import { UserPaymentHistoryUseCase } from './application/usecases/user-payments/user-payment-history.usecase';
+import { NotificationModule } from '../notification/notification.module';
 
 const usecases: Provider[] = [
   PaymentProcessUseCase,
@@ -69,6 +69,6 @@ const infrastructure: Provider[] = [
   exports: [],
   providers: [...usecases, ...infrastructure],
   controllers: [PaymentController],
-  imports: [JwtModule, CqrsModule],
+  imports: [JwtModule, NotificationModule],
 })
 export class PaymentModule {}

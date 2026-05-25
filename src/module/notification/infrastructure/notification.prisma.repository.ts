@@ -108,7 +108,7 @@ export class NotificationPrismaRepository implements INotificationSystemReposito
   async save(notification: Notification): Promise<Result<Notification>> {
     try {
       const data: PrismaNotification = await this._db.notification.upsert({
-        where: { id: notification.getId },
+        where: { id: notification.id },
         create: notification.toPersistence(),
         update: notification.toPersistence(),
       });

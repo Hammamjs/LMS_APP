@@ -53,7 +53,7 @@ export class RefreshTokenUseCase implements IUseCase<
 
     const user = userResult.value;
 
-    const hashedTokenInDb = user.getRefreshToken();
+    const hashedTokenInDb = user.refreshToken;
 
     const isTokensMatched = hashedTokenInDb
       ? await this.bcryptService.compare(oldRefreshToken, hashedTokenInDb)

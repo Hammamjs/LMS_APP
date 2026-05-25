@@ -1,4 +1,4 @@
-import { Module, Provider } from '@nestjs/common';
+import { forwardRef, Module, Provider } from '@nestjs/common';
 import { CourseFacade } from './application/course.facade';
 import { CreateCourseUseCase } from './application/usecases/create-course/create-course.usecase';
 import { DeleteCourseUseCase } from './application/usecases/delete-course/delete-course.usecase';
@@ -12,6 +12,7 @@ import { CourseController } from './presentation/course.controller';
 import { IUSER_REPOSITORY } from '../users';
 import { PrismaUserRepository } from '../users/infrastructure/prisma.user.repository';
 import { AuthModule } from '../auth/auth.module';
+import { GetCoursesCategoriesUseCase } from './application/usecases/get-courses-categories/get-courses-categories.usecase';
 
 const usecases: Provider[] = [
   CourseFacade,
@@ -20,6 +21,7 @@ const usecases: Provider[] = [
   UpdateCourseUseCase,
   FindCourseUseCase,
   FindCoursesUseCase,
+  GetCoursesCategoriesUseCase,
 ];
 
 const infrastructure: Provider[] = [
@@ -29,7 +31,7 @@ const infrastructure: Provider[] = [
 ];
 
 @Module({
-  imports: [UserModule, AuthModule],
+  imports: [forwardRef(() => UserModule), forwardRef(() => AuthModule)],
   exports: [ICOURSE_REPOSITORY],
   controllers: [CourseController],
   providers: [...usecases, ...infrastructure],

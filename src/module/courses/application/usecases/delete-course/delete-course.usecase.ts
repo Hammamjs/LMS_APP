@@ -13,25 +13,34 @@ export class DeleteCourseUseCase implements IUseCase<
   constructor(
     @Inject(ICOURSE_REPOSITORY) private readonly courseRepo: ICourseRepository,
   ) {}
+
   async execute(params: DeleteCourseParams): Promise<Result<void>> {
-    // we need to get user first
+    // 1. Fetch the pure domain Course entity
     const result = await this.courseRepo.findById(params.id);
 
-    if (!result.ok) return result;
+    // 💡 Fix 1: Map the failure Result object into a matching Result<void> structure
+    if (!result.ok) {
+      return Result.fail(result.error);
+    }
 
-    const course = result.value;
+    const { course: courseEntity, instructorData } = result.value;
 
-    // we need to check if same instructor want to delete his course
-    if (course.getInstructor() !== params.currentUserId)
+    // 💡 Fix 2: Look at course.instructorId directly, since findById returns a pure Course entity
+    if (instructorData?.id !== params.currentUserId) {
       return Result.fail(
         Errors.forbidden('You do not have permission to delete this course'),
       );
+    }
 
-    const deletedVideo = course.withSoftDeletion(params.currentUserId);
+    // 💡 Fix 3: Remove the extra ".course" layer to target your aggregate root directly
+    const deletedVideo = courseEntity.withSoftDeletion(params.currentUserId);
 
     const deleted = await this.courseRepo.save(deletedVideo);
 
-    if (!deleted.ok) return deleted;
+    // 💡 Fix 4: Map this failure to matching Result<void> structure as well
+    if (!deleted.ok) {
+      return Result.fail(deleted.error);
+    }
 
     return Result.ok(undefined);
   }

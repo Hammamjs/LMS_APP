@@ -1,8 +1,6 @@
-import { IUseCase } from '@/core/common/domain/use-case-interface';
-import type { IUserRepository } from '@/module/users/domain/repositories/user.repository.interface';
+import { type IUserRepository, IUSER_REPOSITORY } from '@/module/users';
 import { Inject } from '@nestjs/common';
-import { Result } from '@/core/common/domain/result.pattern';
-import { IUSER_REPOSITORY } from '@/module/users/domain/constants/injection.token';
+import { Result, Errors, IUseCase } from '@/core';
 
 export class DeleteUserUseCase implements IUseCase<
   string,
@@ -13,19 +11,12 @@ export class DeleteUserUseCase implements IUseCase<
   ) {}
 
   async execute(id: string): Promise<Result<void>> {
-    if (!id)
-      return {
-        ok: false,
-        error: { type: 'VALIDATION', message: 'Id not provided' },
-      };
+    if (!id) return Result.fail(Errors.validation('Id not provided'));
 
     const userResult = await this.userRepo.delete(id);
 
     if (!userResult.ok) return userResult;
 
-    return {
-      ok: true,
-      value: undefined,
-    };
+    return Result.ok(undefined);
   }
 }

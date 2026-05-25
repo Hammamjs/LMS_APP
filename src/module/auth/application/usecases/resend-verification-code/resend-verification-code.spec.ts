@@ -43,6 +43,8 @@ describe('Resend Code verification test cases', () => {
     phone: '84784738473',
     createdAt: new Date(),
     updatedAt: new Date(),
+    bio: '',
+    avatar: '',
   });
 
   it('should return message to verify account', async () => {
@@ -69,7 +71,7 @@ describe('Resend Code verification test cases', () => {
 
     expect(mockEventPublisher.publish).toHaveBeenCalled();
     expect(mockCacheRepo.set).toHaveBeenCalledWith(
-      `verify:${user.getId()}`,
+      `verify:${user.id}`,
       hashingCode,
       600,
     );

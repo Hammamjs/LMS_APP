@@ -32,19 +32,26 @@ export class EmailVerificationUseCase implements IUseCase<
   ): Promise<Result<EmailVerificationResponse>> {
     const userResult = await this.userRepo.findByEmail(dto.email);
 
+    console.log('user', userResult);
+
     if (!userResult.ok) return userResult;
 
     const user = userResult.value;
 
-    if (user.getIsVerified())
+    if (user.isVerified)
       return Result.fail(Errors.validation('Email already verified'));
 
     const inputHash = createHash('sha256').update(dto.code).digest('hex');
 
-    const savedCodeResult = await this.cacheRepo.get(`verify:${user.getId()}`);
+    console.log('Input hash', inputHash);
+    console.log('plain text', dto.code);
+
+    const savedCodeResult = await this.cacheRepo.get(`verify:${user.id}`);
 
     if (!savedCodeResult.ok)
       return Result.fail(Errors.internal('Failed to retrive code'));
+
+    console.log(savedCodeResult);
 
     if (!savedCodeResult.value)
       return Result.fail(
@@ -54,9 +61,9 @@ export class EmailVerificationUseCase implements IUseCase<
     if (inputHash !== savedCodeResult.value)
       return Result.fail(Errors.validation('Incorrect verification code'));
 
-    const id = user.getId(),
-      email = user.getEmail(),
-      role = user.getRole();
+    const id = user.id,
+      email = user.email,
+      role = user.role;
 
     const accessToken = await this.tokenService.generate(
       { id, email, role },
@@ -78,7 +85,7 @@ export class EmailVerificationUseCase implements IUseCase<
 
     // atomic clean up and save
     await Promise.all([
-      this.cacheRepo.del(`verify:${user.getId()}`),
+      this.cacheRepo.del(`verify:${user.id}`),
       this.userRepo.save(finalUser),
     ]);
 

@@ -28,7 +28,7 @@ export class UpdateLessonUseCase implements IUseCase<
 
     if (!courseResult.ok) return courseResult;
 
-    const course = courseResult.value;
+    const { course: courseEntity } = courseResult.value;
     // we need to check if user exists and the permission
     const userResult = await this.userRepo.findById(params.userId);
 
@@ -37,7 +37,7 @@ export class UpdateLessonUseCase implements IUseCase<
     const user = userResult.value;
 
     // check user permission
-    if (!course.isOwnedBy(user.getId()) || !user.isInstructor())
+    if (!courseEntity.isOwnedBy(user.id) || !user.isInstructor())
       return Result.fail(Errors.forbidden('This operation is forbidden'));
 
     const lessonResult = await this.lessonRepo.findById(params.id);
@@ -47,16 +47,16 @@ export class UpdateLessonUseCase implements IUseCase<
     const lesson = lessonResult.value;
 
     // we need to check if lesson bleong to course
-    if (course.getId() !== lesson.getCourseId())
+    if (courseEntity.id !== lesson.courseId)
       return Result.fail(
         Errors.forbidden('Lesson does not belong to the specified course'),
       );
 
     const updatedLesson = lesson
-      .withTitle(params.title ?? lesson.getTitle())
-      .withDescription(params.description ?? lesson.getDescription())
-      .withVideo(params.video ?? lesson.getVideo())
-      .withUrl(params.sourceLink ?? lesson.getSourceLink());
+      .withTitle(params.title ?? lesson.title)
+      .withDescription(params.description ?? lesson.description)
+      .setUrl(params.url ?? lesson.url)
+      .setDuration(params.duration ?? lesson.duration);
 
     let lessonToSave = updatedLesson;
 

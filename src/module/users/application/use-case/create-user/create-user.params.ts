@@ -7,5 +7,7 @@ export class CreateUserParams {
     public readonly role: UserRole | null,
     public readonly phone: string | null,
     public readonly password: string,
+    public readonly avatar: string | null,
+    public readonly bio: string | null,
   ) {}
 }

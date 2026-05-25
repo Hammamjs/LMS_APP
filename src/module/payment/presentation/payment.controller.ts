@@ -4,6 +4,7 @@ import {
   Get,
   Headers,
   Post,
+  Query,
   type RawBodyRequest,
   Req,
   UseGuards,
@@ -11,10 +12,9 @@ import {
 import { PaymentFacade } from '../application/payment.facade';
 import { PaymentDto } from './dto/payment.dto';
 import { JwtPayload } from '@/module/auth';
-import { RoleGuard, VerifyJwt } from '@/core';
-import { UserRole } from '@/module/users';
-import { Roles } from '@/core/common/infrastructure/decorators/roles.decorator';
+import { VerifyJwt } from '@/core';
 import { WebhookService } from '../infrastructure/webhook/webhook.service';
+import { PaymentQuery } from './dto/payment.query.dto';
 
 @Controller('payment')
 export class PaymentController {
@@ -23,20 +23,24 @@ export class PaymentController {
     private readonly webhookService: WebhookService,
   ) {}
 
-  @UseGuards(VerifyJwt, RoleGuard)
-  @Roles(UserRole.Instructor, UserRole.Student)
+  @UseGuards(VerifyJwt)
   @Post()
   async pay(@Req() request: Request, @Body() dto: PaymentDto) {
     const { id: userId, email } = request['user'] as JwtPayload;
     return await this.paymentFacade.pay.execute({ ...dto, email, userId });
   }
 
-  @UseGuards(VerifyJwt, RoleGuard)
-  @Roles(UserRole.Student)
+  @UseGuards(VerifyJwt)
   @Get('user/payments-history')
-  async userPaymentHistory(@Req() request: Request) {
+  async userPaymentHistory(
+    @Query() dto: PaymentQuery,
+    @Req() request: Request,
+  ) {
     const { id } = request['user'] as JwtPayload;
-    return await this.paymentFacade.UserPaymentHistory.execute(id);
+    return await this.paymentFacade.UserPaymentHistory.execute({
+      userId: id,
+      ...dto,
+    });
   }
 
   @Post('webhook')
@@ -48,8 +52,8 @@ export class PaymentController {
       await this.webhookService.handleStripeEvent(request.rawBody, signature);
       return { recived: true };
     } catch (err) {
-      console.error('WEBHOOK_ERROR:', err); // THIS WILL SHOW YOU THE TRUTH
-      throw err; // Re-throw to send 500 back to Stripe
+      console.error('WEBHOOK_ERROR:', err);
+      throw err;
     }
   }
 }

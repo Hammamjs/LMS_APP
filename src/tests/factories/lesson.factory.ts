@@ -17,8 +17,8 @@ export class LessonFactory implements IFactoryTest<CreateLessonInput, Lesson> {
       description: 'any description',
       isFree: false,
       order: 1,
-      sourceLink: 'link',
-      video: 'video',
+      url: 'link',
+      duration: 7200000,
       title: 'Css advanced',
       ...params,
     });

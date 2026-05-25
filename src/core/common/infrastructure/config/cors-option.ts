@@ -1,18 +1,13 @@
-import { allowedOrigins, isDevMode } from './allowed-origins';
+import { allowedOrigins } from './allowed-origins';
 
 export const corsOption = {
-  origin: (origin: string, callback: (...args: unknown[]) => void) => {
-    if (!origin || allowedOrigins.includes(origin)) {
-      return callback(null, true);
+  origin: (origin: string, cb: (...args: unknown[]) => void) => {
+    if (allowedOrigins.indexOf(origin) !== -1 || !origin) {
+      cb(null, true);
+    } else {
+      cb(new Error(`origin blocked by cors ${origin}`));
     }
-
-    if (isDevMode) {
-      console.warn(`This is development mode ${origin}`);
-    }
-
-    return callback(new Error('Not allowed by cors'));
   },
+  optionSuccessStatus: 200,
   credentials: true,
-  allowedHeaders: ['Content-Type', 'Authorization'],
-  methods: ['GET', 'POST', 'PATCH', 'DELETE', 'PUT'],
 };

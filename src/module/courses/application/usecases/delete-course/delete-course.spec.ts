@@ -7,9 +7,7 @@ import { CourseFactory } from '@/tests';
 
 describe('Delete course test cases', () => {
   let usecase: DeleteCourseUseCase;
-  let mockCourseRepo: { save: jest.Mock; findById: jest.Mock }; // because this is soft deletion
-
-  const course = CourseFactory.build();
+  let mockCourseRepo: { save: jest.Mock; findById: jest.Mock };
 
   const errors = {
     DB_ERR: 'Database connection error',
@@ -33,12 +31,25 @@ describe('Delete course test cases', () => {
   });
 
   it('should mark course as deleted in database', async () => {
-    mockCourseRepo.findById.mockResolvedValue(Result.ok(course));
-    mockCourseRepo.save.mockResolvedValue(Result.ok(course));
+    const instructorId = 'any-vlaid-id';
+    const courseEntity = CourseFactory.build({ instructorId });
+
+    mockCourseRepo.findById.mockResolvedValue(
+      Result.ok({
+        course: courseEntity,
+        instructorData: {
+          id: instructorId,
+          username: 'test-user',
+          avatar: null,
+          bio: null,
+        },
+      }),
+    );
+    mockCourseRepo.save.mockResolvedValue(Result.ok(courseEntity));
 
     const result = await usecase.execute({
-      id: course.getId(),
-      currentUserId: course.getInstructor(),
+      id: courseEntity.id,
+      currentUserId: instructorId,
     });
 
     expect(result.ok).toBe(true);
@@ -61,10 +72,22 @@ describe('Delete course test cases', () => {
   });
 
   it('should fail when the owner of the course and currentUserId mismatched', async () => {
-    mockCourseRepo.findById.mockResolvedValue(Result.ok(course));
+    const courseEntity = CourseFactory.build({ instructorId: 'owner-id' });
+
+    mockCourseRepo.findById.mockResolvedValue(
+      Result.ok({
+        course: courseEntity,
+        instructorData: {
+          id: 'owner-id',
+          username: 'owner',
+          avatar: null,
+          bio: null,
+        },
+      }),
+    );
 
     const result = await usecase.execute({
-      id: course.getId(),
+      id: courseEntity.id,
       currentUserId: 'mismatched-id',
     });
 
@@ -72,14 +95,27 @@ describe('Delete course test cases', () => {
   });
 
   it('should fail when database failed to save changes', async () => {
-    mockCourseRepo.findById.mockResolvedValue(Result.ok(course));
+    const instructorId = 'in-id';
+    const courseEntity = CourseFactory.build({ instructorId });
+
+    mockCourseRepo.findById.mockResolvedValue(
+      Result.ok({
+        course: courseEntity,
+        instructorData: {
+          id: instructorId,
+          username: 'test',
+          avatar: null,
+          bio: null,
+        },
+      }),
+    );
     mockCourseRepo.save.mockResolvedValue(
       Result.fail(Errors.internal(errors.DB_ERR)),
     );
 
     const result = await usecase.execute({
-      id: 'any-id',
-      currentUserId: course.getInstructor(),
+      id: courseEntity.id,
+      currentUserId: instructorId,
     });
 
     expect(result.ok).toBe(false);

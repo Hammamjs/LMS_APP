@@ -1,18 +1,28 @@
-import { IsOptional, IsString, IsUUID, MinLength } from 'class-validator';
+import { Type } from 'class-transformer';
+import {
+  IsNumber,
+  IsOptional,
+  IsString,
+  IsUUID,
+  MinLength,
+} from 'class-validator';
 
-export class CreateLessonParams {
+export class CreateLessonDto {
   @IsUUID()
   courseId!: string;
   @IsString()
   @MinLength(3)
   description!: string;
 
+  @Type(() => Number)
+  @IsNumber()
+  duration!: number;
+
   @IsOptional() // by default the lesson is paid
   isFree!: boolean;
   @IsOptional()
-  sourceLink!: string;
-  @IsOptional()
-  video!: string | null;
+  url!: string;
+
   @IsString()
   @MinLength(5)
   title!: string;

@@ -7,6 +7,8 @@ import { ForgotPasswordUseCase } from './usecases/forgot-password/forgot-passwor
 import { VerifyResetPasswordCodeUseCase } from './usecases/verify-reset-password-code/verify-reset-password-code.usecase';
 import { ResetPasswordUseCase } from './usecases/reset-password/reset-password.usecase';
 import { RefreshTokenUseCase } from './usecases/refresh-token/refresh-token.usecase';
+import { GetMeUseCase } from './usecases/get-user/get-user.usecase';
+import { UpdatePasswordUseCase } from './usecases/update-password/update-password.usecase';
 
 @Injectable()
 export class AuthFacade {
@@ -19,5 +21,7 @@ export class AuthFacade {
     public readonly verifyResetCode: VerifyResetPasswordCodeUseCase,
     public readonly resetPassword: ResetPasswordUseCase,
     public readonly refreshToken: RefreshTokenUseCase,
+    public readonly getProfile: GetMeUseCase,
+    public readonly updatePassword: UpdatePasswordUseCase,
   ) {}
 }

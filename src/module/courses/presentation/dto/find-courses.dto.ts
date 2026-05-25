@@ -21,4 +21,8 @@ export class FindCoursesDto {
   @IsOptional()
   @IsString()
   category!: string;
+
+  @IsOptional()
+  @IsString()
+  instructorId?: string;
 }

@@ -19,14 +19,14 @@ export class UpdateNotificationsUseCase implements IUseCase<
     if (!notificationsResult.ok) return notificationsResult;
 
     const unreadedMessages = notificationsResult.value.data.filter(
-      (n) => !n.getRead,
+      (n) => !n.read,
     );
 
     if (!unreadedMessages.length)
       return Result.fail(Errors.notFound('All messages are readed'));
 
     // if we reach here we need to return the ids of unreaded messages
-    const unreadedMessagesIds = unreadedMessages.map((msg) => msg.getId);
+    const unreadedMessagesIds = unreadedMessages.map((msg) => msg.id);
 
     return await this.notificationRepo.markAllAsRead(unreadedMessagesIds);
   }

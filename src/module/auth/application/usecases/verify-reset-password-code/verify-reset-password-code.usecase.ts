@@ -32,7 +32,7 @@ export class VerifyResetPasswordCodeUseCase implements IUseCase<
 
     // get hashed code from redis
     const savedCodeResult = await this.cacheRepo.get(
-      `reset_password:${user.getId()}`,
+      `reset_password:${user.id}`,
     );
 
     if (!savedCodeResult.ok)
@@ -54,7 +54,7 @@ export class VerifyResetPasswordCodeUseCase implements IUseCase<
     try {
       await Promise.all([
         this.userRepo.save(verifyUser),
-        this.cacheRepo.del(`reset_password:${verifyUser.getId()}`),
+        this.cacheRepo.del(`reset_password:${verifyUser.id}`),
       ]);
 
       return {

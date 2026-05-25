@@ -12,7 +12,6 @@ import {
 import { FacadeUsers } from '../application/facade.users';
 import { CreatUserDto } from './dto/users/create-user.dto';
 import { UpdateUserDto } from './dto/users/update-user.dto';
-import { UserResponse } from './dto/users/user.response';
 import { DomainException } from '../../../core/common/domain/domain.exception';
 import { PaginationQuery } from './dto/users/pagination-params';
 
@@ -20,7 +19,7 @@ import { PaginationQuery } from './dto/users/pagination-params';
 export class UserController {
   constructor(private readonly facadeUser: FacadeUsers) {}
 
-  @Get('/')
+  @Get()
   async findAll(@Query() query: PaginationQuery) {
     const result = await this.facadeUser.findAll.execute(query);
 
@@ -29,44 +28,24 @@ export class UserController {
     return result;
   }
 
-  @Get('/:id')
+  @Get(':id')
   async findById(@Param('id') id: string) {
-    const result = await this.facadeUser.findById.execute(id);
-    if (!result.ok) throw new DomainException(result.error);
-
-    const user = result.value ? UserResponse.from(result.value) : null;
-    return { data: user };
+    return await this.facadeUser.findById.execute(id);
   }
 
   @Post('create')
   async create(@Body() userdto: CreatUserDto) {
-    const result = await this.facadeUser.create.execute(userdto);
-
-    console.log(result);
-
-    if (!result.ok) throw new DomainException(result.error);
-
-    const user = UserResponse.from(result.value);
-
-    return { data: user };
+    return await this.facadeUser.create.execute(userdto);
   }
 
   @Patch('update')
   async update(@Body() updateUser: UpdateUserDto) {
-    const result = await this.facadeUser.update.execute(updateUser);
-
-    if (!result.ok) throw new DomainException(result.error);
-
-    const user = result.value ? UserResponse.from(result.value) : null;
-    return { data: user };
+    return await this.facadeUser.update.execute(updateUser);
   }
 
   @Delete(':id')
   @HttpCode(204)
   async delete(@Param('id') id: string) {
-    const result = await this.facadeUser.deleteOne.execute(id);
-
-    if (!result.ok) throw new DomainException(result.error);
-    return;
+    return await this.facadeUser.deleteOne.execute(id);
   }
 }

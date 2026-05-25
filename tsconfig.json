@@ -26,7 +26,12 @@
       "@core/*": ["./src/core/*"]
     }
   },
-  "include": ["src/**/*.ts", "test/**/*.ts", "**/*.config.ts"],
+  "include": [
+    "src/**/*.ts",
+    "test/**/*.ts",
+    "**/*.config.ts",
+    "prisma/**/*.ts"
+  ],
   "exclude": ["node_modules"],
   "watchOptions": {
     "watchFile": "dynamicPriorityPolling",

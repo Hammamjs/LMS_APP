@@ -15,6 +15,9 @@ export type {
   TokenOptions,
 } from './domain/service/token.service.interface';
 
+// export security service
+export { type IBcryptService } from './domain/service/bcrypt.service.interface';
+
 // export common usecases
 export { AuthFacade } from './application/auth.facade';
 export { EmailVerificationUseCase } from './application/usecases/email-verification/email-verification.usecase';

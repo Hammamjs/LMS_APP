@@ -1,5 +1,13 @@
-import { Lessons as PrismaLesson } from '@prisma/client';
+import { Lesson as PrismaLesson } from '@prisma/client';
 import { Lesson } from '../../domain/entity/lesson.entity';
+
+type LessonPreview = {
+  id: string;
+  title: string;
+  order: number;
+  isFree: boolean;
+};
+
 export class LessonMapper {
   private constructor() {}
 
@@ -11,5 +19,14 @@ export class LessonMapper {
 
   public static toDomainList(rawLesson: PrismaLesson[]): Lesson[] {
     return rawLesson.map((raw) => this.toDomain(raw));
+  }
+
+  public static toPreviewDomain(this: void, raw: LessonPreview) {
+    return {
+      id: raw.id,
+      title: raw.title,
+      order: raw.order,
+      isFree: raw.isFree,
+    };
   }
 }

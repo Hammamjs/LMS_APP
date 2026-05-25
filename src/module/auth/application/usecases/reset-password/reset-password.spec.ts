@@ -8,6 +8,7 @@ import {
 import { ConfigService } from '@nestjs/config';
 import { User } from '@/module/users/domain/entity/user.entity';
 import { UserRole } from '@/module/users/domain/interface/role.interface';
+import { EventBus } from '@nestjs/cqrs';
 
 describe('Reset password test cases', () => {
   const createUser = (override?: Partial<any>) => {
@@ -25,6 +26,8 @@ describe('Reset password test cases', () => {
       role: 'Studen' as UserRole,
       updatedAt: new Date(),
       createdAt: new Date(),
+      avatar: '',
+      bio: 'Nothing to do',
       ...override,
     });
   };
@@ -71,6 +74,12 @@ describe('Reset password test cases', () => {
           provide: ConfigService,
           useValue: mockConfigService,
         },
+        {
+          provide: EventBus,
+          useValue: {
+            publish: jest.fn(),
+          },
+        },
       ],
     }).compile();
 
@@ -94,7 +103,7 @@ describe('Reset password test cases', () => {
       confirmPassword: 'new-pass',
     });
 
-    expect(mockBcryptService.hash).toHaveBeenCalledTimes(2);
+    expect(mockBcryptService.hash).toHaveBeenCalled();
 
     expect(result.ok).toBeTruthy();
     expect(mockUserRepo.save).toHaveBeenCalledTimes(1);

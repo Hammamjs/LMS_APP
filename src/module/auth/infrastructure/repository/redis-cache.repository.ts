@@ -2,8 +2,7 @@ import { Injectable } from '@nestjs/common';
 import { ICacheRepository } from '../../domain/repository/cache.repsoitory.interface';
 import { InjectRedis } from '@nestjs-modules/ioredis';
 import Redis from 'ioredis';
-import { Result } from '@/core/common/domain/result.pattern';
-import { Errors, failure } from '@/core/common/domain/err.utils';
+import { Result, Errors } from '@/core';
 
 @Injectable()
 export class RedisCacheRepository implements ICacheRepository {
@@ -12,12 +11,9 @@ export class RedisCacheRepository implements ICacheRepository {
   async get(key: string): Promise<Result<string | null>> {
     try {
       const result = await this.redis.get(key);
-      return {
-        ok: true,
-        value: result,
-      };
+      return Result.ok(result);
     } catch {
-      return failure(Errors.internal('Redis connection failed'));
+      return Result.fail(Errors.internal('Redis connection failed'));
     }
   }
 
@@ -28,24 +24,18 @@ export class RedisCacheRepository implements ICacheRepository {
   ): Promise<Result<void>> {
     try {
       await this.redis.set(key, code, 'EX', ttlSeconds);
-      return {
-        ok: true,
-        value: undefined,
-      };
+      return Result.ok(undefined);
     } catch {
-      return failure(Errors.internal('Redis connection failed'));
+      return Result.fail(Errors.internal('Redis connection failed'));
     }
   }
 
   async del(key: string): Promise<Result<void>> {
     try {
       await this.redis.del(key);
-      return {
-        ok: true,
-        value: undefined,
-      };
+      return Result.ok(undefined);
     } catch {
-      return failure(Errors.internal('Redis connection failed'));
+      return Result.fail(Errors.internal('Redis connection failed'));
     }
   }
 
@@ -59,7 +49,7 @@ export class RedisCacheRepository implements ICacheRepository {
 
       return Result.ok(result == 'OK');
     } catch {
-      return failure(Errors.internal('Redis failed to save'));
+      return Result.fail(Errors.internal('Error occur'));
     }
   }
 }

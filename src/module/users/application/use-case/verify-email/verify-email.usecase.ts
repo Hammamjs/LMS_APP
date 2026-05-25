@@ -4,7 +4,10 @@ import { Result } from '@/core/common/domain/result.pattern';
 import type { IUserRepository } from '@/module/users/domain/repositories/user.repository.interface';
 import { Inject, Injectable } from '@nestjs/common';
 import { IUSER_REPOSITORY } from '@/module/users/domain/constants/injection.token';
-import { failure } from '@/core/common/domain/err.utils';
+import { Errors, failure } from '@/core/common/domain/err.utils';
+import { EventBus } from '@nestjs/cqrs';
+import { EmailVerifiedEvent } from '@/module/users/domain/event/email-verified.event';
+
 @Injectable()
 export class VerifyEmail implements IUseCase<
   VerifyEmailParams,
@@ -12,20 +15,17 @@ export class VerifyEmail implements IUseCase<
 > {
   constructor(
     @Inject(IUSER_REPOSITORY) public readonly userRepo: IUserRepository,
+    private readonly eventBus: EventBus,
   ) {}
   async execute(dto: VerifyEmailParams): Promise<Result<string>> {
     const userResult = await this.userRepo.findByEmail(dto.email);
 
     if (!userResult.ok || !userResult.value)
-      return {
-        ok: false,
-        error: { type: 'NOT_FOUND', message: 'User not exists' },
-      };
+      return Result.fail(Errors.notFound('User not exists'));
 
     const user = userResult.value;
 
-    if (user.getIsVerified())
-      return { ok: true, value: 'Email already verified' };
+    if (user.isVerified) return Result.ok('Email already verified');
 
     const updatedUser = user.verify();
 
@@ -33,9 +33,9 @@ export class VerifyEmail implements IUseCase<
 
     if (!saveResult.ok) return failure(saveResult.error);
 
-    return {
-      ok: true,
-      value: 'Email verified successfully',
-    };
+    // DDE
+    this.eventBus.publish(new EmailVerifiedEvent(user.id, user.email));
+
+    return Result.ok('Email verified successfully');
   }
 }

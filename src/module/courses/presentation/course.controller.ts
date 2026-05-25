@@ -29,8 +29,14 @@ export class CourseController {
   constructor(private readonly course: CourseFacade) {}
   @Get()
   async findAll(@Query() dto: FindCoursesDto) {
-    console.log(dto.search);
+    console.log('route hitted');
+    console.log(dto);
     return await this.course.findCourses.execute(dto);
+  }
+
+  @Get('categories')
+  async findAllCategories() {
+    return await this.course.getCategories.execute();
   }
 
   @Get(':identifier')

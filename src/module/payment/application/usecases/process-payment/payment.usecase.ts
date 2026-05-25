@@ -6,14 +6,17 @@ import {
   Result,
   type IUow,
 } from '@/core';
-import { ICOURSE_REPOSITORY, type ICourseRepository } from '@/module/courses';
 import {
-  Enrollment,
+  Course,
+  ICOURSE_REPOSITORY,
+  type ICourseRepository,
+} from '@/module/courses';
+import {
   IENROLLMENT_REPOSITORY,
   type IEnrollmentRepository,
 } from '@/module/enrollment';
 import { PaymentFactory } from '@/module/payment/infrastructure/gateway/payment.factory';
-import { IUSER_REPOSITORY, type IUserRepository } from '@/module/users';
+import { IUSER_REPOSITORY, User, type IUserRepository } from '@/module/users';
 import { Inject, Injectable } from '@nestjs/common';
 import { PaymentParams } from './payment.params';
 import { ICACHE_REPOSITORY } from '@/module/auth/domain/constants/injection.token';
@@ -25,6 +28,12 @@ import { PaymentMapper, TPaymentResponse } from '../../mapper/payment.mapper';
 import { EventBus } from '@nestjs/cqrs';
 import { CoursePurchasedEvent } from '@/module/courses';
 import { randomUUID } from 'crypto';
+
+type PaymentResponse = {
+  payment: TPaymentResponse;
+  user: User;
+  course: Course;
+};
 
 @Injectable()
 export class PaymentProcessUseCase implements IUseCase<
@@ -45,105 +54,104 @@ export class PaymentProcessUseCase implements IUseCase<
   ) {}
 
   async execute(params: PaymentParams): Promise<Result<TPaymentResponse>> {
-    // we need to check if user enrolled before anything
+    // 1. First-pass Guard check
     const isUserEnrolled = await this.enrollmentRepo.findByCourseAndUser(
       params.userId,
       params.courseId,
     );
+    if (isUserEnrolled.ok && isUserEnrolled.value) {
+      return Result.fail(Errors.conflict('Already enrolled'));
+    }
 
-    if (isUserEnrolled.ok)
-      return Result.fail(
-        Errors.conflict('You are already enrolled in this course.'),
-      );
-
-    // create idempotency key
-    // we need to check if the request has been duplicated
-    // to prevent take duoble price from user
+    // 2. Establish Redis Distributed Idempotency Lock
     const lockKey = `lock:payment:${params.userId}:${params.courseId}`;
-
     const lockAcquired = await this.cacheRepo.setNx(lockKey, 'processing', 30);
-
-    if (!lockAcquired.ok)
+    if (!lockAcquired.ok) {
       return Result.fail(Errors.conflict('Payment already in progress'));
+    }
+
+    const [userResult, courseResult] = await Promise.all([
+      this.userRepo.findByEmail(params.email),
+      this.courseRepo.findById(params.courseId),
+    ]);
+
+    if (!userResult.ok) return userResult;
+    if (!courseResult.ok) return courseResult;
+
+    const user = userResult.value;
+    const { course: courseEntity } = courseResult.value;
+
+    const internalPaymentTrackingId = randomUUID();
 
     try {
-      // extenal call
       const gateway = this.gateway.get(params.provider);
 
+      // 3. Fire the external Network call safely
       const chargResult = await gateway.pay({
         amount: params.amount,
         currency: params.currency,
         email: params.email,
         source: params.source,
-        paymentId: randomUUID(),
+        paymentId: internalPaymentTrackingId,
       });
 
       if (!chargResult.ok) return chargResult;
 
-      return this.uow.runInTransaction(async () => {
-        // re verify if user enrolled
-        // if first test passed and race condition occur
-        // this like second guard
-        const isStillEnrolled = await this.enrollmentRepo.findByCourseAndUser(
-          params.userId,
-          params.courseId,
-        );
-
-        if (isStillEnrolled.ok)
-          return Result.fail(Errors.conflict('User already enrolled'));
-
-        const [userResult, courseResult] = await Promise.all([
-          this.userRepo.findByEmail(params.email),
-          this.courseRepo.findById(params.courseId),
-        ]);
-
-        if (!userResult.ok) return userResult;
-        if (!courseResult.ok) return courseResult;
-
-        const user = userResult.value;
-        const course = courseResult.value;
-
-        // we need to save user enrollment
-        const createEnrollment = Enrollment.create({
-          userId: user.getId(),
-          courseId: course.getId(),
-        });
-        const savedResult = await this.enrollmentRepo.save(createEnrollment);
-
-        if (!savedResult.ok) return savedResult;
-
-        const { status, paymentId } = chargResult.value;
-
-        // we need to save user payment processer
-        const createPayment = Payment.create({
-          amount: params.amount,
-          provider: params.provider,
-          userId: params.userId,
-          paymentId: paymentId,
-          status: status,
-          courseId: params.courseId,
-        });
-
-        const paymentResult = await this.paymentRepo.save(createPayment);
-
-        if (!paymentResult.ok)
-          return Result.fail(
-            Errors.internal('Payment process failed to saved'),
+      // 4. Run database modifications atomically inside the Unit of Work transaction
+      const result = await this.uow.runInTransaction<Result<PaymentResponse>>(
+        async () => {
+          // Double Check Guard inside the database isolation level
+          const isStillEnrolled = await this.enrollmentRepo.findByCourseAndUser(
+            params.userId,
+            params.courseId,
           );
 
-        // we need to send notification to user
-        this.eventBus.publish(
-          new CoursePurchasedEvent(
-            user.getId(),
-            course.getId(),
-            course.getTitle(),
-          ),
-        );
+          // If they managed to enroll while the gateway network call was in flight,
+          // we must explicitly throw to trigger a database rollback strategy
+          if (isStillEnrolled.ok && isStillEnrolled.value) {
+            throw new Error(
+              'CRITICAL_RACE: User enrolled during payment transaction processing.',
+            );
+          }
 
-        // return response for client side
+          const { status } = chargResult.value;
 
-        return Result.ok(PaymentMapper.toResponse(paymentResult.value));
-      });
+          const createPayment = Payment.create({
+            amount: params.amount,
+            provider: params.provider,
+            userId: params.userId,
+            paymentId: internalPaymentTrackingId,
+            status: status,
+            courseId: params.courseId,
+          });
+
+          const paymentResult = await this.paymentRepo.save(createPayment);
+          if (!paymentResult.ok) {
+            return Result.fail(
+              Errors.internal('Payment record failed to commit securely'),
+            );
+          }
+
+          return Result.ok({
+            payment: PaymentMapper.toResponse(paymentResult.value),
+            user,
+            course: courseEntity,
+          });
+        },
+      );
+
+      if (!result.ok) return result;
+
+      // 5. Notify surrounding context aggregates via CQRS Event Bus
+      this.eventBus.publish(
+        new CoursePurchasedEvent(
+          result.value.user.id,
+          result.value.course.id,
+          result.value.course.title,
+        ),
+      );
+
+      return Result.ok(result.value.payment);
     } catch (err) {
       return ErrorMapper.toResult(err, 'Payment');
     } finally {

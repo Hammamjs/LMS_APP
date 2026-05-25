@@ -19,10 +19,13 @@ import {
   ICACHE_REPOSITORY,
   SignInUseCase,
 } from './index';
-import { AuthSendEmail } from './application/handler/auth-email-handler';
+import { AuthSendEmailHandler } from './application/handler/auth-email.handler';
 import { NodemailerService } from './infrastructure/security/email.service';
 import { RedisCacheRepository } from './infrastructure/repository/redis-cache.repository';
 import { CqrsModule } from '@nestjs/cqrs';
+import { GetMeUseCase } from './application/usecases/get-user/get-user.usecase';
+import { NotificationModule } from '../notification/notification.module';
+import { UpdatePasswordUseCase } from './application/usecases/update-password/update-password.usecase';
 
 const useCases: Provider[] = [
   AuthFacade,
@@ -34,10 +37,11 @@ const useCases: Provider[] = [
   VerifyResetPasswordCodeUseCase,
   ResetPasswordUseCase,
   RefreshTokenUseCase,
-
-  // Domain event
-  AuthSendEmail,
+  GetMeUseCase,
+  UpdatePasswordUseCase,
 ];
+
+const handlers: Provider[] = [AuthSendEmailHandler];
 
 const infrastructure: Provider[] = [
   BcryptService,
@@ -65,8 +69,13 @@ const infrastructure: Provider[] = [
 
 @Module({
   controllers: [AuthController],
-  providers: [...useCases, ...infrastructure],
-  imports: [JwtModule.register({}), forwardRef(() => UserModule), CqrsModule],
-  exports: [AuthFacade, JwtModule, IBCRYPT_SERVICE],
+  providers: [...useCases, ...infrastructure, ...handlers],
+  imports: [
+    JwtModule.register({}),
+    forwardRef(() => UserModule),
+    CqrsModule,
+    NotificationModule,
+  ],
+  exports: [AuthFacade, JwtModule, IBCRYPT_SERVICE, NotificationModule],
 })
 export class AuthModule {}

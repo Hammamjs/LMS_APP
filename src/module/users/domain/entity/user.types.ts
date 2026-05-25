@@ -5,8 +5,10 @@ export interface CreateUserProps {
   email: string;
   username: string;
   password: string;
+  avatar: string | null;
   role: UserRole | null;
   phone: string | null;
+  bio: string | null;
 }
 
 export interface RehydrateUserProps {
@@ -17,12 +19,14 @@ export interface RehydrateUserProps {
   password: string;
   phone: string | null;
   isVerified: boolean;
+  avatar: string | null;
   emailVerified: Date | null;
   createdAt: Date;
   updatedAt: Date;
   refreshToken: string | null;
   passwordUpdatedAt: Date | null;
   isPasswordCodeVerified: boolean;
+  bio: string | null;
 }
 
 export interface UserProps {
@@ -30,12 +34,14 @@ export interface UserProps {
   username: string;
   role: UserRole;
   phone: string | null;
+  avatar: string | null;
   isVerified: boolean;
   emailVerified: Date | null;
   password: string;
   refreshToken: string | null;
   passwordUpdatedAt: Date | null;
   isPasswordCodeVerified: boolean;
+  bio: string | null;
 }
 
 export interface UserState {
@@ -45,6 +51,7 @@ export interface UserState {
   role: UserRole;
   password: string;
   phone: string | null;
+  avatar: string | null;
   isVerified: boolean;
   emailVerified: Date | null;
   createdAt: Date;
@@ -52,4 +59,5 @@ export interface UserState {
   refreshToken: string | null;
   passwordUpdatedAt: Date | null;
   isPasswordCodeVerified: boolean;
+  bio: string | null;
 }

@@ -41,28 +41,32 @@ export class WebhookService {
       const internalId = paymentIntent.metadata.paymentId;
 
       const paymentResult = await this.paymentRepo.findByPaymentId(internalId);
-
       if (!paymentResult.ok) return paymentResult;
 
       const payment = paymentResult.value;
 
-      const paymentSucceeded = payment.markPaymentAsSucceeded(internalId);
+      // Only process if it hasn't been updated yet (Idempotency check)
+      if (payment.getStatus !== 'SUCCESS') {
+        // 1. Flip domain status state inside entity logic
+        const paymentSucceeded = payment.markPaymentAsSucceeded(internalId);
+        await this.paymentRepo.save(paymentSucceeded);
 
-      await this.paymentRepo.save(paymentSucceeded);
+        const courseResult = await this.courseRepo.findById(
+          payment.getCourseId,
+        );
+        if (!courseResult.ok) return courseResult;
+        const { course: courseEntity } = courseResult.value;
 
-      const courseResult = await this.courseRepo.findById(payment.getCourseId);
-
-      if (!courseResult.ok) return courseResult;
-
-      const course = courseResult.value;
-
-      this.eventBus.publish(
-        new CoursePurchasedEvent(
-          payment.getUserId,
-          course.getId(),
-          course.getTitle(),
-        ),
-      );
+        // 2. Dispatch the event. Your Event Handler will capture this
+        // and cleanly generate the database record inside the Enrollment table!
+        this.eventBus.publish(
+          new CoursePurchasedEvent(
+            payment.getUserId,
+            courseEntity.id,
+            courseEntity.title,
+          ),
+        );
+      }
     }
   }
 }

@@ -2,13 +2,17 @@ import { Test, TestingModule } from '@nestjs/testing';
 import { FindLessonUseCase } from './find-lesson.usecase';
 import { ILESSON_REPOSITORY } from '@/module/lessons';
 import { IENROLLMENT_REPOSITORY } from '@/module/enrollment';
-import { LessonFactory } from '@/tests';
+import { CourseFactory, LessonFactory } from '@/tests';
 import { Errors, Result } from '@/core';
+import { ICOURSE_REPOSITORY } from '@/module/courses';
 
 describe('Find lesson test cases', () => {
   let usecase: FindLessonUseCase,
     mockEnrollmentRepo: { findByCourseAndUser: jest.Mock },
-    mockLessonRepo: { findById: jest.Mock };
+    mockLessonRepo: { findById: jest.Mock },
+    mockCourseRepo: {
+      findById: jest.Mock;
+    };
 
   const errors = {
     FORBIDDEN: 'Purchase required or access revoked.',
@@ -18,6 +22,7 @@ describe('Find lesson test cases', () => {
   beforeEach(async () => {
     mockEnrollmentRepo = { findByCourseAndUser: jest.fn() };
     mockLessonRepo = { findById: jest.fn() };
+    mockCourseRepo = { findById: jest.fn() };
 
     const module: TestingModule = await Test.createTestingModule({
       providers: [
@@ -30,6 +35,10 @@ describe('Find lesson test cases', () => {
           provide: IENROLLMENT_REPOSITORY,
           useValue: mockEnrollmentRepo,
         },
+        {
+          provide: ICOURSE_REPOSITORY,
+          useValue: mockCourseRepo,
+        },
       ],
     }).compile();
     usecase = module.get<FindLessonUseCase>(FindLessonUseCase);
@@ -37,6 +46,7 @@ describe('Find lesson test cases', () => {
 
   it('should pass when enrolled with course', async () => {
     const lesson = LessonFactory.build();
+    const course = CourseFactory.build();
 
     mockLessonRepo.findById.mockResolvedValue(Result.ok(lesson));
     mockEnrollmentRepo.findByCourseAndUser.mockResolvedValue(
@@ -45,8 +55,20 @@ describe('Find lesson test cases', () => {
       }),
     );
 
+    mockCourseRepo.findById.mockResolvedValue(
+      Result.ok({
+        course,
+        instructorData: {
+          id: course.instructorId,
+          username: 'instructor_2',
+          avatar: null,
+          bio: null,
+        },
+      }),
+    );
+
     const result = await usecase.execute({
-      id: lesson.getId(),
+      id: lesson.id,
       userId: 'user-id',
     });
 
@@ -56,31 +78,56 @@ describe('Find lesson test cases', () => {
 
   it('should pass when lesson is free', async () => {
     const lesson = LessonFactory.build({ isFree: true });
+    const course = CourseFactory.build();
 
     mockLessonRepo.findById.mockResolvedValue(Result.ok(lesson));
     mockEnrollmentRepo.findByCourseAndUser.mockResolvedValue(Result.ok({}));
 
+    mockCourseRepo.findById.mockResolvedValue(
+      Result.ok({
+        course,
+        instructorData: {
+          id: course.instructorId,
+          username: 'instructor_2',
+          avatar: null,
+          bio: null,
+        },
+      }),
+    );
+
     const result = await usecase.execute({
       userId: 'user-id',
-      id: lesson.getId(),
+      id: lesson.id,
     });
 
     expect(result.ok).toBeDefined();
-    expect(result.ok).toBeTruthy();
     expect(mockLessonRepo.findById).toHaveBeenCalled();
     expect(mockEnrollmentRepo.findByCourseAndUser).not.toHaveBeenCalled();
   });
 
   it('should fail when course is paid and user not enrolled', async () => {
     const lesson = LessonFactory.build();
+    const course = CourseFactory.build();
 
     mockLessonRepo.findById.mockResolvedValue(Result.ok(lesson));
+
+    mockCourseRepo.findById.mockResolvedValue(
+      Result.ok({
+        course,
+        instructorData: {
+          id: course.instructorId,
+          username: 'instructor_2',
+          avatar: null,
+          bio: null,
+        },
+      }),
+    );
     mockEnrollmentRepo.findByCourseAndUser.mockResolvedValue(
       Result.fail(Errors.forbidden(errors.FORBIDDEN)),
     );
 
     const result = await usecase.execute({
-      id: lesson.getId(),
+      id: lesson.id,
       userId: 'user-id',
     });
 

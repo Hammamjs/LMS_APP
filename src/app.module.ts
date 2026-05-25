@@ -1,4 +1,9 @@
-import { Module } from '@nestjs/common';
+import {
+  MiddlewareConsumer,
+  Module,
+  NestModule,
+  RequestMethod,
+} from '@nestjs/common';
 import { PrismaModule } from './core/database/prisma.module';
 import { ConfigModule, ConfigService } from '@nestjs/config';
 import { UserModule } from './module/users/user.module';
@@ -10,6 +15,8 @@ import { PaymentModule } from './module/payment/payment.module';
 import { EnrollmentModule } from './module/enrollment/enrollment.module';
 import { NotificationModule } from './module/notification/notification.module';
 import { ThrottlerModule } from '@nestjs/throttler';
+import { CqrsModule } from '@nestjs/cqrs';
+import { json } from 'express';
 
 @Module({
   imports: [
@@ -21,6 +28,7 @@ import { ThrottlerModule } from '@nestjs/throttler';
       }),
       inject: [ConfigService],
     }),
+    CqrsModule.forRoot({}),
     PrismaModule,
     UserModule,
     AuthModule,
@@ -39,4 +47,14 @@ import { ThrottlerModule } from '@nestjs/throttler';
   controllers: [],
   providers: [],
 })
-export class AppModule {}
+export class AppModule implements NestModule {
+  configure(consumer: MiddlewareConsumer) {
+    consumer
+      .apply(json())
+      .exclude({
+        path: 'api/webhook',
+        method: RequestMethod.POST,
+      })
+      .forRoutes('*');
+  }
+}
