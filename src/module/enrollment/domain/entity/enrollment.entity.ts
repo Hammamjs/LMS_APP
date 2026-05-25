@@ -1,5 +1,6 @@
 import { randomUUID } from 'crypto';
 import { EnrollmentProps, EnrollmentState, Status } from './enrollment.types';
+import { Course } from '@/module/courses';
 
 export class Enrollment {
   private constructor(
@@ -9,7 +10,10 @@ export class Enrollment {
 
   // Create enrollment
   public static create(
-    props: Pick<EnrollmentProps, 'userId' | 'courseId'>,
+    props: Pick<
+      EnrollmentState,
+      'userId' | 'courseId' | 'totalLessonsCount' | 'course'
+    >,
   ): Enrollment {
     return new Enrollment(
       {
@@ -19,8 +23,9 @@ export class Enrollment {
         completedLessonsIds: [],
         enrolledAt: new Date(),
         status: 'ACTIVE',
-        progressPercentage: 0,
         createdAt: new Date(),
+        totalLessonsCount: props.totalLessonsCount,
+        course: props.course,
       },
       true,
     );
@@ -31,47 +36,56 @@ export class Enrollment {
     return new Enrollment(props, false);
   }
 
-  public getId(): string {
+  public get id(): string {
     return this.props.id;
   }
 
-  public getCourseId(): string {
+  public get courseId(): string {
     return this.props.courseId;
   }
 
-  public getUserId(): string {
+  public get userId(): string {
     return this.props.userId;
   }
 
-  public getCurrentStatus(): Status {
+  public get currentStatus(): Status {
     return this.props.status;
   }
 
-  public getEnrolledAt(): Date {
+  public get enrolledAt(): Date {
     return this.props.enrolledAt;
   }
 
-  public getCreatedAt(): Date {
+  public get createdAt(): Date {
     return this.props.createdAt;
   }
 
-  public isActive(): boolean {
+  public get isActive(): boolean {
     return this.props.status == 'ACTIVE';
   }
 
-  public isRefunded(): boolean {
+  public get course() {
+    return this.props.course;
+  }
+
+  public get isRefunded(): boolean {
     return this.props.status == 'REFUND';
   }
 
-  public isCompleted(): boolean {
+  public get isCompleted(): boolean {
     return this.props.status == 'COMPLETED';
   }
 
-  public calcProgress(total: number): number {
-    return Math.min(
-      100,
-      Math.round((this.props.completedLessonsIds.length / total) * 100),
-    );
+  public get completedLessons(): string[] {
+    return this.props.completedLessonsIds;
+  }
+
+  public get totalLessonsCount(): number {
+    return this.props.totalLessonsCount;
+  }
+
+  public isLessonCompleted(lessonId: string): boolean {
+    return this.props.completedLessonsIds.includes(lessonId);
   }
 
   public markAsCompleted(): Enrollment {
@@ -86,39 +100,28 @@ export class Enrollment {
     return this._copy({ status: 'REFUND' });
   }
 
+  public setCourseDetails(course: Course) {
+    return this._copy({ course });
+  }
+
   public markAsActive(): Enrollment {
     return this._copy({ status: 'ACTIVE' });
   }
 
-  public compeleteLesson(
-    lessonId: string,
-    totalLessonsCount: number,
-  ): Enrollment {
-    if (this.props.status === 'REFUND') return this;
-    if (this.props.completedLessonsIds.includes(lessonId)) return this;
+  public get progressPercentage(): number {
+    if (this.props.totalLessonsCount <= 0) return 0;
 
-    const newCompletedIds = [...this.props.completedLessonsIds, lessonId];
-
-    const newPercentage =
-      totalLessonsCount <= 0
-        ? 0
-        : Math.min(
-            100,
-            Math.round((newCompletedIds.length / totalLessonsCount) * 100),
-          );
-
-    const newStatus: Status =
-      newPercentage == 100 ? 'COMPLETED' : this.props.status;
-
-    return this._copy({
-      completedLessonsIds: newCompletedIds,
-      progressPercentage: newPercentage,
-      status: newStatus,
-    });
+    return Math.min(
+      100,
+      Math.round(
+        (this.props.completedLessonsIds.length / this.props.totalLessonsCount) *
+          100,
+      ),
+    );
   }
 
   // to return row of data
-  public toPersistence() {
+  public get toPersistence() {
     return {
       id: this.props.id,
       courseId: this.props.courseId,
@@ -126,8 +129,8 @@ export class Enrollment {
       createdAt: this.props.createdAt,
       completedLessonsIds: this.props.completedLessonsIds,
       enrolledAt: this.props.enrolledAt,
+      totalLessonsCount: this.props.totalLessonsCount,
       status: this.props.status,
-      progressPercentage: this.props.progressPercentage,
     };
   }
 

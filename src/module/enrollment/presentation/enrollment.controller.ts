@@ -9,10 +9,11 @@ import { JwtPayload } from '@/module/auth';
 @Controller('enrollment')
 export class EnrollmentController {
   constructor(private readonly enrollmentFacade: EnrollmentFacade) {}
-  @Roles(UserRole.Instructor, UserRole.Admin)
+  @Roles(UserRole.Instructor, UserRole.Admin, UserRole.Student)
   // this route only allowed Admin and Instructor
   @Get()
   async FindEnrollmentByCourseAndUser(@Query() dto: EnrollmentDto) {
+    console.log('Find enrollment ');
     return await this.enrollmentFacade.findEnrollmentByCourseAndUser.execute(
       dto,
     );

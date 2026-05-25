@@ -1,8 +1,8 @@
-import { IsUUID } from 'class-validator';
+import { IsString, IsUUID } from 'class-validator';
 
 export class EnrollmentDto {
   @IsUUID()
   courseId!: string;
-  @IsUUID()
+  @IsString()
   userId!: string;
 }

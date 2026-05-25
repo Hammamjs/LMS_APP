@@ -67,7 +67,14 @@ export class EnrollmentPrimsaRepository implements IEnrollmentRepository {
     try {
       const paginationData = await paginate(
         { page, limit },
-        (args) => this._db.enrollment.findMany({ ...args, where }),
+        (args) =>
+          this._db.enrollment.findMany({
+            ...args,
+            where,
+            include: {
+              course: true,
+            },
+          }),
         (args) => this._db.enrollment.count({ ...args, where }),
         (row) => EnrollmentMapper.toDomain(row),
       );
@@ -107,12 +114,12 @@ export class EnrollmentPrimsaRepository implements IEnrollmentRepository {
     try {
       if (enrollment.isNew) {
         data = await this._db.enrollment.create({
-          data: enrollment.toPersistence(),
+          data: enrollment.toPersistence,
         });
       } else {
         data = await this._db.enrollment.update({
-          where: { id: enrollment.getId() },
-          data: enrollment.toPersistence(),
+          where: { id: enrollment.id },
+          data: enrollment.toPersistence,
         });
       }
 

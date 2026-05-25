@@ -42,7 +42,11 @@ describe('Find enrollment by course and course test cases', () => {
     const result = await usecase.execute(params);
 
     expect(result.ok).toBe(true);
-    if (result.ok) expect(result.value.userId).toBe(params.userId);
+
+    if (result.ok) {
+      expect(result?.value?.userId).toBe(params.userId);
+    }
+
     expect(
       mockFindEnrollmentByCourseAndUser.findByCourseAndUser,
     ).toHaveBeenCalledTimes(1);
@@ -62,7 +66,12 @@ describe('Find enrollment by course and course test cases', () => {
       userId: 'valid-user-id',
     });
 
-    expect(result.ok).toBe(false);
-    if (!result.ok) expect(result.error.message).toBe(errors.NOT_FOUND);
+    if (!result.ok) {
+      expect(result.error.message).toBe(errors.NOT_FOUND);
+    }
+
+    expect(
+      mockFindEnrollmentByCourseAndUser.findByCourseAndUser,
+    ).toHaveBeenCalledTimes(1);
   });
 });

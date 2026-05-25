@@ -1,4 +1,4 @@
-import { Errors, IUseCase, Result } from '@/core';
+import { IUseCase, Result } from '@/core';
 import {
   EnrollmentMapper,
   EnrollmentResponseDto,
@@ -10,7 +10,7 @@ import { FindEnrollmentParams } from './find-enrollment.params';
 
 export class FindEnrollmentByCourseAndUserUseCase implements IUseCase<
   FindEnrollmentParams,
-  Promise<Result<EnrollmentResponseDto>>
+  Promise<Result<EnrollmentResponseDto | null>>
 > {
   constructor(
     @Inject(IENROLLMENT_REPOSITORY)
@@ -19,14 +19,15 @@ export class FindEnrollmentByCourseAndUserUseCase implements IUseCase<
 
   async execute(
     params: FindEnrollmentParams,
-  ): Promise<Result<EnrollmentResponseDto>> {
+  ): Promise<Result<EnrollmentResponseDto | null>> {
     const enrollmentResult = await this.enrollmentRepo.findByCourseAndUser(
       params.userId,
       params.courseId,
     );
 
-    if (!enrollmentResult.ok)
-      return Result.fail(Errors.notFound('User has no enrollment'));
+    console.log('Enrollment use case ', enrollmentResult);
+
+    if (!enrollmentResult.ok) return Result.ok(null);
 
     const enrollmentResponse = EnrollmentMapper.toResponse(
       enrollmentResult.value,
