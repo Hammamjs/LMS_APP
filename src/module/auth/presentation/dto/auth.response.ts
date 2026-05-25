@@ -5,15 +5,15 @@ export class AuthResponse {
 
   static from(user: User) {
     return {
-      id: user.getId(),
-      username: user.getUsername(),
-      role: user.getRole(),
-      email: user.getEmail(),
-      createdAt: user.getCreatedAt(),
-      updatedAt: user.getUpdatedAt(),
-      isVerified: user.getIsVerified(),
-      emailVerified: user.getEmailVerified(),
-      phone: user.getPhone(),
+      id: user.id,
+      username: user.username,
+      role: user.role,
+      email: user.email,
+      createdAt: user.createdAt,
+      updatedAt: user.updatedAt,
+      isVerified: user.isVerified,
+      emailVerified: user.email,
+      phone: user.phone,
     };
   }
 }

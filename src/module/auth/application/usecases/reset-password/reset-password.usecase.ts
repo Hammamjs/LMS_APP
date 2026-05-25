@@ -1,4 +1,4 @@
-import { Errors, failure } from '@/core/common/domain/err.utils';
+import { Errors } from '@/core/common/domain/err.utils';
 import { IUseCase } from '@/core/common/domain/use-case-interface';
 import {
   IBCRYPT_SERVICE,
@@ -12,6 +12,8 @@ import type { IUserRepository } from '@/module/users/domain/repositories/user.re
 import { Result } from '@/core/common/domain/result.pattern';
 import { Inject, Injectable } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
+import { EventBus } from '@nestjs/cqrs';
+import { ResetPasswordVerifiedEvent } from '@/module/auth/domain/events/reset-password-verified.event';
 
 @Injectable()
 export class ResetPasswordUseCase implements IUseCase<
@@ -23,6 +25,7 @@ export class ResetPasswordUseCase implements IUseCase<
     @Inject(IJWTTOKEN_SERVICE) private readonly tokenService: IJWTTokenService,
     @Inject(IBCRYPT_SERVICE) private readonly bcryptService: IBcryptService,
     private readonly config: ConfigService,
+    private readonly eventBus: EventBus,
   ) {}
 
   async execute(dto: {
@@ -35,45 +38,41 @@ export class ResetPasswordUseCase implements IUseCase<
     const userResult = await this.userRepo.findByEmail(dto.email);
 
     if (dto.newPassword.length < 6)
-      return failure(Errors.validation('Password too short'));
+      return Result.fail(Errors.validation('Password too short'));
 
-    if (!userResult.ok) return failure(Errors.notFound('User not found'));
+    if (!userResult.ok) return Result.fail(Errors.notFound('User not found'));
     const user = userResult.value;
     // check if code verified
-    if (!user.getIsPasswordCodeVerified())
-      return failure(Errors.validation('Reset code not verified'));
+    if (!user.isPasswordCodeVerified)
+      return Result.fail(Errors.validation('Reset code not verified'));
 
     // Check if passwords doesn't matched
     if (dto.confirmPassword !== dto.newPassword)
-      return failure(Errors.validation("Passwords don't match"));
+      return Result.fail(Errors.validation("Passwords don't match"));
 
     // we need to hash user password
     const hashedPassword = await this.bcryptService.hash(dto.newPassword);
 
-    const id = user.getId();
-    const role = user.getRole();
-    const email = user.getEmail();
+    const id = user.id;
+    const role = user.role;
+    const email = user.email;
     // we need to generate new refresh and access token
     const { accessToken, refreshToken } =
       await this.tokenService.generateAuthToken({ id, email, role });
 
-    // we need to hash refresh token before save it  // securtiy concern
-    const hashedRefreshToken = await this.bcryptService.hash(refreshToken);
-
     const finalUser = user
       .withPassword(hashedPassword)
-      .updateRefreshToken(hashedRefreshToken)
+      .updateRefreshToken(refreshToken)
       .resetPasswordCodeFlag();
 
     await this.userRepo.save(finalUser);
 
-    return {
-      ok: true,
-      value: {
-        user: finalUser,
-        accessToken,
-        refreshToken,
-      },
-    };
+    this.eventBus.publish(new ResetPasswordVerifiedEvent(id, email));
+
+    return Result.ok({
+      user: finalUser,
+      accessToken,
+      refreshToken,
+    });
   }
 }

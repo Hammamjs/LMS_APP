@@ -1,30 +1,9 @@
-import { User } from '@/module/users/domain/entity/user.entity';
 import { ForgotPasswordUseCase } from './forgot-password.usecase';
-import { UserRole } from '@/module/users/domain/interface/role.interface';
 import { createHash } from 'crypto';
+import { UserFactory } from '@/tests';
 
 describe('Forgot password test cases', () => {
   let useCase: ForgotPasswordUseCase;
-
-  const createUser = (override?: Partial<any>) => {
-    return User.rehydrate({
-      id: 'user-123',
-      email: 'test@example.com',
-      username: 'testuser',
-      role: 'Student' as UserRole,
-      isVerified: false,
-      password: 'hashed-password',
-      phone: null,
-      emailVerified: null,
-      refreshToken: null,
-      createdAt: new Date(),
-      updatedAt: new Date(),
-      isPasswordCodeVerified: false,
-      passwordUpdatedAt: null,
-      ...override,
-    });
-  };
-
   const mockUserRepo = {
     findByEmail: jest.fn(),
   };
@@ -48,7 +27,15 @@ describe('Forgot password test cases', () => {
   });
 
   it('should return confirmation message', async () => {
-    const user = createUser();
+    const user = UserFactory.build();
+
+    const anHourAgo = new Date(Date.now() - 60 * 60 * 1000);
+
+    Object.defineProperty(user, 'passwordUpdatedAt', {
+      value: anHourAgo,
+      writable: true,
+      configurable: true,
+    });
 
     mockUserRepo.findByEmail.mockResolvedValue({ ok: true, value: user });
 
@@ -67,7 +54,7 @@ describe('Forgot password test cases', () => {
     }
 
     expect(mockCacheRepo.set).toHaveBeenCalledWith(
-      `reset_password:${user.getId()}`,
+      `reset_password:${user.id}`,
       hashedCode,
       600,
     );

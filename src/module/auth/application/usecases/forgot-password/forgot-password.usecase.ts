@@ -25,7 +25,7 @@ export class ForgotPasswordUseCase implements IUseCase<
 
     const user = userResult.value;
 
-    const passwordUpdated = user.getPasswordUpdatedAt();
+    const passwordUpdated = user.passwordUpdatedAt;
 
     if (passwordUpdated) {
       const now = new Date();
@@ -44,11 +44,11 @@ export class ForgotPasswordUseCase implements IUseCase<
     const hashedCode = createHash('sha256').update(generateCode).digest('hex');
 
     // save code in redis
-    await this.cacheRepo.set(`reset_password:${user.getId()}`, hashedCode, 600);
+    await this.cacheRepo.set(`reset_password:${user.id}`, hashedCode, 600);
 
     // trigger email event
     this.eventPublisher.publish(
-      new ResetPasswordRequestedEvent(user.getEmail(), generateCode),
+      new ResetPasswordRequestedEvent(user.email, generateCode),
     );
 
     return Result.ok('Code successfully sent to your email');

@@ -16,7 +16,7 @@ type EventType =
   ResetPasswordRequestedEvent,
   RegisterationCodeRequedEvent,
 )
-export class AuthSendEmail implements IEventHandler<
+export class AuthSendEmailHandler implements IEventHandler<
   ResendVerificationCodeRequestedEvent | ResetPasswordRequestedEvent
 > {
   constructor(
@@ -41,7 +41,7 @@ export class AuthSendEmail implements IEventHandler<
       case 'RESEND':
         return 'Email verification Code';
       case 'REGISTERATION':
-        return 'Registeration Code';
+        return 'Verify Email';
       default:
         return 'Authentication Notification';
     }

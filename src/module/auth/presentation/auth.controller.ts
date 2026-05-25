@@ -1,11 +1,13 @@
 import {
   Body,
   Controller,
+  Get,
   HttpCode,
   Patch,
   Post,
   Req,
   Res,
+  UseGuards,
 } from '@nestjs/common';
 import { AuthFacade } from '../application/auth.facade';
 import { SignInDto } from './dto/sign-in.dto';
@@ -21,18 +23,21 @@ import type { Request, Response } from 'express';
 import { Errors } from '@/core/common/domain/err.utils';
 import { ConfigService } from '@nestjs/config';
 import { Throttle } from '@nestjs/throttler';
+import { VerifyJwt } from '@/core';
+import { JwtPayload } from '../domain/service/token.service.interface';
+import { UpdatePasswordDto } from './dto/update-password.dto';
 
 @Controller('auth')
 export class AuthController {
   readonly SEVEN_DAYS = 24 * 7 * 60 * 60 * 1000;
-  readonly PATH = '/api/auth/refresh';
+  readonly PATH = '/';
 
   constructor(
     private readonly authFacade: AuthFacade,
     private readonly config: ConfigService,
   ) {}
 
-  @Post('/signin')
+  @Post('signin')
   @HttpCode(200)
   @Throttle({ default: { ttl: 60000, limit: 3 } })
   async singIn(
@@ -54,7 +59,20 @@ export class AuthController {
     };
   }
 
-  @Post('/signup')
+  @Post('logout')
+  logout(@Res({ passthrough: true }) res: Response) {
+    res.clearCookie('refreshToken', {
+      path: this.PATH,
+      secure: this.config.get('NODE_ENV') == 'pros',
+      sameSite: 'lax',
+    });
+
+    return {
+      message: 'You have logged out',
+    };
+  }
+
+  @Post('signup')
   async signUp(@Body() dto: SignUpDto) {
     const result = await this.authFacade.signup.execute(dto);
 
@@ -66,12 +84,13 @@ export class AuthController {
     };
   }
 
-  @Post('email-verify')
+  @Post('verify-email')
   async EmailVerification(
     @Res({ passthrough: true }) res: Response,
-    @Req() req: Request,
     @Body() dto: EmailVerification,
   ) {
+    console.log(dto);
+
     const result = await this.authFacade.emailVerification.execute(dto);
 
     if (!result.ok) throw new DomainException(result.error);
@@ -89,6 +108,7 @@ export class AuthController {
   @Post('resend-code')
   @Throttle({ default: { ttl: 60000, limit: 3 } })
   async ResendCodeVerificaion(@Body() dto: ResendCode) {
+    console.log('Resend hitted');
     const result = await this.authFacade.resendCode.execute({
       email: dto.email,
     });
@@ -142,13 +162,16 @@ export class AuthController {
     };
   }
 
-  @Post('refresh')
+  @UseGuards(VerifyJwt)
+  @Get('refresh')
   @HttpCode(200)
   async RefreshToken(
     @Req() req: Request,
     @Res({ passthrough: true }) res: Response,
   ) {
     const oldToken = req.cookies?.['refreshToken'] as string | undefined;
+
+    console.log('Old refreshToken', oldToken);
 
     if (!oldToken)
       throw new DomainException(Errors.notFound('No refresh token found'));
@@ -167,12 +190,29 @@ export class AuthController {
     return { accessToken };
   }
 
+  @Get('current-user')
+  async GetProfile(@Req() req: Request) {
+    const cookie = req.cookies;
+    console.log(cookie);
+    if (!cookie?.refreshToken) throw new Error('Token not found');
+    const token = cookie.refreshToken as string;
+
+    return await this.authFacade.getProfile.execute(token);
+  }
+
+  @UseGuards(VerifyJwt)
+  @Patch('update-password')
+  async updatePassword(@Req() req: Request, @Body() dto: UpdatePasswordDto) {
+    const { id } = req['user'] as JwtPayload;
+    return await this.authFacade.updatePassword.execute({ ...dto, id });
+  }
+
   private _setCookie(res: Response, tokenValue: string) {
     res.cookie('refreshToken', tokenValue, {
       httpOnly: true,
       path: this.PATH,
       maxAge: this.SEVEN_DAYS,
-      sameSite: 'strict',
+      sameSite: 'lax',
       secure: this.config.getOrThrow<string>('NODE_ENV') === 'prod',
     });
   }

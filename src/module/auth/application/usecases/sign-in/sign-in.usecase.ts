@@ -35,25 +35,24 @@ export class SignInUseCase implements IUseCase<
     Result<{ user: User; accessToken: string; refreshToken: string }>
   > {
     const userResult = await this.userRepo.findByEmail(dto.email);
-    console.log(userResult);
 
     if (!userResult.ok) return userResult;
 
     const rawUser = userResult.value;
 
-    if (!rawUser.getIsVerified())
+    if (!rawUser.isVerified)
       return Result.fail(Errors.validation('Email not verified'));
 
     // Compare passwords
     const isMatch = await this.bcrypteService.compare(
       dto.password,
-      rawUser.getHashedPassword(),
+      rawUser.hashedPassword,
     );
 
     if (!isMatch)
       return Result.fail(Errors.validation('Incorrect Email or password'));
 
-    if (!rawUser.getId())
+    if (!rawUser.id)
       return Result.fail(
         Errors.internal('Pleas re-loggin internal issue occur'),
       );
@@ -69,9 +68,9 @@ export class SignInUseCase implements IUseCase<
       'JWT_REFRESH_TOKEN_SECRET',
     );
 
-    const id = rawUser.getId();
-    const email = rawUser.getEmail();
-    const role = rawUser.getRole();
+    const id = rawUser.id;
+    const email = rawUser.email;
+    const role = rawUser.role;
 
     const accessToken = await this.tokenService.generate(
       { id, role, email },
@@ -83,9 +82,7 @@ export class SignInUseCase implements IUseCase<
       { expiresIn: '7d', secret: refreshTokenSecret },
     );
 
-    const hashingRefreshToken = await this.bcrypteService.hash(refreshToken);
-
-    const updatedUser = rawUser.updateRefreshToken(hashingRefreshToken);
+    const updatedUser = rawUser.updateRefreshToken(refreshToken);
 
     await this.userRepo.save(updatedUser);
 

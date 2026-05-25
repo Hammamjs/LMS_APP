@@ -50,6 +50,8 @@ describe('Registeration test cases', () => {
       password: 'hashed-pass',
       username: 'test',
       confirmPassword: 'hashed-pass',
+      bio: '',
+      phone: '',
     });
 
     expect(result.ok).toBe(true);
@@ -79,6 +81,8 @@ describe('Registeration test cases', () => {
       password: 'hashed-pass',
       username: 'test',
       confirmPassword: 'hashed-pass',
+      bio: '',
+      phone: '',
     });
 
     expect(result.ok).toBe(false);

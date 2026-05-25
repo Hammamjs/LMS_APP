@@ -5,7 +5,7 @@ import { Result } from '@/core/common/domain/result.pattern';
 import { Inject, Injectable } from '@nestjs/common';
 import { ICACHE_REPOSITORY } from '../../../domain/constants/injection.token';
 import type { ICacheRepository } from '../../../domain/repository/cache.repsoitory.interface';
-import { Errors, failure } from '@/core/common/domain/err.utils';
+import { Errors } from '@/core/common/domain/err.utils';
 import { createHash } from 'crypto';
 import { ResendVerificaionCodeParam } from './resend-verification-code.param';
 import { EventBus } from '@nestjs/cqrs';
@@ -24,15 +24,17 @@ export class ResendVerificationCodeUseCase implements IUseCase<
 
   async execute(dto: ResendVerificaionCodeParam): Promise<Result<string>> {
     const userResult = await this.userRepo.findByEmail(dto.email);
-    if (!userResult.ok) return failure(Errors.notFound('Email not found'));
+    if (!userResult.ok) return Result.fail(Errors.notFound('Email not found'));
 
     const user = userResult.value;
-    if (user.getIsVerified())
-      return failure(Errors.validation('Email already verified'));
+    if (user.isVerified)
+      return Result.fail(Errors.validation('Email already verified'));
 
     const generateNewCode = Math.floor(
       100000 + Math.random() * 900000,
     ).toString();
+
+    console.log('generateNewCode', generateNewCode);
 
     const hashedNewCode = createHash('sha256')
       .update(generateNewCode)
@@ -40,14 +42,11 @@ export class ResendVerificationCodeUseCase implements IUseCase<
 
     // save it to redis and send code in user email
 
-    await this.cacheRepo.set(`verify:${user.getId()}`, hashedNewCode, 600);
+    await this.cacheRepo.set(`verify:${user.id}`, hashedNewCode, 600);
 
     // Trigger event
     this.eventPublisher.publish(
-      new ResendVerificationCodeRequestedEvent(
-        user.getEmail(),
-        generateNewCode,
-      ),
+      new ResendVerificationCodeRequestedEvent(user.email, generateNewCode),
     );
 
     return {

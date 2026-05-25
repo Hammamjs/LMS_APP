@@ -50,6 +50,8 @@ export class RegisterationUseCase implements IUseCase<
       password: hashedPassword,
       phone: dto.phone || null,
       role: UserRole.Student,
+      avatar: null,
+      bio: dto.bio,
     });
 
     await this.userRepo.save(user);
@@ -64,13 +66,15 @@ export class RegisterationUseCase implements IUseCase<
       .update(verificationCode)
       .digest('hex');
 
+    console.log('User created ');
+
     try {
       // save the digits to redis
-      await this.cacheRepo.set(`verify:${user.getId()}`, hashedCode, 600);
+      await this.cacheRepo.set(`verify:${user.id}`, hashedCode, 600);
 
       // Trigger event to send mail
       this.eventPublisher.publish(
-        new RegisterationCodeRequedEvent(user.getEmail(), verificationCode),
+        new RegisterationCodeRequedEvent(user.email, verificationCode),
       );
 
       return Result.ok({ message: 'Please verify your account' });

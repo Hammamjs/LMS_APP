@@ -1,6 +1,6 @@
 import { createHash } from 'crypto';
 import { EmailVerificationUseCase } from './email-verification.usecase';
-import { User, UserRole } from '@/module/users';
+import { UserFactory } from '@/tests';
 
 describe('Code verification test cases', () => {
   let useCase: EmailVerificationUseCase;
@@ -34,32 +34,13 @@ describe('Code verification test cases', () => {
     jest.clearAllMocks();
   });
 
-  const createUser = (override?: Partial<any>) => {
-    return User.rehydrate({
-      id: 'user-123',
-      email: 'test@example.com',
-      username: 'testuser',
-      role: 'Student' as UserRole,
-      isVerified: false,
-      password: 'hashed-password',
-      phone: null,
-      emailVerified: null,
-      refreshToken: null,
-      createdAt: new Date(),
-      updatedAt: new Date(),
-      isPasswordCodeVerified: false,
-      passwordUpdatedAt: new Date(),
-      ...override,
-    });
-  };
-
   const email = 'test@example.com';
   const rawCode = '123456';
 
   it('should verify user and return token when code is correct', async () => {
     const hashedCode = createHash('sha256').update(rawCode).digest('hex');
 
-    const user = createUser();
+    const user = UserFactory.build();
     mockUserRepo.findByEmail.mockResolvedValue({
       ok: true,
       value: user,
@@ -77,14 +58,14 @@ describe('Code verification test cases', () => {
 
     if (result.ok) {
       expect(result.value.accessToken).toBe('fake-token-gen');
-      expect(result.value.user.getIsVerified()).toBe(true);
+      expect(result.value.user.isVerified).toBe(true);
     }
     expect(mockUserRepo.save).toHaveBeenCalled();
-    expect(mockCache.del).toHaveBeenCalledWith(`verify:${user.getId()}`);
+    expect(mockCache.del).toHaveBeenCalledWith(`verify:${user.id}`);
   });
 
   it('should fail when verification code expired in redis', async () => {
-    const user = createUser();
+    const user = UserFactory.build();
 
     mockUserRepo.findByEmail.mockResolvedValue({ ok: true, value: user });
     mockCache.get.mockResolvedValue({
@@ -107,7 +88,7 @@ describe('Code verification test cases', () => {
   });
 
   it('should return early when user already verified', async () => {
-    const user = createUser().verify();
+    const user = UserFactory.build().verify();
 
     mockUserRepo.findByEmail.mockResolvedValue({ ok: true, value: user });
 

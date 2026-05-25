@@ -13,6 +13,6 @@ export class ResetPassword {
   // build decorator
 
   @IsString()
-  @Match('password', { message: 'password do not match' })
+  @Match('newPassword', { message: 'password do not match' })
   confirmPassword!: string;
 }

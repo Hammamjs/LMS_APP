@@ -4,6 +4,7 @@ export class RegisterationRequest {
     public readonly password: string,
     public readonly confirmPassword: string,
     public readonly username: string,
+    public readonly bio: string | null,
     public readonly phone?: string,
   ) {}
 }

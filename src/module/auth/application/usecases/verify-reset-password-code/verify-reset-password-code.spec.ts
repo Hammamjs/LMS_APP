@@ -26,6 +26,8 @@ describe('Verify reset password test cases', () => {
       role: 'Studen' as UserRole,
       updatedAt: new Date(),
       createdAt: new Date(),
+      avatar: '',
+      bio: '',
       ...override,
     });
   };
@@ -79,9 +81,7 @@ describe('Verify reset password test cases', () => {
 
     expect(result.ok).toBeTruthy();
     expect(mockUserRepo.save).toHaveBeenCalled();
-    expect(mockCacheRepo.del).toHaveBeenCalledWith(
-      `reset_password:${user.getId()}`,
-    );
+    expect(mockCacheRepo.del).toHaveBeenCalledWith(`reset_password:${user.id}`);
   });
 
   it('should failed when saved code did not match provided code', async () => {
