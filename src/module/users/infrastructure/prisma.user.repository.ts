@@ -5,7 +5,7 @@ import {
 } from '../domain/repositories/user.repository.interface';
 import { User } from '../domain/entity/user.entity';
 import { Injectable } from '@nestjs/common';
-import { Prisma, Users as PrismaUser } from '@prisma/client';
+import { Prisma, User as PrismaUser } from '@prisma/client';
 import {
   Result,
   Errors,
@@ -29,14 +29,30 @@ export class PrismaUserRepository implements IUserRepository {
     return store?.tx ?? this.prisma;
   }
 
+  async findByToken(token: string): Promise<Result<User>> {
+    try {
+      if (!token)
+        return Result.fail(Errors.validation('User token not provided'));
+      const user = await this._db.user.findFirst({
+        where: { refreshToken: token },
+      });
+      if (!user)
+        return Result.fail(Errors.notFound('User with this token not found'));
+      const toDomain = MapperUser.toDomain(user);
+      return Result.ok(toDomain);
+    } catch (err) {
+      return ErrorMapper.toResult(err, this._entityName);
+    }
+  }
+
   async findById(id: string): Promise<Result<User>> {
     try {
       if (!id) return Result.fail(Errors.validation('User id not provided'));
-      const user = await this._db.users.findUnique({ where: { id } });
+      const user = await this._db.user.findUnique({ where: { id } });
 
       if (!user) return Result.fail(Errors.notFound('User not exists'));
 
-      return { ok: true, value: MapperUser.toDomain(user) };
+      return Result.ok(MapperUser.toDomain(user));
     } catch (err: unknown) {
       return ErrorMapper.toResult(err, this._entityName);
     }
@@ -46,7 +62,7 @@ export class PrismaUserRepository implements IUserRepository {
     try {
       if (!id) return Result.fail(Errors.notFound('Id is required'));
 
-      const user = await this._db.users.delete({ where: { id } });
+      const user = await this._db.user.delete({ where: { id } });
 
       if (!user) return Result.fail(Errors.notFound('User not found'));
 
@@ -62,12 +78,12 @@ export class PrismaUserRepository implements IUserRepository {
 
     try {
       if (!user.isNew) {
-        data = await this._db.users.update({
+        data = await this._db.user.update({
           data: user.toPersistence(),
-          where: { id: user.getId() },
+          where: { id: user.id },
         });
       } else {
-        data = await this._db.users.create({
+        data = await this._db.user.create({
           data: user.toPersistence(),
         });
       }
@@ -83,15 +99,15 @@ export class PrismaUserRepository implements IUserRepository {
   ): Promise<Result<PaginationResult<User>>> {
     const { isVerified, limit, page, role } = params;
     try {
-      const where: Prisma.UsersWhereInput = {
+      const where: Prisma.UserWhereInput = {
         ...(role && { role }),
         ...(isVerified !== undefined ? { isVerified } : {}),
       };
 
       const paginationData = await paginate(
         { limit, page },
-        (args) => this._db.users.findMany({ ...args, where }),
-        (args) => this._db.users.count({ ...args, where }),
+        (args) => this._db.user.findMany({ ...args, where }),
+        (args) => this._db.user.count({ ...args, where }),
         (row) => MapperUser.toDomain(row),
       );
 
@@ -103,7 +119,7 @@ export class PrismaUserRepository implements IUserRepository {
 
   async findByEmail(email: string): Promise<Result<User>> {
     try {
-      const user = await this._db.users.findUnique({ where: { email } });
+      const user = await this._db.user.findUnique({ where: { email } });
       if (!user) return Result.fail(Errors.notFound('User not found'));
 
       return Result.ok(MapperUser.toDomain(user));

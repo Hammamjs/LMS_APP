@@ -1,45 +1,44 @@
-import { IUseCase } from '@/core/common/domain/use-case-interface';
-import { User } from '../../../domain/entity/user.entity';
-import { UpdateUserParams } from './update-user.params';
-import type { IUserRepository } from '@/module/users/domain/repositories/user.repository.interface';
 import { Inject, Injectable } from '@nestjs/common';
-import { Result } from '@/core/common/domain/result.pattern';
-import { Errors, failure } from '@/core/common/domain/err.utils';
-import { IUSER_REPOSITORY } from '@/module/users/domain/constants/injection.token';
+import { IUseCase, Errors, Result } from '@/core';
+import { IUSER_REPOSITORY, type IUserRepository } from '@/module/users';
+import { UpdateUserParams } from './update-user.params';
+import {
+  UserResponse,
+  UserResponseMapper,
+} from '../../mapper/user-response.mapper';
 
 @Injectable()
 export class UpdateUserUseCase implements IUseCase<
   UpdateUserParams,
-  Promise<Result<User | null>>
+  Promise<Result<UserResponse>>
 > {
   constructor(
     @Inject(IUSER_REPOSITORY) private readonly userRepo: IUserRepository,
   ) {}
-  async execute(dto: UpdateUserParams): Promise<Result<User | null>> {
-    if (!dto.id)
-      return {
-        ok: false,
-        error: {
-          type: 'NOT_FOUND',
-          message: 'Id not provided',
-        },
-      };
+  async execute(dto: UpdateUserParams): Promise<Result<UserResponse>> {
+    if (!dto.id) return Result.fail(Errors.validation('Id not provided'));
 
     const userResult = await this.userRepo.findById(dto.id);
 
     if (!userResult.ok) return userResult;
 
-    if (!userResult.value) return failure(Errors.notFound('User not found'));
+    if (!userResult.value)
+      return Result.fail(Errors.notFound('User not found'));
 
     const user = userResult.value;
 
     const updatedUser = user
-      .withUsername(dto.username ?? user.getUsername())
-      .withEmail(dto.email ?? user.getEmail())
-      .withPhone(dto.phone);
+      .withUsername(dto.username ?? user.username)
+      .withEmail(dto.email ?? user.email)
+      .withPhone(dto.phone)
+      .withAvatar(dto.avatar ?? user.avatar);
 
     const savedUser = await this.userRepo.save(updatedUser);
 
-    return savedUser;
+    if (!savedUser.ok) return savedUser;
+
+    const toResponse = UserResponseMapper.toResponse(savedUser.value);
+
+    return Result.ok(toResponse);
   }
 }

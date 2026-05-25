@@ -10,4 +10,14 @@ export type {
   UserProps,
   UserState,
 } from './domain/entity/user.types';
-export type { IUserRepository } from './domain/repositories/user.repository.interface';
+export type {
+  IUserRepository,
+  UserPaginationParams,
+} from './domain/repositories/user.repository.interface';
+
+// export mapper
+export {
+  type TUserResponse,
+  type UserResponse,
+  UserResponseMapper,
+} from './application/mapper/user-response.mapper';

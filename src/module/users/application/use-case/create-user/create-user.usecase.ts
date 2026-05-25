@@ -1,23 +1,24 @@
-import { IUseCase } from '@/core/common/domain/use-case-interface';
+import { IUseCase, Result, Errors, failure } from '@/core';
 import { CreateUserParams } from './create-user.params';
 import type { IUserRepository } from '@/module/users/domain/repositories/user.repository.interface';
 import { User } from '../../../domain/entity/user.entity';
 import { Inject } from '@nestjs/common';
-import { Result } from '@/core/common/domain/result.pattern';
-import { IUSER_REPOSITORY } from '@/module/users/domain/constants/injection.token';
-import { IBCRYPT_SERVICE } from '@/module/auth/domain/constants/injection.token';
-import type { IBcryptService } from '@/module/auth/domain/service/bcrypt.service.interface';
-import { Errors, failure } from '@/core/common/domain/err.utils';
+import { IUSER_REPOSITORY } from '@/module/users';
+import { IBCRYPT_SERVICE, type IBcryptService } from '@/module/auth';
+import {
+  UserResponse,
+  UserResponseMapper,
+} from '../../mapper/user-response.mapper';
 
 export class CreateUserUseCase implements IUseCase<
   CreateUserParams,
-  Promise<Result<User>>
+  Promise<Result<UserResponse>>
 > {
   constructor(
     @Inject(IUSER_REPOSITORY) private readonly userRepo: IUserRepository,
     @Inject(IBCRYPT_SERVICE) private readonly bcryptServie: IBcryptService,
   ) {}
-  async execute(createUser: CreateUserParams): Promise<Result<User>> {
+  async execute(createUser: CreateUserParams): Promise<Result<UserResponse>> {
     if (!createUser.email)
       return failure(Errors.validation('Email is missing'));
 
@@ -32,6 +33,8 @@ export class CreateUserUseCase implements IUseCase<
 
     if (!savedUser.ok) return savedUser;
 
-    return { ok: true, value: savedUser.value };
+    const toResponse = UserResponseMapper.toResponse(savedUser.value);
+
+    return Result.ok(toResponse);
   }
 }

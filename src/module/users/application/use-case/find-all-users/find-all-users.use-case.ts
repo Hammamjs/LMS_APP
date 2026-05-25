@@ -1,12 +1,10 @@
-import { IUseCase } from '@/core/common/domain/use-case-interface';
-import type {
-  IUserRepository,
-  UserPaginationParams,
-} from '@/module/users/domain/repositories/user.repository.interface';
+import { IUseCase, ResponseBuilder, Result } from '@/core';
+import {
+  type IUserRepository,
+  type UserPaginationParams,
+  IUSER_REPOSITORY,
+} from '@/module/users';
 import { Inject, Injectable } from '@nestjs/common';
-import { Result } from '@/core/common/domain/result.pattern';
-import { IUSER_REPOSITORY } from '@/module/users/domain/constants/injection.token';
-import { ResponseBuilder } from '@/core';
 import {
   TUserResponse,
   UserResponseMapper,

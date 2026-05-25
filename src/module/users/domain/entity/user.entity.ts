@@ -30,61 +30,83 @@ export class User {
         role: data.role as UserRole,
         isPasswordCodeVerified: false,
         passwordUpdatedAt: new Date(),
+        bio: data.bio,
       },
       true, // for new users
     );
   }
 
-  public getId(): string {
+  public get id(): string {
     return this.props.id;
   }
 
-  public getEmail(): string {
+  public get avatar(): string | null {
+    return this.props.avatar;
+  }
+
+  public get email(): string {
     return this.props.email;
   }
 
-  public getUsername(): string {
+  public get username(): string {
     return this.props.username;
   }
 
-  public getPhone(): string | null {
+  public get phone(): string | null {
     return this.props.phone;
   }
 
-  public getRole(): UserRole {
+  public get role(): UserRole {
     return this.props.role;
   }
 
-  public getIsVerified(): boolean {
+  public get bio(): string | null {
+    return this.props.bio;
+  }
+
+  public get isVerified(): boolean {
     return this.props.isVerified;
   }
 
-  public getHashedPassword(): string {
+  public get hashedPassword(): string {
     return this.props.password;
   }
 
-  public getRefreshToken(): string | null {
+  public get refreshToken(): string | null {
     return this.props.refreshToken || null;
   }
 
-  public getEmailVerified(): Date | null {
+  public get emailVerified(): Date | null {
     return this.props.emailVerified;
   }
 
-  public getCreatedAt(): Date {
+  public get createdAt(): Date {
     return this.props.createdAt;
   }
 
-  public getUpdatedAt(): Date {
+  public get updatedAt(): Date {
     return this.props.updatedAt;
   }
 
-  public getIsPasswordCodeVerified(): boolean {
+  public get isPasswordCodeVerified(): boolean {
     return this.props.isPasswordCodeVerified;
   }
 
-  public getPasswordUpdatedAt(): Date | null {
+  public get passwordUpdatedAt(): Date | null {
     return this.props.passwordUpdatedAt;
+  }
+
+  public withAvatar(avatar: string | null): User {
+    if (!avatar || avatar.trim() == '')
+      throw new Error('avatar image not valid');
+    return this.copy({ avatar });
+  }
+
+  public setBio(bio: string): User {
+    if (!bio || bio.trim() == '')
+      throw new Error('Bio description cannot be empty');
+
+    return this.copy({ bio });
   }
 
   public withUsername(newUsername: string): User {
@@ -166,12 +188,13 @@ export class User {
       phone: this.props.phone,
       isVerified: this.props.isVerified,
       emailVerified: this.props.emailVerified,
-      password: this.getHashedPassword(),
+      password: this.hashedPassword,
       role: this.props.role,
       refreshToken: this.props.refreshToken,
       createdAt: this.props.createdAt,
       updatedAt: this.props.updatedAt,
       isPasswordCodeVerified: this.props.isPasswordCodeVerified,
+      bio: this.props.bio,
     };
   }
 

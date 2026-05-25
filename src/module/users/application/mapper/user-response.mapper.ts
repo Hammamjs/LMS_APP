@@ -6,18 +6,19 @@ export class UserResponseMapper {
 
   static toResponse(this: void, user: User) {
     return {
-      id: user.getId(),
-      email: user.getEmail(),
-      username: user.getUsername(),
-      role: user.getRole(),
-      phone: user.getPhone(),
-      isVerified: user.getIsVerified(),
-      emailVerified: user.getEmailVerified(),
-      createdAt: user.getCreatedAt(),
-      updatedAt: user.getUpdatedAt(),
-      passwordUpdatedAt: user.getPasswordUpdatedAt(),
+      id: user.id,
+      email: user.email,
+      username: user.username,
+      role: user.role,
+      phone: user.phone,
+      isVerified: user.isVerified,
+      emailVerified: user.emailVerified,
+      createdAt: user.createdAt,
+      updatedAt: user.updatedAt,
+      passwordUpdatedAt: user.passwordUpdatedAt,
+      bio: user.bio,
     };
   }
 }
-type UserResponse = ReturnType<typeof UserResponseMapper.toResponse>;
+export type UserResponse = ReturnType<typeof UserResponseMapper.toResponse>;
 export type TUserResponse = ApiPaginateResponse<UserResponse>;

@@ -5,6 +5,7 @@ export class UpdateUserParams {
     public readonly id?: string,
     public readonly email?: string,
     public readonly username?: string,
+    public readonly avatar?: string,
     public readonly role?: UserRole,
     public readonly phone?: string,
   ) {}

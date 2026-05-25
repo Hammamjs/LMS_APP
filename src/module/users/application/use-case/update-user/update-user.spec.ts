@@ -56,6 +56,8 @@ describe('Update user test cases', () => {
       refreshToken: null,
       isPasswordCodeVerified: false,
       passwordUpdatedAt: null,
+      avatar: 'no-img-yet',
+      bio: 'random-bio',
     });
 
     mockRepository.findById.mockResolvedValue({
@@ -73,8 +75,8 @@ describe('Update user test cases', () => {
 
     expect(result.ok).toBeTruthy();
     if (result.ok) {
-      expect(result.value?.getUsername()).toBe(updateDto.username);
-      expect(result.value?.getEmail()).toBe(updateDto.email);
+      expect(result.value.username).toBe(updateDto.username);
+      expect(result.value.email).toBe(updateDto.email);
     }
     expect(mockRepository.save).toHaveBeenCalledTimes(1);
   });
