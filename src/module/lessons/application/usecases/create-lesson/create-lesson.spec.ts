@@ -50,9 +50,19 @@ describe('Create lesson test cases', () => {
 
   it('should success when business logic satisfied', async () => {
     const user = UserFactory.build({ role: UserRole.Instructor }),
-      course = CourseFactory.build({ instructorId: user.getId() });
+      course = CourseFactory.build({ instructorId: user.id });
 
-    mockCourseRepo.findById.mockResolvedValue(Result.ok(course));
+    mockCourseRepo.findById.mockResolvedValue(
+      Result.ok({
+        course,
+        instructorData: {
+          id: course.instructorId,
+          username: 'instructor_2',
+          avatar: null,
+          bio: null,
+        },
+      }),
+    );
     mockUserRepo.findById.mockResolvedValue(Result.ok(user));
 
     const lastOrder = 5;
@@ -65,13 +75,13 @@ describe('Create lesson test cases', () => {
     );
 
     const result = await usecase.execute({
-      courseId: course.getId(),
+      courseId: course.id,
       description: 'any description',
       isFree: false,
-      sourceLink: 'link',
-      video: null,
+      url: 'link',
+      duration: 36000,
       title: 'Introduction to css',
-      userId: user.getId(),
+      userId: user.id,
     });
 
     expect(result.ok).toBeTruthy();
@@ -81,7 +91,7 @@ describe('Create lesson test cases', () => {
     }
 
     expect(mockLessonRepo.findLastOrderByCourse).toHaveBeenCalledWith(
-      course.getId(),
+      course.id,
     );
   });
 
@@ -98,8 +108,8 @@ describe('Create lesson test cases', () => {
       courseId: 'uuid',
       description: 'any description',
       isFree: false,
-      sourceLink: 'link',
-      video: null,
+      url: 'link',
+      duration: 36000,
       title: 'Introduction to css',
       userId: 'uuid',
     });
@@ -116,21 +126,31 @@ describe('Create lesson test cases', () => {
 
     // the instructor by default different from user id
     // we need to override it
-    const course = CourseFactory.build({ instructorId: user.getId() });
+    const course = CourseFactory.build({ instructorId: user.id });
 
     mockUserRepo.findById.mockResolvedValue(Result.ok(user));
-    mockCourseRepo.findById.mockResolvedValue(Result.ok(course));
+    mockCourseRepo.findById.mockResolvedValue(
+      Result.ok({
+        course,
+        instructorData: {
+          id: course.instructorId,
+          username: 'instructor_2',
+          avatar: null,
+          bio: null,
+        },
+      }),
+    );
 
     mockLessonRepo.findLastOrderByCourse.mockResolvedValue(Result.ok(5));
 
     const result = await usecase.execute({
-      courseId: course.getId(),
+      courseId: course.id,
       description: 'any description',
       isFree: false,
-      sourceLink: 'link',
-      video: null,
+      url: 'link',
+      duration: 36000,
       title: 'Introduction to css',
-      userId: user.getId(),
+      userId: user.id,
     });
 
     expect(result.ok).toBe(false);
@@ -147,17 +167,27 @@ describe('Create lesson test cases', () => {
     const course = CourseFactory.build();
 
     mockUserRepo.findById.mockResolvedValue(Result.ok(user));
-    mockCourseRepo.findById.mockResolvedValue(Result.ok(course));
+    mockCourseRepo.findById.mockResolvedValue(
+      Result.ok({
+        course,
+        instructorData: {
+          id: course.instructorId,
+          username: 'instructor_2',
+          avatar: null,
+          bio: null,
+        },
+      }),
+    );
     mockLessonRepo.findLastOrderByCourse.mockResolvedValueOnce(Result.ok(3));
 
     const result = await usecase.execute({
-      courseId: course.getId(),
+      courseId: course.id,
       description: 'any description',
       isFree: false,
-      sourceLink: 'link',
-      video: null,
+      url: 'link',
+      duration: 36000,
       title: 'Introduction to css',
-      userId: user.getId(),
+      userId: user.id,
     });
 
     expect(result.ok).toBe(false);
@@ -173,10 +203,20 @@ describe('Create lesson test cases', () => {
 
   it('should fail when failed to fetch lesson list', async () => {
     const user = UserFactory.build({ role: UserRole.Instructor });
-    const course = CourseFactory.build({ instructorId: user.getId() });
+    const course = CourseFactory.build({ instructorId: user.id });
 
     mockUserRepo.findById.mockResolvedValue(Result.ok(user));
-    mockCourseRepo.findById.mockResolvedValue(Result.ok(course));
+    mockCourseRepo.findById.mockResolvedValue(
+      Result.ok({
+        course,
+        instructorData: {
+          id: course.instructorId,
+          username: 'instructor_2',
+          avatar: null,
+          bio: null,
+        },
+      }),
+    );
 
     mockLessonRepo.findLastOrderByCourse.mockResolvedValue(
       Result.fail(
@@ -185,13 +225,13 @@ describe('Create lesson test cases', () => {
     );
 
     const result = await usecase.execute({
-      courseId: course.getId(),
+      courseId: course.id,
       description: 'any description',
       isFree: false,
-      sourceLink: 'link',
-      video: null,
+      url: 'link',
+      duration: 36000,
       title: 'Introduction to css',
-      userId: user.getId(),
+      userId: user.id,
     });
 
     expect(result.ok).toBe(false);
@@ -207,9 +247,19 @@ describe('Create lesson test cases', () => {
 
   it('should fail when database failed to save', async () => {
     const user = UserFactory.build({ role: UserRole.Instructor });
-    const course = CourseFactory.build({ instructorId: user.getId() });
+    const course = CourseFactory.build({ instructorId: user.id });
 
-    mockCourseRepo.findById.mockResolvedValue(Result.ok(course));
+    mockCourseRepo.findById.mockResolvedValue(
+      Result.ok({
+        course,
+        instructorData: {
+          id: course.instructorId,
+          username: 'instructor_2',
+          avatar: null,
+          bio: null,
+        },
+      }),
+    );
     mockUserRepo.findById.mockResolvedValue(Result.ok(user));
 
     mockLessonRepo.findLastOrderByCourse.mockResolvedValue(Result.ok(2));
@@ -219,13 +269,13 @@ describe('Create lesson test cases', () => {
     );
 
     const result = await usecase.execute({
-      courseId: course.getId(),
+      courseId: course.id,
       description: 'any description',
       isFree: false,
-      sourceLink: 'link',
-      video: null,
+      url: 'link',
+      duration: 36000,
       title: 'Introduction to css',
-      userId: user.getId(),
+      userId: user.id,
     });
 
     expect(result.ok).toBe(false);

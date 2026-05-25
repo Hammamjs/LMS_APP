@@ -3,12 +3,13 @@ import { PaginationParams } from '@/core';
 export interface LessonState {
   id: string;
   title: string;
-  sourceLink: string | null;
-  video: string | null;
+  url: string;
   rating: number;
   description: string;
   createdAt: Date;
   updatedAt: Date;
+
+  duration: number;
 
   order: number; // for sorting
   // for preview
@@ -23,12 +24,13 @@ export interface LessonState {
 export interface LessonProps {
   id: string;
   title: string;
-  sourceLink: string | null;
-  video: string | null;
+  url: string;
   rating: number;
   description: string;
   createdAt: Date;
   updatedAt: Date;
+
+  duration: number;
 
   order: number; // for sorting
   // for preview

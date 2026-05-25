@@ -11,6 +11,7 @@ import {
   IENROLLMENT_REPOSITORY,
 } from '@/module/enrollment';
 import { FindLessonParams } from './find-lesson.params';
+import { ICOURSE_REPOSITORY, type ICourseRepository } from '@/module/courses';
 
 export class FindLessonUseCase implements IUseCase<
   FindLessonParams,
@@ -20,6 +21,7 @@ export class FindLessonUseCase implements IUseCase<
     @Inject(ILESSON_REPOSITORY) private readonly lessonRepo: ILessonRepository,
     @Inject(IENROLLMENT_REPOSITORY)
     private readonly enrollmentRepo: IEnrollmentRepository,
+    @Inject(ICOURSE_REPOSITORY) private readonly courseRepo: ICourseRepository,
   ) {}
 
   async execute(params: FindLessonParams): Promise<Result<LessonResponseType>> {
@@ -29,16 +31,26 @@ export class FindLessonUseCase implements IUseCase<
 
     const lesson = lessonResult.value;
 
+    const courseResult = await this.courseRepo.findById(lesson.courseId);
+
+    if (!courseResult.ok) return courseResult;
+
+    const { course: courseEntity } = courseResult.value;
+
+    const isInstructor = courseEntity.id === userId;
+
+    const isFree = lesson.isFree;
+
     // this if course free
-    if (lesson.getIsFree())
+    if (isFree || isInstructor)
       return Result.ok(LessonMapper.toResponse(lessonResult.value));
 
     const enrollmentResult = await this.enrollmentRepo.findByCourseAndUser(
       userId,
-      lesson.getCourseId(),
+      lesson.courseId,
     );
 
-    if (!enrollmentResult.ok || !enrollmentResult.value.isActive())
+    if (!enrollmentResult.ok || !enrollmentResult.value.isActive)
       return Result.fail(
         Errors.forbidden('Purchase required or access revoked.'),
       );

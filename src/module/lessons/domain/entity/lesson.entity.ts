@@ -17,6 +17,7 @@ export class Lesson {
         isDeleted: false,
         createdAt: new Date(),
         updatedAt: new Date(),
+        duration: props.duration,
       },
       true,
     );
@@ -26,51 +27,51 @@ export class Lesson {
     return new Lesson(props, false);
   }
 
-  public getId(): string {
+  public get id(): string {
     return this.props.id;
   }
 
-  public getTitle(): string {
+  public get title(): string {
     return this.props.title;
   }
 
-  public getDescription(): string {
+  public get description(): string {
     return this.props.description;
   }
 
-  public getOrder(): number {
+  public get order(): number {
     return this.props.order;
   }
 
-  public getSourceLink(): string | null {
-    return this.props.sourceLink;
+  public get url(): string {
+    return this.props.url;
   }
 
-  public getVideo(): string | null {
-    return this.props.video;
+  public get duration(): number {
+    return this.props.duration;
   }
 
-  public isDeletedLesson(): boolean {
+  public get isDeletedLesson(): boolean {
     return this.props.isDeleted;
   }
 
-  public getIsFree(): boolean {
+  public get isFree(): boolean {
     return this.props.isFree;
   }
 
-  public getRating(): number {
+  public get rating(): number {
     return this.props.rating;
   }
 
-  public getCreatedAt(): Date {
+  public get createdAt(): Date {
     return this.props.createdAt;
   }
 
-  public getUpdatedAt(): Date {
+  public get updatedAt(): Date {
     return this.props.updatedAt;
   }
 
-  public getCourseId(): string {
+  public get courseId(): string {
     return this.props.courseId;
   }
 
@@ -90,16 +91,10 @@ export class Lesson {
     return this._copy({ order });
   }
 
-  public withVideo(newVideo: string): Lesson {
-    const video = this._required(newVideo, 'Video');
+  public setUrl(newUrl: string): Lesson {
+    const url = this._required(newUrl, 'url');
 
-    return this._copy({ video });
-  }
-
-  public withUrl(newSourceLink: string): Lesson {
-    const sourceLink = this._required(newSourceLink, 'Url');
-
-    return this._copy({ sourceLink });
+    return this._copy({ url });
   }
 
   public withCourseId(id: string): Lesson {
@@ -119,6 +114,12 @@ export class Lesson {
     return this._copy({ isDeleted: true });
   }
 
+  public setDuration(time: number): Lesson {
+    if (time <= 0) throw new Error('Duration');
+
+    return this._copy({ duration: time });
+  }
+
   public updateAverageRating(rating: number) {
     if (typeof rating !== 'number' || rating < 0 || rating > 5)
       throw new Error('Rating must be positive number and less or equal 5');
@@ -126,16 +127,17 @@ export class Lesson {
     return this._copy({ rating: roundedRating });
   }
 
-  public toPersistence() {
+  public get toPersistence() {
     return {
       title: this.props.title,
       description: this.props.description,
       rating: this.props.rating,
       isFree: this.props.isFree,
-      sourceLink: this.props.sourceLink,
-      video: this.props.video,
+      url: this.props.url,
       courseId: this.props.courseId,
       order: this.props.order,
+      duration: this.props.duration,
+      isDeleted: this.props.isDeleted,
     };
   }
 

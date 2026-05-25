@@ -28,7 +28,7 @@ export class NotifyStudentsOnLessonCreatedHandler implements IEventHandler<Lesso
     if (enrollmentResutl.ok) {
       const notifications = enrollmentResutl.value.map((e) =>
         Notification.create({
-          userId: e.getUserId(),
+          userId: e.userId,
           title: event.courseTitle,
           text: 'New lesson added to the course',
         }),

@@ -40,11 +40,11 @@ describe('Find lessons test cases', () => {
     const course = CourseFactory.build();
     const lessont1 = LessonFactory.build({
       title: 'Introduction to javascript',
-      courseId: course.getId(),
+      courseId: course.id,
     });
     const lessont2 = LessonFactory.build({
       title: 'Introduction to variables',
-      courseId: course.getId(),
+      courseId: course.id,
     });
 
     const lessons = [lessont1, lessont2];
@@ -57,7 +57,7 @@ describe('Find lessons test cases', () => {
       }),
     );
 
-    const courseId = course.getId();
+    const courseId = course.id;
 
     const result = await usecase.execute({ courseId });
 
@@ -91,7 +91,7 @@ describe('Find lessons test cases', () => {
       Result.fail(Errors.notFound(errors.LESSONS_NOT_FOUND)),
     );
 
-    const result = await usecase.execute({ courseId: course.getId() });
+    const result = await usecase.execute({ courseId: course.id });
 
     expect(result.ok).toBe(false);
     if (!result.ok) expect(result.error.message).toBe(errors.LESSONS_NOT_FOUND);

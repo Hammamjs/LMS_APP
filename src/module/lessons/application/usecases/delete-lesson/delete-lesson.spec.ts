@@ -49,19 +49,28 @@ describe('Delete lesson test cases', () => {
 
   it('should pass when all business logic satisfied', async () => {
     const user = UserFactory.build({ role: UserRole.Instructor });
-    const course = CourseFactory.build({ instructorId: user.getId() });
-    const lesson = LessonFactory.build({ courseId: course.getId() });
+    const course = CourseFactory.build({ instructorId: user.id });
+    const lesson = LessonFactory.build({ courseId: course.id });
 
     mockUserRepo.findById.mockResolvedValue(Result.ok(user));
-    mockCourseRepo.findById.mockResolvedValue(Result.ok(course));
+    mockCourseRepo.findById.mockResolvedValue(
+      Result.ok({
+        course,
+        instructorData: {
+          id: course.instructorId,
+          username: 'instructor_2',
+          avatar: null,
+          bio: null,
+        },
+      }),
+    );
     mockLessonRepo.findById.mockResolvedValue(Result.ok(lesson));
 
     mockLessonRepo.save.mockResolvedValue(Result.ok(lesson));
 
     const result = await usecase.execute({
-      courseId: course.getId(),
-      id: lesson.getId(),
-      userId: user.getId(),
+      id: lesson.id,
+      userId: user.id,
     });
 
     expect(result.ok).toBeTruthy();
@@ -74,22 +83,31 @@ describe('Delete lesson test cases', () => {
 
     const [savedLesson] = mockLessonRepo.save.mock.calls[0] as [Lesson];
 
-    expect(savedLesson.isDeletedLesson()).toBe(true);
+    expect(savedLesson.isDeletedLesson).toBe(true);
   });
 
   it('should fail when user not an instructor [validation layer]', async () => {
     const user = UserFactory.build();
     const course = CourseFactory.build();
-    const lesson = LessonFactory.build({ courseId: course.getId() });
+    const lesson = LessonFactory.build({ courseId: course.id });
 
     mockUserRepo.findById.mockResolvedValue(Result.ok(user));
-    mockCourseRepo.findById.mockResolvedValue(Result.ok(course));
+    mockCourseRepo.findById.mockResolvedValue(
+      Result.ok({
+        course,
+        instructorData: {
+          id: course.instructorId,
+          username: 'instructor_2',
+          avatar: null,
+          bio: null,
+        },
+      }),
+    );
     mockLessonRepo.findById.mockResolvedValue(Result.ok(lesson));
 
     const result = await usecase.execute({
-      courseId: course.getId(),
-      userId: user.getId(),
-      id: lesson.getId(),
+      userId: user.id,
+      id: lesson.id,
     });
 
     expect(result.ok).toBe(false);
@@ -101,16 +119,25 @@ describe('Delete lesson test cases', () => {
   it('should fail when course not owned by the instructor', async () => {
     const course = CourseFactory.build();
     const user = UserFactory.build({ role: UserRole.Instructor });
-    const lesson = LessonFactory.build({ courseId: course.getId() });
+    const lesson = LessonFactory.build({ courseId: course.id });
 
-    mockCourseRepo.findById.mockResolvedValue(Result.ok(course));
+    mockCourseRepo.findById.mockResolvedValue(
+      Result.ok({
+        course,
+        instructorData: {
+          id: course.instructorId,
+          username: 'instructor_2',
+          avatar: null,
+          bio: null,
+        },
+      }),
+    );
     mockUserRepo.findById.mockResolvedValue(Result.ok(user));
     mockLessonRepo.findById.mockResolvedValue(Result.ok(lesson));
 
     const result = await usecase.execute({
-      courseId: course.getId(),
-      userId: user.getId(),
-      id: lesson.getId(),
+      userId: user.id,
+      id: lesson.id,
     });
 
     expect(result.ok).toBe(false);
@@ -120,19 +147,28 @@ describe('Delete lesson test cases', () => {
 
   it("should fail when course doesn't belong to the course", async () => {
     const user = UserFactory.build({ role: UserRole.Instructor });
-    const course = CourseFactory.build({ instructorId: user.getId() });
+    const course = CourseFactory.build({ instructorId: user.id });
     // by default courseId in lesson not equal for course id
     // *** unless we override it ***
     const lesson = LessonFactory.build();
 
     mockUserRepo.findById.mockResolvedValue(Result.ok(user));
-    mockCourseRepo.findById.mockResolvedValue(Result.ok(course));
+    mockCourseRepo.findById.mockResolvedValue(
+      Result.ok({
+        course,
+        instructorData: {
+          id: course.instructorId,
+          username: 'instructor_2',
+          avatar: null,
+          bio: null,
+        },
+      }),
+    );
     mockLessonRepo.findById.mockResolvedValue(Result.ok(lesson));
 
     const result = await usecase.execute({
-      courseId: course.getId(),
-      userId: user.getId(),
-      id: lesson.getId(),
+      userId: user.id,
+      id: lesson.id,
     });
 
     expect(result.ok).toBe(false);
@@ -142,11 +178,21 @@ describe('Delete lesson test cases', () => {
 
   it('should fail when changes not saved', async () => {
     const user = UserFactory.build({ role: UserRole.Instructor });
-    const course = CourseFactory.build({ instructorId: user.getId() });
-    const lesson = LessonFactory.build({ courseId: course.getId() });
+    const course = CourseFactory.build({ instructorId: user.id });
+    const lesson = LessonFactory.build({ courseId: course.id });
 
     mockUserRepo.findById.mockResolvedValue(Result.ok(user));
-    mockCourseRepo.findById.mockResolvedValue(Result.ok(course));
+    mockCourseRepo.findById.mockResolvedValue(
+      Result.ok({
+        course,
+        instructorData: {
+          id: course.instructorId,
+          username: 'instructor_2',
+          avatar: null,
+          bio: null,
+        },
+      }),
+    );
     mockLessonRepo.findById.mockResolvedValue(Result.ok(lesson));
 
     mockLessonRepo.save.mockResolvedValue(
@@ -154,9 +200,8 @@ describe('Delete lesson test cases', () => {
     );
 
     const result = await usecase.execute({
-      courseId: course.getId(),
-      userId: user.getId(),
-      id: lesson.getId(),
+      userId: user.id,
+      id: lesson.id,
     });
 
     expect(result.ok).toBe(false);
@@ -173,7 +218,6 @@ describe('Delete lesson test cases', () => {
 
     const result = await usecase.execute({
       userId: 'any-id',
-      courseId: 'any-id',
       id: 'non-existing-id',
     });
 
@@ -193,7 +237,6 @@ describe('Delete lesson test cases', () => {
 
     const result = await usecase.execute({
       userId: 'non-existen-user-id',
-      courseId: 'course-id',
       id: 'lesson-id',
     });
 

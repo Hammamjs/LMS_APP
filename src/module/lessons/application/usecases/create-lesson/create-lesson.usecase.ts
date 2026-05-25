@@ -35,7 +35,7 @@ export class CreateLessonUsecase implements IUseCase<
     const courseResult = await this.courseRepo.findById(params.courseId);
     if (!courseResult.ok) return courseResult;
 
-    const course = courseResult.value;
+    const { course: courseEntity } = courseResult.value;
 
     // we need to get last order of lessons in course
     const orderResult = await this.lessonRepo.findLastOrderByCourse(
@@ -62,7 +62,7 @@ export class CreateLessonUsecase implements IUseCase<
       );
 
     // we need instructor id
-    if (!course.isOwnedBy(user.getId()))
+    if (!courseEntity.isOwnedBy(user.id))
       return Result.fail(
         Errors.forbidden('This permission not allowed for you'),
       );
@@ -81,7 +81,7 @@ export class CreateLessonUsecase implements IUseCase<
     // we need to get who enrolled to this course
 
     this.eventBus.publish(
-      new LessonCreatedEvent(params.title, params.courseId, course.getTitle()),
+      new LessonCreatedEvent(params.title, params.courseId, courseEntity.title),
     );
     return Result.ok(response);
   }

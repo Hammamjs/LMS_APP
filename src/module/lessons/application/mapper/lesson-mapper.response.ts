@@ -18,8 +18,7 @@ export type LessonResponseDto = {
   courseId: string;
   rating: number;
   isFree: boolean;
-  sourceLink: string | null;
-  video: string | null;
+  url: string;
   createdAt: Date;
   updatedAt: Date;
 
@@ -32,17 +31,16 @@ export class LessonMapper {
   // To map Lesson to response for client side
   public static toResponse(lesson: Lesson) {
     return {
-      id: lesson.getId(),
-      title: lesson.getTitle(),
-      description: lesson.getDescription(),
-      order: lesson.getOrder(),
-      courseId: lesson.getCourseId(),
-      rating: lesson.getRating(),
-      isFree: lesson.getIsFree(),
-      sourceLink: lesson.getSourceLink(),
-      video: lesson.getVideo(),
-      createdAt: lesson.getCreatedAt(),
-      updatedAt: lesson.getUpdatedAt(),
+      id: lesson.id,
+      title: lesson.title,
+      description: lesson.description,
+      order: lesson.order,
+      courseId: lesson.courseId,
+      rating: lesson.rating,
+      isFree: lesson.isFree,
+      url: lesson.url,
+      createdAt: lesson.createdAt,
+      updatedAt: lesson.updatedAt,
     };
   }
 
