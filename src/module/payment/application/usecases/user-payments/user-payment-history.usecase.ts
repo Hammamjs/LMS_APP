@@ -6,10 +6,11 @@ import {
   PaymentMapper,
   TPaymentPaginationResult,
 } from '../../mapper/payment.mapper';
+import { UserPaymentHistoryParams } from './user-payment-history.params';
 
 @Injectable()
 export class UserPaymentHistoryUseCase implements IUseCase<
-  string,
+  UserPaymentHistoryParams,
   Promise<Result<TPaymentPaginationResult>>
 > {
   constructor(
@@ -17,8 +18,10 @@ export class UserPaymentHistoryUseCase implements IUseCase<
     private readonly paymentRepo: IPaymentRepository,
   ) {}
 
-  async execute(userId: string): Promise<Result<TPaymentPaginationResult>> {
-    const paymentResult = await this.paymentRepo.findUserPayments({ userId });
+  async execute(
+    params: UserPaymentHistoryParams,
+  ): Promise<Result<TPaymentPaginationResult>> {
+    const paymentResult = await this.paymentRepo.findUserPayments(params);
 
     if (!paymentResult.ok)
       return Result.fail(Errors.notFound('User has no payments yet'));
@@ -28,7 +31,7 @@ export class UserPaymentHistoryUseCase implements IUseCase<
     const toResponse = ResponseBuilder.paginateMapped(
       data,
       meta,
-      PaymentMapper.toResponse,
+      PaymentMapper.toResponseFromQuery,
     );
 
     return Result.ok(toResponse);

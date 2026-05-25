@@ -15,6 +15,26 @@ import { Payment } from '../../domain/entity/payment.entity';
 import { PaymentEntityMapper } from '../mapper/payment.entity.mapper';
 import { PaymentPaginationResult } from '../../domain/entity/payment.types';
 
+const paymentWithCourseInclude = {
+  include: {
+    course: {
+      select: {
+        id: true,
+        title: true,
+        duration: true,
+        enrollments: {
+          select: {
+            status: true,
+          },
+        },
+      },
+    },
+  },
+} satisfies Prisma.PaymentFindManyArgs;
+
+export type PaymentWithCoursePrisma = Prisma.PaymentGetPayload<
+  typeof paymentWithCourseInclude
+>;
 @Injectable()
 export class PaymentPrisma implements IPaymentRepository {
   private readonly _entityName = 'Payment';
@@ -83,20 +103,41 @@ export class PaymentPrisma implements IPaymentRepository {
 
   async findUserPayments(
     params: PaymentPaginationResult,
-  ): Promise<Result<PaginationResult<Payment>>> {
-    const { limit, page, userId, status } = params;
+  ): Promise<Result<PaginationResult<PaymentWithCoursePrisma>>> {
+    const { limit, page, userId, status, search } = params;
 
     const where: Prisma.PaymentWhereInput = {
       ...(userId && { userId }),
       ...(status && { status }),
+
+      ...(search && {
+        OR: [
+          {
+            course: {
+              title: {
+                contains: search,
+                mode: 'insensitive',
+              },
+            },
+          },
+        ],
+      }),
     };
 
     try {
-      const paginateData = await paginate(
+      const paginateData = await paginate<
+        PaymentWithCoursePrisma,
+        PaymentWithCoursePrisma
+      >(
         { limit, page },
-        (args) => this._db.payment.findMany({ ...args, where }),
+        (args) =>
+          this._db.payment.findMany({
+            ...args,
+            where,
+            ...paymentWithCourseInclude,
+          }),
         (args) => this._db.payment.count({ ...args, where }),
-        (row) => PaymentEntityMapper.toDomain(row),
+        (row) => row, // PaymentEntityMapper.toDomain(row),
       );
 
       if (!paginateData.ok) return paginateData;
