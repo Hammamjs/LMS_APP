@@ -1,12 +1,8 @@
-import { IUseCase } from '@/core/common/domain/use-case-interface';
 import { UpdateCourseParams } from './update-course.params';
-import { Result } from '@/core/common/domain/result.pattern';
+import { Result, IUseCase, Errors } from '@/core';
 import { Inject, Injectable } from '@nestjs/common';
-import { IUSER_REPOSITORY } from '@/module/users/domain/constants/injection.token';
-import type { IUserRepository } from '@/module/users/domain/repositories/user.repository.interface';
 import { ICOURSE_REPOSITORY } from '../../../domain/constants/injection.token';
 import type { ICourseRepository } from '../../../domain/repository/course.repository.interface';
-import { Errors } from '@/core/common/domain/err.utils';
 import {
   CourseMapper,
   ICourseMapperResponse,
@@ -18,7 +14,6 @@ export class UpdateCourseUseCase implements IUseCase<
   Promise<Result<ICourseMapperResponse>>
 > {
   constructor(
-    @Inject(IUSER_REPOSITORY) private readonly userRepo: IUserRepository,
     @Inject(ICOURSE_REPOSITORY) private readonly courseRepo: ICourseRepository,
   ) {}
 
@@ -30,29 +25,45 @@ export class UpdateCourseUseCase implements IUseCase<
     const courseResult = await this.courseRepo.findById(params.id);
     if (!courseResult.ok) return courseResult;
 
-    const course = courseResult.value;
+    const { course: courseEntity, instructorData } = courseResult.value;
 
     // we need to check if only instructor can update his courses
-    if (params.userId !== course.getInstructor())
+    if (params.userId !== instructorData?.id)
       return Result.fail(
         Errors.forbidden('You are not allowed to update this course'),
       );
 
-    const updatedCourse = course
-      .withCourseHours(params.hours ?? course.getCourseHours())
-      .setCategory(params.category ?? course.getCategory())
-      .withDescription(params.description ?? course.getDescription())
-      .withPrice(params.price ?? course.getPrice())
-      .withTitle(params.title ?? course.getTitle())
-      .updateImage(params.image ?? course.getImage());
+    const updatedCourse = courseEntity
+      .withCourseDuration(params.duration ?? courseEntity.duration)
+      .setCategory(params.category ?? courseEntity.category)
+      .withDescription(params.description ?? courseEntity.description)
+      .withOriginalPrice(params.originalPrice ?? courseEntity.originalPrice)
+      .withDiscountPrice(params.discountPrice ?? courseEntity.discountPrice)
+      .withTitle(params.title ?? courseEntity.title)
+      .withLevel(params.level ?? courseEntity.level)
+      .updateImage(params.image ?? courseEntity.image)
+      .withLanguage(params.language ?? courseEntity.language)
+      .withRequirements(
+        params.requirements && params.requirements.length > 0
+          ? params.requirements
+          : courseEntity.requirements,
+      )
+      .withWhatWillLearn(
+        params.whatYouLearn && params.whatYouLearn.length > 0
+          ? params.whatYouLearn
+          : courseEntity.whatYouWillLearn,
+      )
+      .withTargetAudience(
+        params.targetAudience && params.targetAudience.length > 0
+          ? params.targetAudience
+          : courseEntity.targetAudience,
+      );
 
     // we need to check if the new slug not exist before in our database
     // to prevent duplication
     // we check and send query only when slug already changed
-    if (course.getSlug() !== updatedCourse.getSlug()) {
-      const slugConflict = await this.courseRepo.findBySlug(
-        updatedCourse.getSlug(),
-      );
+    if (courseEntity.slug !== updatedCourse.slug) {
+      const slugConflict = await this.courseRepo.findBySlug(updatedCourse.slug);
 
       if (slugConflict.ok)
         return Result.fail(

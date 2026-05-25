@@ -1,10 +1,21 @@
+import { User } from '@/module/users';
+
+export enum Level {
+  Beginner = 'Beginner',
+  Intermediate = 'Intermediate',
+  Advanced = 'Advanced',
+}
+
 export interface CourseState {
   id: string;
   title: string;
-  price: number;
-  hours: number;
+  originalPrice: number;
+  discountPrice: number;
+  duration: number;
   slug: string;
+  level: Level;
   description: string;
+  subtitle: string;
   rating: number;
   purchaseCount: number;
   createdAt: Date;
@@ -12,24 +23,13 @@ export interface CourseState {
   instructorId: string;
   image: string | null; // cover for course
   category: string;
-  isDeleted: boolean; //
-}
-
-export interface CourseProps {
-  id: string;
-  title: string;
-  price: number;
-  hours: number;
-  slug: string;
-  description: string;
-  rating: number;
-  purchaseCount: number;
-  createdAt: Date;
-  updatedAt: Date;
-  instructorId: string;
-  image: string | null;
-  category: string;
-  isDeleted: boolean; //
+  isDeleted: boolean;
+  instructor?: User;
+  lessonCount?: number;
+  requirements: string[];
+  language: string;
+  whatYouLearn: string[];
+  targetAudience: string[];
 }
 
 export type ExcludedFields =

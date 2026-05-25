@@ -29,31 +29,66 @@ describe('Find course use case', () => {
   });
 
   it('should return course that match id', async () => {
-    mockCourseRepo.findById.mockResolvedValue(Result.ok(course));
+    const instructorData = {
+      id: course.instructorId,
+      username: 'instructor_2',
+      avatar: null,
+      bio: null,
+    };
 
-    const result = await usecase.execute({ id: 'course-id-123' });
+    mockCourseRepo.findById.mockResolvedValue(
+      Result.ok({
+        course,
+        instructorData,
+      }),
+    );
+
+    const result = await usecase.execute({
+      id: 'course-id-123',
+    });
 
     expect(result.ok).toBeTruthy();
+
     if (result.ok) {
-      const expectedData = CourseMapper.toResponse(course);
+      const expectedData = CourseMapper.toResponse(course, instructorData);
+
       expect(result.value).toEqual(expectedData);
     }
+
     expect(mockCourseRepo.findById).toHaveBeenCalledTimes(1);
+
     expect(mockCourseRepo.findBySlug).not.toHaveBeenCalled();
   });
 
   it('should return course that match slug', async () => {
-    mockCourseRepo.findBySlug.mockResolvedValue(Result.ok(course));
+    const instructorData = {
+      id: course.instructorId,
+      username: 'instructor_2',
+      avatar: null,
+      bio: null,
+    };
 
-    // we ensure slug converter work as expected
-    const result = await usecase.execute({ slug: 'html-course' });
+    mockCourseRepo.findBySlug.mockResolvedValue(
+      Result.ok({
+        course,
+        instructorData,
+      }),
+    );
+
+    const result = await usecase.execute({
+      slug: 'html-course',
+    });
 
     expect(result.ok).toBeTruthy();
+
     if (result.ok) {
-      const expectedData = CourseMapper.toResponse(course);
+      const expectedData = CourseMapper.toResponse(course, instructorData);
+
       expect(result.value).toEqual(expectedData);
     }
+
     expect(mockCourseRepo.findBySlug).toHaveBeenCalledTimes(1);
+
     expect(mockCourseRepo.findById).not.toHaveBeenCalled();
   });
 

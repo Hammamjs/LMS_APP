@@ -36,7 +36,7 @@ export class CreateCourseUseCase implements IUseCase<
 
     const createCourse = Course.create(params);
 
-    const exisiting = await this.courseRepo.findBySlug(createCourse.getSlug());
+    const exisiting = await this.courseRepo.findBySlug(createCourse.slug);
 
     if (exisiting.ok)
       return Result.fail(
@@ -58,7 +58,8 @@ export class CreateCourseUseCase implements IUseCase<
       'instructorId',
       'title',
       'description',
-      'price',
+      'originalPrice',
+      'level',
       'category',
     ];
 

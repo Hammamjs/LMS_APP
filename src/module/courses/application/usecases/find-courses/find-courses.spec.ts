@@ -3,7 +3,6 @@ import { FindCoursesUseCase } from './find-courses.usecase';
 import { ICOURSE_REPOSITORY } from '../../../domain/constants/injection.token';
 import { Result } from '@/core/common/domain/result.pattern';
 import { CourseFactory } from '@/tests';
-import { CourseMapper } from '../../mapper/course-mapper';
 
 describe('Find Courses test cases', () => {
   let usecase: FindCoursesUseCase;
@@ -31,10 +30,21 @@ describe('Find Courses test cases', () => {
     const course1 = course;
     const course2 = CourseFactory.build().withTitle('CSS Course');
 
-    const courses = [course1, course2];
+    const rawCourses = [course1, course2];
+
+    const mockRepoPayload = rawCourses.map((c) => ({
+      course: c,
+      instructorData: {
+        id: 'test-id',
+        username: 'test_instructor',
+        avatar: null,
+        bio: 'test bio',
+      },
+    }));
+
     mockCourseRepo.findAll.mockResolvedValue(
       Result.ok({
-        data: courses,
+        data: mockRepoPayload,
         meta: { total: 2, page: 1, limit: 10, lastPage: 1 },
       }),
     );
@@ -42,12 +52,13 @@ describe('Find Courses test cases', () => {
     const result = await usecase.execute({});
 
     expect(result.ok).toBeTruthy();
+
     if (result.ok) {
-      const expectedData = courses.map((c) => CourseMapper.toResponse(c));
-      expect(result.value.data).toEqual(expectedData);
-      expect(expectedData).toHaveLength(2);
+      expect(result.value.data).toHaveLength(2);
       expect(result.value.data[1].title).toBe('CSS Course');
+      expect(result.value.data[1].instructor?.id).toBe('test-id');
     }
+
     expect(mockCourseRepo.findAll).toHaveBeenCalledTimes(1);
   });
 

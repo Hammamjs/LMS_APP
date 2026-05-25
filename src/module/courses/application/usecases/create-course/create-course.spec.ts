@@ -5,6 +5,7 @@ import { CourseFactory } from '@/tests';
 import { Result } from '@/core/common/domain/result.pattern';
 import { Errors } from '@/core/common/domain/err.utils';
 import { IUSER_REPOSITORY } from '@/module/users/domain/constants/injection.token';
+import { Level } from '@/module/courses/domain/course.types';
 
 describe('Create course test cases', () => {
   let usecase: CreateCourseUseCase;
@@ -29,11 +30,13 @@ describe('Create course test cases', () => {
   const params = {
     category: 'web dev',
     description: 'any description',
-    hours: 2,
+    duration: 2,
     image: 'any image',
     instructorId: 'any-id',
-    price: 200,
+    originalPrice: 200,
+    discountPrice: 0,
     title: 'JS Advanced',
+    level: 'Beginner' as Level,
   };
 
   beforeEach(async () => {
@@ -69,6 +72,10 @@ describe('Create course test cases', () => {
     );
 
     mockCourseRepo.save.mockResolvedValue(Result.ok(course));
+
+    Object.assign(course, {
+      instructor: { id: 'ins-id', username: 'test' },
+    });
 
     const result = await usecase.execute(params);
 

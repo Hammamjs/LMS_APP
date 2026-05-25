@@ -1,10 +1,8 @@
-import { PaginationResult } from '@/core/common/domain/pagination.interface';
-import { IUseCase } from '@/core/common/domain/use-case-interface';
+import { PaginationResult, IUseCase, Result } from '@/core';
 import { Inject, Injectable } from '@nestjs/common';
 import { ICOURSE_REPOSITORY } from '../../../domain/constants/injection.token';
 import type { ICourseRepository } from '../../../domain/repository/course.repository.interface';
 import { FindCoursesParams } from './find-course.params';
-import { Result } from '@/core/common/domain/result.pattern';
 import {
   CourseMapper,
   ICourseMapperPaginationResult,
@@ -22,13 +20,22 @@ export class FindCoursesUseCase implements IUseCase<
   async execute(
     params: FindCoursesParams,
   ): Promise<Result<PaginationResult<ICourseMapperPaginationResult>>> {
+    // 💡 Now returns Result<{ data: CourseWithInstructorData[], meta: any }>
     const results = await this.courseRepo.findAll(params);
 
     if (!results.ok) return Result.fail(results.error);
 
     const { data, meta } = results.value;
 
-    const paginationData = CourseMapper.toPaginationResponse(data, meta);
+    const mappedData = data.map(({ course, instructorData }) =>
+      CourseMapper.toResponse(course, instructorData),
+    );
+
+    // Reconstruct the response pagination envelope
+    const paginationData = {
+      data: mappedData,
+      meta,
+    };
 
     return Result.ok(paginationData);
   }

@@ -1,4 +1,4 @@
-import { CourseProps, CourseState, ExcludedFields } from '../course.types';
+import { CourseState, ExcludedFields, Level } from '../course.types';
 import { InvalidCourseHours } from '../errors/invalid-course-hours.error';
 import { InvalidDescription } from '../errors/invalid-description.error';
 import { InvalidPrice } from '../errors/invalid-price.error';
@@ -6,13 +6,13 @@ import { InvalidTitle } from '../errors/invalid-title.error';
 import { randomUUID } from 'crypto';
 
 export class Course {
-  private NEG_NOT_ALLOWED: string = 'Negative value not allowed';
+  private static readonly NEG_NOT_ALLOWED = 'Negative value not allowed';
   private constructor(
     private props: CourseState,
     public readonly isNew: boolean,
   ) {}
 
-  public static create(props: Omit<CourseProps, ExcludedFields>): Course {
+  public static create(props: Omit<CourseState, ExcludedFields>): Course {
     const slug = this._convertToslug(props.title);
     return new Course(
       {
@@ -30,60 +30,91 @@ export class Course {
   }
 
   // ✅ Rehydrate From database
-  public static rehydrate(props: CourseProps): Course {
+  public static rehydrate(props: CourseState): Course {
     return new Course(props, false);
   }
 
-  public getId(): string {
+  public get id(): string {
     return this.props.id;
   }
 
-  public getTitle(): string {
+  public get title(): string {
     return this.props.title;
   }
 
-  public getPurchaseCount(): number {
+  public get purchaseCount(): number {
     return this.props.purchaseCount;
   }
 
-  public getPrice(): number {
-    return this.props.price;
+  public get originalPrice(): number {
+    return this.props.originalPrice;
   }
 
-  public getDescription(): string {
+  public get discountPrice(): number {
+    return this.props.discountPrice;
+  }
+
+  public get subtitle(): string {
+    return this.props.subtitle;
+  }
+  public get description(): string {
     return this.props.description;
   }
 
-  public getCreatedAt(): Date {
+  public get createdAt(): Date {
     return this.props.createdAt;
   }
 
-  public getUpdatedAt(): Date {
+  public get updatedAt(): Date {
     return this.props.updatedAt;
   }
 
-  public getRating(): number {
+  public get rating(): number {
     return this.props.rating;
   }
 
-  public getCourseHours(): number {
-    return this.props.hours;
+  public get duration(): number {
+    return this.props.duration;
   }
 
-  public getSlug(): string {
+  public get slug(): string {
     return this.props.slug;
   }
 
-  public getInstructor(): string {
+  public get instructorId(): string {
     return this.props.instructorId;
   }
 
-  public getCategory(): string {
+  public get category(): string {
     return this.props.category;
   }
 
-  public getImage(): string | null {
+  public get image(): string | null {
     return this.props.image;
+  }
+
+  public get level(): Level {
+    return this.props.level;
+  }
+
+  public get lessonCount(): number {
+    return this.props.lessonCount ?? 0;
+  }
+
+  public get requirements(): string[] {
+    return this.props.requirements;
+  }
+
+  public get whatYouWillLearn(): string[] {
+    return this.props.whatYouLearn;
+  }
+
+  public get language(): string {
+    return this.props.language;
+  }
+
+  public get targetAudience(): string[] {
+    return this.props.targetAudience;
   }
 
   public withTitle(title: string): Course {
@@ -94,28 +125,97 @@ export class Course {
     return this._copy({ title, slug: newSlug });
   }
 
+  public withLevel(level: Level) {
+    if (!level || level.trim() == '')
+      throw new Error('Course level not supported for the moment');
+
+    return this._copy({ level });
+  }
+
   public withDescription(description: string): Course {
     if (!description || description == '') throw new InvalidDescription();
     return this._copy({ description });
   }
 
-  public withPrice(price: number): Course {
-    if (typeof price !== 'number')
+  public withOriginalPrice(originalPrice: number): Course {
+    if (typeof originalPrice !== 'number')
       throw new InvalidPrice('Price must be numeric');
 
-    if (price < 0) throw new InvalidPrice();
+    if (originalPrice < 0) throw new InvalidPrice();
 
-    return this._copy({ price });
+    return this._copy({ originalPrice });
+  }
+
+  withLanguage(language: string): Course {
+    if (!language || language.trim() == '')
+      throw new Error('Language cannot be empty');
+    return this._copy({ language });
+  }
+
+  withSubtitle(subtitle: string): Course {
+    if (!subtitle || subtitle.trim() == '')
+      throw new Error('Subtitle is required');
+
+    return this._copy({ subtitle });
+  }
+
+  public withRequirements(requirements: string[]): Course {
+    // Check if the array itself is empty, or contains any empty entries
+    if (!requirements || requirements.length === 0) {
+      throw new Error('Requirements cannot be empty');
+    }
+
+    const hasEmptyFields = requirements.some((r) => !r || r.trim() === '');
+    if (hasEmptyFields) {
+      throw new Error('Requirements cannot contain empty values');
+    }
+
+    return this._copy({ requirements });
+  }
+
+  public withWhatWillLearn(learn: string[]): Course {
+    if (!learn || learn.length === 0) {
+      throw new Error('What will learn cannot be empty');
+    }
+
+    const hasEmptyFields = learn.some((l) => !l || l.trim() === '');
+    if (hasEmptyFields) {
+      throw new Error('What you will learn cannot contain empty values');
+    }
+
+    return this._copy({ whatYouLearn: learn });
+  }
+
+  public withTargetAudience(target: string[]): Course {
+    if (!target || target.length === 0) {
+      throw new Error('Target audience cannot be empty');
+    }
+
+    const hasEmptyFields = target.some((t) => !t || t.trim() === '');
+    if (hasEmptyFields) {
+      throw new Error('Target audience cannot contain empty values');
+    }
+
+    return this._copy({ targetAudience: target });
+  }
+
+  public withDiscountPrice(discountPrice: number): Course {
+    if (typeof discountPrice !== 'number')
+      throw new InvalidPrice('Price must be numeric');
+
+    if (discountPrice < 0) throw new InvalidPrice();
+
+    return this._copy({ discountPrice });
   }
 
   public recordPurchase(): Course {
     return this._copy({ purchaseCount: this.props.purchaseCount + 1 });
   }
 
-  public withCourseHours(hours: number): Course {
-    if (typeof hours !== 'number') throw new InvalidCourseHours();
-    if (hours < 0) throw new InvalidCourseHours(this.NEG_NOT_ALLOWED);
-    return this._copy({ hours });
+  public withCourseDuration(duration: number): Course {
+    if (typeof duration !== 'number') throw new InvalidCourseHours();
+    if (duration < 0) throw new InvalidCourseHours(Course.NEG_NOT_ALLOWED);
+    return this._copy({ duration });
   }
 
   public applyRating(rating: number): Course {
@@ -137,8 +237,9 @@ export class Course {
 
   // soft deletion
   public withSoftDeletion(userId: string): Course {
-    if (userId !== this.props.instructorId || !this.getInstructor())
+    if (!this.isOwnedBy(userId)) {
       throw new Error("You don't have permission to perform this operation");
+    }
 
     return this._copy({ isDeleted: true });
   }
@@ -148,19 +249,22 @@ export class Course {
     return this.props.instructorId === userId;
   }
 
-  private _copy(props: Partial<CourseProps>): Course {
+  private _copy(props: Partial<CourseState>): Course {
     return new Course(
       { ...this.props, ...props, updatedAt: new Date() },
       this.isNew,
     );
   }
 
-  public toPersistence() {
+  public get toPersistence() {
     return {
       id: this.props.id,
       title: this.props.title,
-      price: this.props.price,
-      hours: this.props.hours,
+      subtitle: this.props.subtitle,
+      originalPrice: this.props.originalPrice,
+      discountPrice: this.props.discountPrice,
+      duration: this.props.duration,
+      level: this.props.level,
       slug: this.props.slug,
       description: this.props.description,
       rating: this.props.rating,
@@ -170,6 +274,10 @@ export class Course {
       instructorId: this.props.instructorId,
       image: this.props.image,
       category: this.props.category,
+      requirements: this.props.requirements,
+      whatYouLearn: this.props.whatYouLearn,
+      targetAudience: this.props.targetAudience,
+      language: this.props.language,
     };
   }
 

@@ -30,7 +30,9 @@ export class FindCourseUseCase implements IUseCase<
           Errors.notFound(`Course with this id: ${params.id} not found`),
         );
 
-      const response = CourseMapper.toResponse(courseResult.value);
+      const { course: courseEntity, instructorData } = courseResult.value;
+
+      const response = CourseMapper.toResponse(courseEntity, instructorData);
       return Result.ok(response);
     }
 
@@ -42,7 +44,9 @@ export class FindCourseUseCase implements IUseCase<
           Errors.notFound(`Course with this title: ${params.slug} not found`),
         );
 
-      const response = CourseMapper.toResponse(courseResult.value);
+      const { course: courseEntity, instructorData } = courseResult.value;
+
+      const response = CourseMapper.toResponse(courseEntity, instructorData);
 
       return Result.ok(response);
     }
