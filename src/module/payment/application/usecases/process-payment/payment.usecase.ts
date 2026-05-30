@@ -1,6 +1,8 @@
 import {
   ErrorMapper,
   Errors,
+  ILOGGER_SERVICE,
+  type ILoggerService,
   IUNIT_OF_WORK_REPOSITORY,
   IUseCase,
   Result,
@@ -50,6 +52,7 @@ export class PaymentProcessUseCase implements IUseCase<
     @Inject(ICACHE_REPOSITORY) private readonly cacheRepo: ICacheRepository,
     @Inject(IPAYMENT_REPOSITORY)
     private readonly paymentRepo: IPaymentRepository,
+    @Inject(ILOGGER_SERVICE) private readonly logger: ILoggerService,
     private readonly eventBus: EventBus,
   ) {}
 
@@ -153,6 +156,10 @@ export class PaymentProcessUseCase implements IUseCase<
 
       return Result.ok(result.value.payment);
     } catch (err) {
+      this.logger.error(
+        `Payment processing failed`,
+        err instanceof Error ? err.stack : String(err),
+      );
       return ErrorMapper.toResult(err, 'Payment');
     } finally {
       await this.cacheRepo.del(lockKey);

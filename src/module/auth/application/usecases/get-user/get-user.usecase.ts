@@ -1,4 +1,10 @@
-import { Errors, IUseCase, Result } from '@/core';
+import {
+  Errors,
+  ILOGGER_SERVICE,
+  type ILoggerService,
+  IUseCase,
+  Result,
+} from '@/core';
 import { IJWTTOKEN_SERVICE } from '@/module/auth/domain/constants/injection.token';
 import { type IJWTTokenService } from '@/module/auth/domain/service/token.service.interface';
 import { IUSER_REPOSITORY, type IUserRepository } from '@/module/users';
@@ -15,16 +21,29 @@ export class GetMeUseCase implements IUseCase<
     @Inject(IUSER_REPOSITORY) private readonly userRepo: IUserRepository,
     @Inject(IJWTTOKEN_SERVICE) private readonly tokenService: IJWTTokenService,
     private readonly config: ConfigService,
+    @Inject(ILOGGER_SERVICE) private readonly logger: ILoggerService,
   ) {}
 
   async execute(
     refreshToken: string,
   ): Promise<Result<{ user: UserResponse; accessToken: string }>> {
-    if (!refreshToken)
+    if (!refreshToken) {
+      const errorTrack = new Error('Refresh token not Provided');
+      this.logger.error(
+        errorTrack.message,
+        errorTrack.stack,
+        GetMeUseCase.name,
+      );
       return Result.fail(Errors.validation('Token not provided'));
+    }
     const userResult = await this.userRepo.findByToken(refreshToken);
 
     if (!userResult.ok) return userResult;
+
+    this.logger.log(
+      `Server try to reuath user with email ${userResult.value.email}`,
+      GetMeUseCase.name,
+    );
     const userResponse = UserResponseMapper.toResponse(userResult.value);
 
     const { email, id, role } = userResponse;

@@ -30,6 +30,10 @@ export interface CourseState {
   language: string;
   whatYouLearn: string[];
   targetAudience: string[];
+
+  // course rate
+  reviewsCount: number;
+  averageRating: number;
 }
 
 export type ExcludedFields =
@@ -39,4 +43,6 @@ export type ExcludedFields =
   | 'slug'
   | 'rating'
   | 'purchaseCount'
-  | 'isDeleted';
+  | 'isDeleted'
+  | 'averageRating'
+  | 'reviewsCount';

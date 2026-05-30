@@ -1,5 +1,5 @@
 import { Global, Module } from '@nestjs/common';
-import { TransactionContext } from '../http/transaction/transaction.context';
+import { TransactionContext } from './transaction.context';
 @Global()
 @Module({
   exports: [TransactionContext],

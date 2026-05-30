@@ -8,7 +8,7 @@ import {
   Min,
   MinLength,
 } from 'class-validator';
-import { Level } from '../../domain/course.types';
+import { Level } from '../../domain/types/course.types';
 
 export class CreateCourseDto {
   @IsString()
