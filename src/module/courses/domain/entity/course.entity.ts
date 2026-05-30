@@ -1,4 +1,4 @@
-import { CourseState, ExcludedFields, Level } from '../course.types';
+import { CourseState, ExcludedFields, Level } from '../types/course.types';
 import { InvalidCourseHours } from '../errors/invalid-course-hours.error';
 import { InvalidDescription } from '../errors/invalid-description.error';
 import { InvalidPrice } from '../errors/invalid-price.error';
@@ -23,6 +23,8 @@ export class Course {
         updatedAt: new Date(),
         purchaseCount: 0,
         slug,
+        averageRating: 0,
+        reviewsCount: 0,
         isDeleted: false,
       },
       true,
@@ -115,6 +117,14 @@ export class Course {
 
   public get targetAudience(): string[] {
     return this.props.targetAudience;
+  }
+
+  public get averageRating(): number {
+    return this.props.averageRating;
+  }
+
+  public get reviewsCount(): number {
+    return this.props.reviewsCount;
   }
 
   public withTitle(title: string): Course {
@@ -261,6 +271,7 @@ export class Course {
       id: this.props.id,
       title: this.props.title,
       subtitle: this.props.subtitle,
+      isDeleted: this.props.isDeleted,
       originalPrice: this.props.originalPrice,
       discountPrice: this.props.discountPrice,
       duration: this.props.duration,
@@ -274,6 +285,10 @@ export class Course {
       instructorId: this.props.instructorId,
       image: this.props.image,
       category: this.props.category,
+
+      averageRating: this.props.averageRating,
+      reviewsCount: this.props.reviewsCount,
+
       requirements: this.props.requirements,
       whatYouLearn: this.props.whatYouLearn,
       targetAudience: this.props.targetAudience,

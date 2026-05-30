@@ -1,4 +1,4 @@
-import { Level } from '@/module/courses/domain/course.types';
+import { Level } from '@/module/courses/domain/types/course.types';
 
 export class CreateCourseParams {
   constructor(

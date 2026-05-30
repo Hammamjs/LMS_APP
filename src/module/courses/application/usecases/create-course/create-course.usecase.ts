@@ -1,13 +1,17 @@
-import { IUseCase } from '@/core/common/domain/use-case-interface';
 import { CreateCourseParams } from './create-course.params';
 import { Course } from '../../../domain/entity/course.entity';
-import { Result } from '@/core/common/domain/result.pattern';
 import { Inject, Injectable } from '@nestjs/common';
 import { ICOURSE_REPOSITORY } from '../../../domain/constants/injection.token';
 import type { ICourseRepository } from '../../../domain/repository/course.repository.interface';
-import { Errors, failure } from '@/core/common/domain/err.utils';
-import { IUSER_REPOSITORY } from '@/module/users/domain/constants/injection.token';
-import type { IUserRepository } from '@/module/users/domain/repositories/user.repository.interface';
+import {
+  Errors,
+  failure,
+  IUseCase,
+  Result,
+  type ILoggerService,
+  ILOGGER_SERVICE,
+} from '@/core';
+import { IUSER_REPOSITORY, type IUserRepository } from '@/module/users';
 import {
   CourseMapper,
   ICourseMapperResponse,
@@ -21,13 +25,21 @@ export class CreateCourseUseCase implements IUseCase<
   constructor(
     @Inject(ICOURSE_REPOSITORY) private readonly courseRepo: ICourseRepository,
     @Inject(IUSER_REPOSITORY) private readonly userRepo: IUserRepository,
+    @Inject(ILOGGER_SERVICE) private readonly logger: ILoggerService,
   ) {}
   async execute(
     params: CreateCourseParams,
   ): Promise<Result<ICourseMapperResponse>> {
+    this.logger.log('Creating course', CreateCourseUseCase.name);
+
     const missings = this._requiredFields(params);
-    if (missings.length)
+    if (missings.length) {
+      this.logger.warn(
+        `Validation failed: ${missings.join(', ')}`,
+        CreateCourseUseCase.name,
+      );
       return failure(Errors.validation(`Missing ${missings.join(', ')}`));
+    }
 
     // Before create course we need to check instructor already exists
     const instructorResult = await this.userRepo.findById(params.instructorId);

@@ -5,16 +5,10 @@ import { CourseFactory } from '@/tests';
 import { Result } from '@/core/common/domain/result.pattern';
 import { Errors } from '@/core/common/domain/err.utils';
 import { IUSER_REPOSITORY } from '@/module/users/domain/constants/injection.token';
-import { Level } from '@/module/courses/domain/course.types';
+import { Level } from '@/module/courses/domain/types/course.types';
+import { ILOGGER_SERVICE } from '@/core/logger/constants/logger.token';
 
 describe('Create course test cases', () => {
-  let usecase: CreateCourseUseCase;
-
-  let mockCourseRepo: {
-    findBySlug: jest.Mock;
-    save: jest.Mock;
-  };
-
   const errors = {
     COURSE_TITLE_NOT_FOUND: 'A course with this title not found.',
     COURSE_NOT_FOUND: 'A course with this id not found',
@@ -22,7 +16,15 @@ describe('Create course test cases', () => {
     DB_ERR: 'Database connection fail',
   };
 
+  let usecase: CreateCourseUseCase;
+
+  let mockCourseRepo: {
+    findBySlug: jest.Mock;
+    save: jest.Mock;
+  };
+
   let mockUserRepo: { findById: jest.Mock };
+  let mockLoggerRepo: { warn: jest.Mock; log: jest.Mock };
 
   // for testing purposes
   const course = CourseFactory.build();
@@ -37,6 +39,12 @@ describe('Create course test cases', () => {
     discountPrice: 0,
     title: 'JS Advanced',
     level: 'Beginner' as Level,
+    subtitle: 'subtitle',
+    language: 'english',
+    whatYouLearn: [],
+    targetAudience: [],
+    requirements: [],
+    lessonCount: 0,
   };
 
   beforeEach(async () => {
@@ -46,6 +54,7 @@ describe('Create course test cases', () => {
     };
 
     mockUserRepo = { findById: jest.fn() };
+    mockLoggerRepo = { warn: jest.fn(), log: jest.fn() };
 
     const module: TestingModule = await Test.createTestingModule({
       providers: [
@@ -57,6 +66,10 @@ describe('Create course test cases', () => {
         {
           provide: IUSER_REPOSITORY,
           useValue: mockUserRepo,
+        },
+        {
+          provide: ILOGGER_SERVICE,
+          useValue: mockLoggerRepo,
         },
       ],
     }).compile();

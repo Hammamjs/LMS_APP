@@ -1,4 +1,4 @@
-import { Level } from '../../domain/course.types';
+import { Level } from '../../domain/types/course.types';
 import { Course } from '../../domain/entity/course.entity';
 
 type Meta = {
@@ -30,6 +30,9 @@ export type CourseResponseDto = {
   language: string;
   whatYouLearn: string[];
   targetAudience: string[];
+
+  averageRating: number;
+  reviewsCount: number;
 
   instructor?: {
     id: string | null;
@@ -70,6 +73,8 @@ export class CourseMapper {
       whatYouLearn: course.whatYouWillLearn,
       language: course.language,
       targetAudience: course.targetAudience,
+      averageRating: course.averageRating,
+      reviewsCount: course.reviewsCount,
     };
 
     if (rawInstructor) {

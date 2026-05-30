@@ -4,7 +4,7 @@ import {
   Lesson as PrismaLesson,
 } from '@prisma/client';
 import { Course } from '../../domain/entity/course.entity';
-import { Level } from '../../domain/course.types';
+import { Level } from '../../domain/types/course.types';
 
 type PrismaUserWithBio = PrismaUser & {
   bio?: string | null; // Or whatever field name your Prisma schema uses (e.g., biography)

@@ -15,32 +15,29 @@ export class DeleteCourseUseCase implements IUseCase<
   ) {}
 
   async execute(params: DeleteCourseParams): Promise<Result<void>> {
-    // 1. Fetch the pure domain Course entity
     const result = await this.courseRepo.findById(params.id);
 
-    // 💡 Fix 1: Map the failure Result object into a matching Result<void> structure
     if (!result.ok) {
       return Result.fail(result.error);
     }
 
     const { course: courseEntity, instructorData } = result.value;
 
-    // 💡 Fix 2: Look at course.instructorId directly, since findById returns a pure Course entity
     if (instructorData?.id !== params.currentUserId) {
       return Result.fail(
         Errors.forbidden('You do not have permission to delete this course'),
       );
     }
 
-    // 💡 Fix 3: Remove the extra ".course" layer to target your aggregate root directly
     const deletedVideo = courseEntity.withSoftDeletion(params.currentUserId);
 
     const deleted = await this.courseRepo.save(deletedVideo);
 
-    // 💡 Fix 4: Map this failure to matching Result<void> structure as well
     if (!deleted.ok) {
       return Result.fail(deleted.error);
     }
+
+    console.log('delete course', deleted.value);
 
     return Result.ok(undefined);
   }

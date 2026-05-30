@@ -1,5 +1,5 @@
 import { PaginationParams } from '@/core';
-import { Level } from '@/module/courses/domain/course.types';
+import { Level } from '@/module/courses/domain/types/course.types';
 
 export interface FindCoursesParams extends PaginationParams {
   search?: string;

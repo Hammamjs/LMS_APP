@@ -41,7 +41,6 @@ export class CourseRepository implements ICourseRepository {
   async findAll(
     params: PaginationParams,
   ): Promise<Result<PaginationResult<CourseWithInstructorData>>> {
-    // 💡 Updated Return Type signature
     const { limit, page, search, category, instructorId } = params;
     try {
       const where: Prisma.CourseWhereInput = {
@@ -68,7 +67,7 @@ export class CourseRepository implements ICourseRepository {
             include: { instructor: true },
           }),
         (args) => this.prisma.course.count({ ...args, where }),
-        // 💡 THE FIX: Update this line to use your new mapper method
+
         (row) => CourseMapper.toDomainWithInstructor(row),
       );
 
@@ -196,7 +195,9 @@ export class CourseRepository implements ICourseRepository {
 
   async delete(id: string): Promise<Result<void>> {
     try {
-      const result = await this.prisma.course.delete({ where: { id } });
+      const result = await this.prisma.course.delete({
+        where: { id },
+      });
       if (!result)
         return failure(Errors.notFound('Course not found operation failed'));
 
