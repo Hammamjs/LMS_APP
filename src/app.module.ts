@@ -17,10 +17,12 @@ import { NotificationModule } from './module/notification/notification.module';
 import { ThrottlerModule } from '@nestjs/throttler';
 import { CqrsModule } from '@nestjs/cqrs';
 import { json } from 'express';
+import { LoggerModule } from './core/logger/logger.module';
 
 @Module({
   imports: [
     ConfigModule.forRoot({ isGlobal: true }),
+    LoggerModule,
     RedisModule.forRootAsync({
       useFactory: (configService: ConfigService) => ({
         type: 'single',
