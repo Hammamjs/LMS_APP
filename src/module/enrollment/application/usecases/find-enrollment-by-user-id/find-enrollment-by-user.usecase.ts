@@ -6,7 +6,7 @@ import {
   EnrollmentMapper,
   EnrollmentResponseDto,
 } from '../../mapper/enrollment.mapper';
-import { ResponseBuilder } from '@/core/common/domain/response.builder';
+import { ResponseBuilder } from '@/core/common/infrastructure/response/response.builder';
 
 @Injectable()
 export class FindEnrollmentByUserIdUseCase implements IUseCase<
