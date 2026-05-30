@@ -34,6 +34,7 @@ model User {
   authorCourses Course[]
 
   enrollments Enrollment[]
+  reviews Review[]
 }
 
 model Course {
@@ -74,6 +75,9 @@ model Course {
 
   isDeleted Boolean @default(false)
 
+  averageRating Float    @default(0)
+  reviewsCount  Int      @default(0)
+
   instructorId String
 
   level Level @default(Beginner)
@@ -85,6 +89,7 @@ model Course {
   enrollments Enrollment[]
 
   payments Payment[]
+  reviews Review[]
 
   @@index([slug])
 }
@@ -178,4 +183,24 @@ enum PaymenStatus {
 enum PaymentProvider {
   BANK
   STRIPE
+}
+
+
+model Review {
+ id String  @id @default(uuid()) 
+ userId String
+ courseId String
+ createdAt Int 
+ updatedAt Int 
+
+ review String
+ rating Int @default(0) 
+
+ user User @relation(fields: [userId], references: [id])
+ course Course @relation(fields: [courseId], references: [id])
+
+@@index([courseId])
+@@index([userId])
+
+ @@unique([courseId, userId])
 }
