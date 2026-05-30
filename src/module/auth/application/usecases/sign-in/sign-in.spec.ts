@@ -8,13 +8,15 @@ import {
   IBCRYPT_SERVICE,
   IJWTTOKEN_SERVICE,
 } from '@/module/auth/domain/constants/injection.token';
+import { ILOGGER_SERVICE } from '@/core';
 
 describe('Sign in test cases', () => {
   let useCase: SignInUseCase;
-  let userRepoMock: { findByEmail: jest.Mock; save: jest.Mock };
-  let bcryptServiceMock: { compare: jest.Mock; hash: jest.Mock };
-  let tokenServiceMock: { generate: jest.Mock };
-  let configServiceMock: { getOrThrow: jest.Mock };
+  let mockUserRepo: { findByEmail: jest.Mock; save: jest.Mock };
+  let mockBcryptService: { compare: jest.Mock; hash: jest.Mock };
+  let mockLogger: { log: jest.Mock; error: jest.Mock };
+  let mockTokenServie: { generate: jest.Mock };
+  let mockConfigService: { getOrThrow: jest.Mock };
 
   const createMockUser = (overrides: Partial<any> = {}) => {
     return User.rehydrate({
@@ -27,6 +29,8 @@ describe('Sign in test cases', () => {
       createdAt: new Date(),
       updatedAt: new Date(),
       emailVerified: null,
+      avatar: '',
+      bio: '',
       phone: null,
       refreshToken: null,
       isPasswordCodeVerified: false,
@@ -36,29 +40,34 @@ describe('Sign in test cases', () => {
   };
 
   beforeEach(async () => {
-    userRepoMock = { findByEmail: jest.fn(), save: jest.fn() };
-    bcryptServiceMock = { compare: jest.fn(), hash: jest.fn() };
-    tokenServiceMock = { generate: jest.fn() };
-    configServiceMock = { getOrThrow: jest.fn().mockReturnValue('secret') };
+    mockUserRepo = { findByEmail: jest.fn(), save: jest.fn() };
+    mockBcryptService = { compare: jest.fn(), hash: jest.fn() };
+    mockTokenServie = { generate: jest.fn() };
+    mockLogger = { log: jest.fn(), error: jest.fn() };
+    mockConfigService = { getOrThrow: jest.fn().mockReturnValue('secret') };
 
     const module: TestingModule = await Test.createTestingModule({
       providers: [
         SignInUseCase,
         {
           provide: IUSER_REPOSITORY,
-          useValue: userRepoMock,
+          useValue: mockUserRepo,
         },
         {
           provide: IBCRYPT_SERVICE,
-          useValue: bcryptServiceMock,
+          useValue: mockBcryptService,
         },
         {
           provide: IJWTTOKEN_SERVICE,
-          useValue: tokenServiceMock,
+          useValue: mockTokenServie,
         },
         {
           provide: ConfigService,
-          useValue: configServiceMock,
+          useValue: mockConfigService,
+        },
+        {
+          provide: ILOGGER_SERVICE,
+          useValue: mockLogger,
         },
       ],
     }).compile();
@@ -67,12 +76,12 @@ describe('Sign in test cases', () => {
   });
 
   it('should return token when credentials are valid', async () => {
-    userRepoMock.findByEmail.mockResolvedValue({
+    mockUserRepo.findByEmail.mockResolvedValue({
       ok: true,
       value: createMockUser(),
     });
-    bcryptServiceMock.compare.mockResolvedValue(true);
-    tokenServiceMock.generate.mockResolvedValue('fake-jwt-token');
+    mockBcryptService.compare.mockResolvedValue(true);
+    mockTokenServie.generate.mockResolvedValue('fake-jwt-token');
 
     const result = await useCase.execute({
       email: 'example@email.com',
@@ -83,12 +92,12 @@ describe('Sign in test cases', () => {
 
     if (result.ok) {
       expect(result.value.accessToken).toBe('fake-jwt-token');
-      expect(userRepoMock.save).toHaveBeenCalled();
+      expect(mockUserRepo.save).toHaveBeenCalled();
     }
   });
 
   it('should return this user not found', async () => {
-    userRepoMock.findByEmail.mockResolvedValue({
+    mockUserRepo.findByEmail.mockResolvedValue({
       ok: false,
       error: { type: 'NOT_FOUND', message: 'User not found' },
     });
@@ -103,11 +112,11 @@ describe('Sign in test cases', () => {
   });
 
   it('should fail if passwords does not match', async () => {
-    userRepoMock.findByEmail.mockResolvedValue({
+    mockUserRepo.findByEmail.mockResolvedValue({
       ok: true,
       value: createMockUser(),
     });
-    bcryptServiceMock.compare.mockResolvedValue(false);
+    mockBcryptService.compare.mockResolvedValue(false);
 
     const result = await useCase.execute({
       email: 'example@e.com',
@@ -125,7 +134,7 @@ describe('Sign in test cases', () => {
   it('should fail when user not verified', async () => {
     const unverifiedUser = createMockUser({ isVerified: false });
 
-    userRepoMock.findByEmail.mockResolvedValue({
+    mockUserRepo.findByEmail.mockResolvedValue({
       ok: true,
       value: unverifiedUser,
     });

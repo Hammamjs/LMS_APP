@@ -13,6 +13,7 @@ import {
   IBCRYPT_SERVICE,
   IJWTTOKEN_SERVICE,
 } from '@/module/auth/domain/constants/injection.token';
+import { ILOGGER_SERVICE, type ILoggerService } from '@/core';
 
 @Injectable()
 export class SignInUseCase implements IUseCase<
@@ -26,6 +27,7 @@ export class SignInUseCase implements IUseCase<
     private readonly tokenService: IJWTTokenService,
     @Inject(IUSER_REPOSITORY)
     private readonly userRepo: IUserRepository,
+    @Inject(ILOGGER_SERVICE) private readonly logger: ILoggerService,
     private readonly config: ConfigService,
   ) {}
 
@@ -34,6 +36,7 @@ export class SignInUseCase implements IUseCase<
   ): Promise<
     Result<{ user: User; accessToken: string; refreshToken: string }>
   > {
+    this.logger.log(`${dto.email} Try to sign in`, SignInUseCase.name);
     const userResult = await this.userRepo.findByEmail(dto.email);
 
     if (!userResult.ok) return userResult;
@@ -49,8 +52,13 @@ export class SignInUseCase implements IUseCase<
       rawUser.hashedPassword,
     );
 
-    if (!isMatch)
+    if (!isMatch) {
+      this.logger.error(
+        `Invalid login attempt for ${rawUser.email}`,
+        SignInUseCase.name,
+      );
       return Result.fail(Errors.validation('Incorrect Email or password'));
+    }
 
     if (!rawUser.id)
       return Result.fail(
