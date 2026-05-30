@@ -8,7 +8,7 @@ import {
   PrismaService,
   Result,
 } from '@/core';
-import { TransactionContext } from '@/core/common/infrastructure/http/transaction/transaction.context';
+import { TransactionContext } from '@/core/database/transaction/transaction.context';
 import { NotificationPaginationResult } from '../domain/entity/notification.type';
 import { Prisma } from '@prisma/client';
 import { NotificationMapper } from './mapper/notification.mapper';
