@@ -1,6 +1,6 @@
 import { Course } from '@/module/courses';
 import { IFactoryTest } from '../repository/factory.interface';
-import { Level } from '@/module/courses/domain/course.types';
+import { Level } from '@/module/courses/domain/types/course.types';
 
 type CreateCourseInput = Parameters<typeof Course.create>[0];
 export class CourseFactory implements IFactoryTest<CreateCourseInput, Course> {
