@@ -9,7 +9,7 @@ import {
   PrismaService,
   Result,
 } from '@/core';
-import { TransactionContext } from '@/core/common/infrastructure/http/transaction/transaction.context';
+import { TransactionContext } from '@/core/database/transaction/transaction.context';
 import { Prisma } from '@prisma/client';
 import { Payment } from '../../domain/entity/payment.entity';
 import { PaymentEntityMapper } from '../mapper/payment.entity.mapper';

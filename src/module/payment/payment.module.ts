@@ -3,7 +3,7 @@ import { PaymentController } from './presentation/payment.controller';
 import { JwtModule } from '@nestjs/jwt';
 import { PaymentProcessUseCase } from './application/usecases/process-payment/payment.usecase';
 import { PaymentFacade } from './application/payment.facade';
-import { PrismaUnitOfWork } from '@/core/common/infrastructure/http/transaction/prisma.unit-of-work';
+import { PrismaUnitOfWork } from '@/core/database/transaction/prisma.unit-of-work';
 import { PrismaUserRepository } from '../users/infrastructure/prisma.user.repository';
 import { EnrollmentPrimsaRepository } from '../enrollment/infrastructure/enrollement.prisma.repository';
 import { RedisCacheRepository } from '../auth/infrastructure/repository/redis-cache.repository';
