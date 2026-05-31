@@ -1,3 +1,4 @@
+import { PaginationParams } from '@/core';
 import { Rating } from '../value-objects/rating.vo';
 import { ReviewText } from '../value-objects/review-text.vo';
 
@@ -17,3 +18,7 @@ export type CreateReviewProps = {
   userId: string;
   courseId: string;
 };
+
+export interface PaginationReviewParams extends PaginationParams {
+  courseId: string;
+}
