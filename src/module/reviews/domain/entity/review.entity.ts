@@ -72,11 +72,11 @@ export class Review {
     return new Review({ ...props }, false);
   }
 
-  public toPersistence(): ReviewState {
+  public toPersistence() {
     return {
       id: this.props.id,
-      review: this.props.review,
-      rating: this.props.rating,
+      review: this.props.review.getValue(),
+      rating: this.props.rating.getValue(),
       courseId: this.props.courseId,
       userId: this.props.userId,
       createdAt: this.props.createdAt,
