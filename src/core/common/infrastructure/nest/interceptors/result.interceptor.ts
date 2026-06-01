@@ -18,7 +18,7 @@ export class ResultInterceptor implements NestInterceptor {
       map((result: unknown) => {
         if (this._isResult(result)) {
           if (!result.ok) throw new DomainException(result.error);
-          return result.value;
+          return { data: result.value };
         }
         return result;
       }),

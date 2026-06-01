@@ -1,9 +1,16 @@
 import { PaginationResult, Result } from '@/core';
 import { Review } from '../entity/review.entity';
 import { PaginationReviewParams } from '../types/review.type';
+import { UserRole } from '@/module/users';
 
 export type ReviewWithUser = Review & {
-  user: any;
+  user: {
+    id: string;
+    username: string;
+    email: string;
+    bio: string | null;
+    role: UserRole;
+  };
 };
 
 export interface IReviewRepository {

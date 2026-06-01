@@ -18,6 +18,7 @@ import { ThrottlerModule } from '@nestjs/throttler';
 import { CqrsModule } from '@nestjs/cqrs';
 import { json } from 'express';
 import { LoggerModule } from './core/logger/logger.module';
+import { ReviewModule } from './module/reviews/review.module';
 
 @Module({
   imports: [
@@ -39,6 +40,7 @@ import { LoggerModule } from './core/logger/logger.module';
     PaymentModule,
     EnrollmentModule,
     NotificationModule,
+    ReviewModule,
     ThrottlerModule.forRoot([
       {
         ttl: 60000,
