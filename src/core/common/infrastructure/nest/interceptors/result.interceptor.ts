@@ -18,6 +18,11 @@ export class ResultInterceptor implements NestInterceptor {
       map((result: unknown) => {
         if (this._isResult(result)) {
           if (!result.ok) throw new DomainException(result.error);
+
+          if (this._isPagintatedStructure(result.value)) {
+            return result.value;
+          }
+
           return { data: result.value };
         }
         return result;
@@ -32,6 +37,17 @@ export class ResultInterceptor implements NestInterceptor {
       typeof obj == 'object' &&
       'ok' in obj &&
       ('value' in obj || 'error' in obj)
+    );
+  }
+
+  private _isPagintatedStructure(
+    value: unknown,
+  ): value is { data: unknown; meta: unknown } {
+    return (
+      value !== null &&
+      typeof value === 'object' &&
+      'data' in value &&
+      'meta' in value
     );
   }
 }
