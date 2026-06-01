@@ -51,6 +51,7 @@ export class ReviewPrismaRepository implements IReviewRepository {
 
     const where: Prisma.ReviewWhereInput = {
       ...(courseId && { courseId }),
+      isDeleted: false,
     };
 
     try {
@@ -81,7 +82,7 @@ export class ReviewPrismaRepository implements IReviewRepository {
   ): Promise<Result<Review>> {
     try {
       const result = await this.prisma.review.findFirst({
-        where: { courseId, userId },
+        where: { courseId, userId, isDeleted: false },
       });
 
       if (!result) return Result.fail(Errors.notFound('Review not found'));
