@@ -199,6 +199,9 @@ model Review {
  user User @relation(fields: [userId], references: [id])
  course Course @relation(fields: [courseId], references: [id])
 
+ // soft deletion
+ isDeleted Boolean @default(false)
+
 @@index([courseId])
 @@index([userId])
 

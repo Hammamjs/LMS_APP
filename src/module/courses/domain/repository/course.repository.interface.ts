@@ -11,6 +11,10 @@ export interface ICourseRepository {
     params: PaginationParams,
   ) => Promise<Result<PaginationResult<CourseWithInstructorData>>>;
   // This for course
+
+  // for aggergation
+  recalculateReviewMetrics: (courseId: string) => Promise<void>;
+
   findById: (id: string) => Promise<Result<CourseWithInstructorData>>;
   save: (props: Course) => Promise<Result<Course>>;
   findBySlug: (slug: string) => Promise<Result<CourseWithInstructorData>>;

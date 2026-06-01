@@ -10,6 +10,7 @@ export type ReviewState = {
   updatedAt: number;
   courseId: string;
   userId: string;
+  isDeleted: boolean;
 };
 
 export type CreateReviewProps = {

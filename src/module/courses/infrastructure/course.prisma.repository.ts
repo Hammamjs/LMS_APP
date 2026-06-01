@@ -19,6 +19,26 @@ export class CourseRepository implements ICourseRepository {
 
   readonly _entityName: string = 'Courses';
 
+  // recalc review count and average
+  async recalculateReviewMetrics(courseId: string): Promise<void> {
+    const aggeragation = await this.prisma.review.aggregate({
+      where: { courseId },
+      _count: { id: true },
+      _avg: { rating: true },
+    });
+
+    const reviewsCount = aggeragation._count.id;
+    const averageRating = aggeragation._avg.rating
+      ? parseFloat(aggeragation._avg.rating.toFixed(2))
+      : 0;
+
+    // update course review
+    await this.prisma.course.update({
+      where: { id: courseId },
+      data: { reviewsCount, averageRating },
+    });
+  }
+
   async findAllCategories(): Promise<Result<string[]>> {
     try {
       const courseCategories = await this.prisma.course.findMany({
