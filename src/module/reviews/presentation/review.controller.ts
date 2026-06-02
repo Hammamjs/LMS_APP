@@ -17,12 +17,12 @@ import { UpdateReviewDto } from './dto/update.review.dto';
 import { VerifyJwt } from '@/core';
 import { JwtPayload } from '@/module/auth';
 
-@Controller('courses/:courseId/reviews')
+@Controller('courses')
 @UseGuards(VerifyJwt)
 export class ReviewController {
   constructor(private readonly reviewFacade: ReviewFacade) {}
 
-  @Get()
+  @Get(':courseId/reviews')
   async findByCourse(
     @Param('courseId') courseId: string,
     @Query() query: FindReviewParams,
