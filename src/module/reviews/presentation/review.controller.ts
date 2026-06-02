@@ -18,7 +18,6 @@ import { VerifyJwt } from '@/core';
 import { JwtPayload } from '@/module/auth';
 
 @Controller('courses')
-@UseGuards(VerifyJwt)
 export class ReviewController {
   constructor(private readonly reviewFacade: ReviewFacade) {}
 
@@ -33,7 +32,8 @@ export class ReviewController {
     });
   }
 
-  @Post()
+  @Post(':courseId/reviews')
+  @UseGuards(VerifyJwt)
   async create(
     @Param('courseId') courseId: string,
     @Req() req: Request,
@@ -43,7 +43,8 @@ export class ReviewController {
     return await this.reviewFacade.create.execute({ courseId, userId, ...dto });
   }
 
-  @Patch()
+  @Patch(':courseId/reviews')
+  @UseGuards(VerifyJwt)
   async update(
     @Param('courseId') courseId: string,
     @Req() req: Request,
@@ -53,7 +54,8 @@ export class ReviewController {
     return await this.reviewFacade.update.execute({ userId, courseId, ...dto });
   }
 
-  @Delete()
+  @Delete(':courseId/reviews')
+  @UseGuards(VerifyJwt)
   async delete(@Param('courseId') courseId: string, @Req() req: Request) {
     const { id: userId } = req['user'] as JwtPayload;
     return await this.reviewFacade.deleteReview.execute({ userId, courseId });
