@@ -1,8 +1,5 @@
 import { IUseCase, ResponseBuilder, Result } from '@/core';
-import {
-  ReviewMapper,
-  TReviewPaginationResponse,
-} from '../../mapper/review.mapper.response';
+import { TReviewPaginationResponse } from '../../mapper/review.mapper.response';
 import { Inject, Injectable } from '@nestjs/common';
 import { IREVIEW_REPOSITORY } from '@/module/reviews/domain/constants/review.injection.token';
 import { type IReviewRepository } from '@/module/reviews/domain/repository/review.interface.repository';
@@ -32,9 +29,18 @@ export class FindReviewsByCourseUseCase implements IUseCase<
 
     const { data, meta } = courseResult.value;
 
-    const toResponse = ResponseBuilder.paginateMapped(data, meta, (item) =>
-      ReviewMapper.toResponse({ review: item, user: item.user }),
-    );
+    const toResponse = ResponseBuilder.paginateMapped(data, meta, (item) => {
+      return {
+        id: item.id,
+        rating: item.rating,
+        content: item.content,
+        userId: item.userId,
+        courseId: item.courseId,
+        createdAt: item.createdAt,
+        updatedAt: item.updatedAt,
+        user: item.user,
+      };
+    });
 
     return Result.ok(toResponse);
   }

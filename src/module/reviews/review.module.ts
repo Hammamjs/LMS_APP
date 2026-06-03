@@ -1,4 +1,4 @@
-import { Module, Provider } from '@nestjs/common';
+import { forwardRef, Module, Provider } from '@nestjs/common';
 import { ReviewController } from './presentation/review.controller';
 import { CourseModule } from '../courses/course.module';
 import { ReviewPrismaRepository } from './infrastructure/review.prisma.repository';
@@ -33,7 +33,12 @@ const usecases: Provider[] = [
 const handler: Provider[] = [ReviewChangeHandler];
 
 @Module({
-  imports: [CourseModule, CqrsModule, EnrollmentModule, JwtModule],
+  imports: [
+    forwardRef(() => CourseModule),
+    CqrsModule,
+    EnrollmentModule,
+    JwtModule,
+  ],
   providers: [...usecases, ...infrastructure, ...handler],
   controllers: [ReviewController],
 })

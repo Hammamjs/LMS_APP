@@ -13,7 +13,7 @@ import {
   type IEnrollmentRepository,
 } from '@/module/enrollment';
 import { Review } from '@/module/reviews/domain/entity/review.entity';
-import { ReviewText } from '@/module/reviews/domain/value-objects/review-text.vo';
+import { ContentText } from '@/module/reviews/domain/value-objects/review-text.vo';
 import { Rating } from '@/module/reviews/domain/value-objects/rating.vo';
 import { EventBus } from '@nestjs/cqrs';
 
@@ -31,7 +31,7 @@ export class CreateReviewUseCase implements IUseCase<
   ) {}
 
   async execute(params: CreateReviewParams): Promise<Result<TReviewResponse>> {
-    const { courseId, rating, review, userId } = params;
+    const { courseId, rating, content, userId } = params;
 
     // we need to check if user enrolled at this course
     const enrollmentResult = await this.enrollmentRepo.findByCourseAndUser(
@@ -65,7 +65,7 @@ export class CreateReviewUseCase implements IUseCase<
     const createReview = Review.create({
       userId,
       courseId,
-      review: ReviewText.create(review),
+      content: ContentText.create(content),
       rating: Rating.create(rating),
     });
 

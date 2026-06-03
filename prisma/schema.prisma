@@ -193,17 +193,15 @@ model Review {
  createdAt Int 
  updatedAt Int 
 
- review String
- rating Int @default(0) 
+ content String
+ rating Int @default(1) 
 
- user User @relation(fields: [userId], references: [id])
- course Course @relation(fields: [courseId], references: [id])
+ user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+ course Course @relation(fields: [courseId], references: [id], onDelete: Cascade)
 
- // soft deletion
- isDeleted Boolean @default(false)
+ deletedAt Int?
 
 @@index([courseId])
 @@index([userId])
 
- @@unique([courseId, userId])
 }
