@@ -1,5 +1,6 @@
 import { Type } from 'class-transformer';
 import { IsOptional, IsString, Max, Min } from 'class-validator';
+import { Level } from '../../domain/types/course.types';
 
 export class FindCoursesDto {
   @IsOptional()
@@ -25,4 +26,7 @@ export class FindCoursesDto {
   @IsOptional()
   @IsString()
   instructorId?: string;
+
+  @IsOptional()
+  level?: Level;
 }

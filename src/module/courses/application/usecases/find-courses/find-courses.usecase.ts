@@ -20,7 +20,6 @@ export class FindCoursesUseCase implements IUseCase<
   async execute(
     params: FindCoursesParams,
   ): Promise<Result<PaginationResult<ICourseMapperPaginationResult>>> {
-    // 💡 Now returns Result<{ data: CourseWithInstructorData[], meta: any }>
     const results = await this.courseRepo.findAll(params);
 
     if (!results.ok) return Result.fail(results.error);
