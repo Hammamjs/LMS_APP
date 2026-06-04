@@ -1,5 +1,5 @@
-import { Type } from 'class-transformer';
-import { IsOptional, IsString, Max, Min } from 'class-validator';
+import { Transform, Type } from 'class-transformer';
+import { IsEnum, IsOptional, IsString, Max, Min } from 'class-validator';
 import { Level } from '../../domain/types/course.types';
 
 export class FindCoursesDto {
@@ -28,5 +28,19 @@ export class FindCoursesDto {
   instructorId?: string;
 
   @IsOptional()
+  @Transform(({ value }: { value: unknown }) => {
+    if (typeof value !== 'string') {
+      return undefined;
+    }
+
+    const map: Record<string, Level> = {
+      beginner: Level.Beginner,
+      intermediate: Level.Intermediate,
+      advanced: Level.Advanced,
+    };
+
+    return map[value?.toLowerCase()];
+  })
+  @IsEnum(Level)
   level?: Level;
 }
