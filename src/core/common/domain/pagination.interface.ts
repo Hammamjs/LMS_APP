@@ -1,3 +1,5 @@
+import { Level } from '@prisma/client';
+
 export interface PaginationResult<T> {
   data: T[];
   meta: {
@@ -16,4 +18,5 @@ export interface PaginationParams {
   search?: string;
   instructorId?: string;
   category?: string;
+  level?: Level;
 }

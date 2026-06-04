@@ -61,12 +61,13 @@ export class CourseRepository implements ICourseRepository {
   async findAll(
     params: PaginationParams,
   ): Promise<Result<PaginationResult<CourseWithInstructorData>>> {
-    const { limit, page, search, category, instructorId } = params;
+    const { limit, page, search, category, instructorId, level } = params;
     try {
       const where: Prisma.CourseWhereInput = {
         isDeleted: false,
         // Filter by instructor
         ...(instructorId && { instructorId }),
+        ...(level && { level }),
         // Filter by category
         ...(category && { category }),
         ...(search && {

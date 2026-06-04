@@ -22,8 +22,7 @@
     "noFallthroughCasesInSwitch": false,
     "types": ["node", "jest"],
     "paths": {
-      "@/*": ["./src/*"],
-      "@core/*": ["./src/core/*"]
+      "@/*": ["./src/*"]
     }
   },
   "include": [
