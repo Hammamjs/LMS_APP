@@ -5,13 +5,6 @@
   "author": "",
   "private": true,
   "license": "UNLICENSED",
-  "onlyBuiltDependencies": [
-    "@nestjs/core",
-    "@prisma/engines",
-    "bcrypt",
-    "prisma",
-    "unrs-resolver"
-  ],
   "scripts": {
     "build": "nest build",
     "format": "prettier --write \"src/**/*.ts\" \"test/**/*.ts\"",
