@@ -18,6 +18,7 @@ services:
       CHOKIDAR_USEPOLLING: true
       WATCHPACK_POLLING: true
       CI: 'true'
+      NODE_OPTIONS: '--max-old-space-size=400'
 
   redis-server:
     image: redis:alpine
