@@ -1,4 +1,4 @@
-import { PaginationResult, Result } from '@core/index';
+import { PaginationResult, Result } from '@/core/index';
 import { NotificationPaginationResult } from '../entity/notification.type';
 import { Notification } from '../entity/notification.entity';
 
