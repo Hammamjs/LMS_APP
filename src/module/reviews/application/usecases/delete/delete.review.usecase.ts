@@ -18,8 +18,8 @@ export class DeleteReviewUseCase implements IUseCase<
   async execute(params: DeleteReviewParams): Promise<Result<void>> {
     const { userId, courseId } = params;
     const reviewResult = await this.reviewRepo.findByUserIdAndCourse(
-      courseId,
       userId,
+      courseId,
     );
 
     if (!reviewResult.ok) {
@@ -30,7 +30,10 @@ export class DeleteReviewUseCase implements IUseCase<
 
     const deletedReview = review.markAsDeleted();
 
-    const savedReview = await this.reviewRepo.save(deletedReview);
+    const savedReview = await this.reviewRepo.delete(
+      review.courseId,
+      review.userId,
+    );
 
     if (!savedReview.ok) return Result.fail(savedReview.error);
 

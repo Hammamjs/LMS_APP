@@ -20,7 +20,7 @@ export class UpdateReviewUseCase implements IUseCase<
   ) {}
 
   async execute(params: UpdateReviewParams): Promise<Result<TReviewResponse>> {
-    const { courseId, userId, rating, review } = params;
+    const { courseId, userId, rating, content } = params;
 
     const reviewResult = await this.reviewRepo.findByUserIdAndCourse(
       userId,
@@ -33,7 +33,7 @@ export class UpdateReviewUseCase implements IUseCase<
 
     const updatedReview = reviewEntity
       .changeRating(rating ?? reviewEntity.rating)
-      .changeReview(review ?? reviewEntity.review);
+      .changeReview(content ?? reviewEntity.content);
 
     const savedReview = await this.reviewRepo.save(updatedReview);
 

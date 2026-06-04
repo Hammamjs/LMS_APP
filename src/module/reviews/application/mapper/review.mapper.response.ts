@@ -19,7 +19,7 @@ export class ReviewMapper {
     const { review, user } = input;
     return {
       id: review.id,
-      review: review.review,
+      content: review.content,
       rating: review.rating,
       userId: review.userId,
       courseId: review.courseId,

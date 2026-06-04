@@ -4,7 +4,7 @@ import { IsNumber, IsString, Max, Min, MinLength } from 'class-validator';
 export class CreateReviewDto {
   @IsString()
   @MinLength(3, { message: 'Review must be at least 3 characters' })
-  review!: string;
+  content!: string;
 
   @Type(() => Number)
   @IsNumber()

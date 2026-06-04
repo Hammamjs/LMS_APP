@@ -18,7 +18,9 @@ import {
 } from '@prisma/client';
 import { ReviewMapper } from './mapper/review.mapper.infra';
 import { PaginationReviewParams } from '../domain/types/review.type';
+import { Injectable } from '@nestjs/common';
 
+@Injectable()
 export class ReviewPrismaRepository implements IReviewRepository {
   private readonly _entityName = 'Review';
   constructor(private readonly prisma: PrismaService) {}
@@ -51,7 +53,7 @@ export class ReviewPrismaRepository implements IReviewRepository {
 
     const where: Prisma.ReviewWhereInput = {
       ...(courseId && { courseId }),
-      isDeleted: false,
+      deletedAt: null,
     };
 
     try {
@@ -82,8 +84,10 @@ export class ReviewPrismaRepository implements IReviewRepository {
   ): Promise<Result<Review>> {
     try {
       const result = await this.prisma.review.findFirst({
-        where: { courseId, userId, isDeleted: false },
+        where: { courseId, userId, deletedAt: null },
       });
+
+      console.log(result);
 
       if (!result) return Result.fail(Errors.notFound('Review not found'));
 
@@ -97,12 +101,14 @@ export class ReviewPrismaRepository implements IReviewRepository {
 
   async delete(courseId: string, userId: string): Promise<Result<void>> {
     try {
-      const result = await this.prisma.review.delete({
+      const result = await this.prisma.review.updateMany({
         where: {
-          courseId_userId: {
-            courseId,
-            userId,
-          },
+          courseId,
+          userId,
+          deletedAt: null,
+        },
+        data: {
+          deletedAt: Math.floor(Date.now() / 1000),
         },
       });
 

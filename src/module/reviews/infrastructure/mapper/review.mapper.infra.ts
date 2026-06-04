@@ -1,7 +1,7 @@
 import { Review as PrismaReview, User as PrismaUser } from '@prisma/client';
 import { Review } from '../../domain/entity/review.entity';
 import { Rating } from '../../domain/value-objects/rating.vo';
-import { ReviewText } from '../../domain/value-objects/review-text.vo';
+import { ContentText } from '../../domain/value-objects/review-text.vo';
 import { UserRole } from '@/module/users';
 
 export class ReviewMapper {
@@ -10,13 +10,20 @@ export class ReviewMapper {
   static toDomain(raw: PrismaReview) {
     return Review.rehydrate({
       ...raw,
+      deletedAt: Math.floor(new Date(raw.createdAt).getTime() / 1000),
       rating: Rating.create(raw.rating),
-      review: ReviewText.create(raw.review),
+      content: ContentText.create(raw.content),
     });
   }
 
   static toDomainWithUser(raw: PrismaReview & { user: PrismaUser }) {
     const domainReview = this.toDomain(raw);
+
+    if (!raw.user) {
+      throw new Error(
+        `Review ${raw.id} has no associated user — data integrity issue`,
+      );
+    }
 
     return Object.assign(domainReview, {
       user: {
