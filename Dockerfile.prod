@@ -22,6 +22,10 @@ WORKDIR /app
 ENV NODE_ENV=production
 ENV NODE_OPTIONS="--max-old-space-size=400"
 
+RUN apt-get update -y && apt-get install -y openssl
+
+ENV PNPM_HOME="/pnpm"
+ENV PATH="$PNPM_HOME:$PATH"
 RUN corepack enable && corepack prepare pnpm@10.33.2 --activate
 
 COPY --from=builder /app/package.json /app/pnpm-lock.yaml ./
@@ -29,7 +33,10 @@ COPY --from=builder /app/dist ./dist
 COPY --from=builder /app/prisma ./prisma
 
 RUN pnpm install --prod --frozen-lockfile
-RUN pnpm exec prisma generate
+
+# Copy generated Prisma client
+COPY --from=builder /app/node_modules/.prisma ./node_modules/.prisma
+COPY --from=builder /app/node_modules/@prisma ./node_modules/@prisma
 
 EXPOSE 3000
 
