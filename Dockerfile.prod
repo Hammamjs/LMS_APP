@@ -34,10 +34,6 @@ COPY --from=builder /app/prisma ./prisma
 
 RUN pnpm install --prod --frozen-lockfile
 
-# Copy generated Prisma client
-COPY --from=builder /app/node_modules/.prisma ./node_modules/.prisma
-COPY --from=builder /app/node_modules/@prisma ./node_modules/@prisma
-
 EXPOSE 3000
 
 CMD ["node", "dist/main"]
