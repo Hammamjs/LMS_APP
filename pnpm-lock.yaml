@@ -51,7 +51,7 @@ importers:
         specifier: ^7.5.0
         version: 7.8.0
       '@prisma/client':
-        specifier: ^7.5.0
+        specifier: 7.8.0
         version: 7.8.0(prisma@7.8.0(@types/react@19.2.16)(react-dom@19.2.7(react@19.2.7))(react@19.2.7)(typescript@5.9.3))(typescript@5.9.3)
       axios:
         specifier: ^1.16.0
@@ -151,7 +151,7 @@ importers:
         specifier: ^3.4.2
         version: 3.8.3
       prisma:
-        specifier: ^7.5.0
+        specifier: 7.8.0
         version: 7.8.0(@types/react@19.2.16)(react-dom@19.2.7(react@19.2.7))(react@19.2.7)(typescript@5.9.3)
       source-map-support:
         specifier: ^0.5.21
