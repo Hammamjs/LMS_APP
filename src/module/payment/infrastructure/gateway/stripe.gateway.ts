@@ -15,7 +15,7 @@ export class StripeGatewayService implements IPaymentGateway {
   constructor(private readonly config: ConfigService) {
     const stripeApiKey = this.config.getOrThrow<string>('STRIPE_SECRET_KEY');
     this._stripe = new Stripe(stripeApiKey, {
-      apiVersion: '2026-04-22.dahlia',
+      apiVersion: '2026-05-27.dahlia',
     });
   }
 
