@@ -39,4 +39,6 @@ COPY --from=builder /app/.npmrc ./.npmrc
 RUN pnpm install --prod --frozen-lockfile
 
 COPY --from=builder /app/node_modules/.prisma ./node_modules/.prisma
+COPY --from=builder /app/node_modules/@prisma ./node_modules/@prisma 
+
 CMD ["node", "dist/main"]
