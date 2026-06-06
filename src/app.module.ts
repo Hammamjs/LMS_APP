@@ -27,7 +27,7 @@ import { ReviewModule } from './module/reviews/review.module';
     RedisModule.forRootAsync({
       useFactory: (configService: ConfigService) => ({
         type: 'single',
-        url: `redis://${configService.get('REDIS_HOST', 'redis-server')}:6379`,
+        url: configService.get('REDIS_URL', 'redis://localhost:6379'),
       }),
       inject: [ConfigService],
     }),
