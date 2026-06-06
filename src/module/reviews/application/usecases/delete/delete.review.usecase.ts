@@ -22,8 +22,8 @@ export class DeleteReviewUseCase implements IUseCase<
       courseId,
     );
 
-    if (!reviewResult.ok) {
-      return Result.fail(reviewResult.error);
+    if (Result.isFail(reviewResult)) {
+      return Result.fail<void>(reviewResult.error);
     }
 
     const review = reviewResult.value;
@@ -35,7 +35,7 @@ export class DeleteReviewUseCase implements IUseCase<
       review.userId,
     );
 
-    if (!savedReview.ok) return Result.fail(savedReview.error);
+    if (Result.isFail(savedReview)) return Result.fail<void>(savedReview.error);
 
     if (deletedReview.domainEvents.length > 0) {
       this.eventBus.publishAll(deletedReview.domainEvents);

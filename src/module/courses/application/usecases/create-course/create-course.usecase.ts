@@ -44,7 +44,8 @@ export class CreateCourseUseCase implements IUseCase<
     // Before create course we need to check instructor already exists
     const instructorResult = await this.userRepo.findById(params.instructorId);
 
-    if (!instructorResult.ok) return instructorResult;
+    if (Result.isFail(instructorResult))
+      return Result.fail(instructorResult.error);
 
     const createCourse = Course.create(params);
 
@@ -57,7 +58,7 @@ export class CreateCourseUseCase implements IUseCase<
 
     const savedCourse = await this.courseRepo.save(createCourse);
 
-    if (!savedCourse.ok) return savedCourse;
+    if (Result.isFail(savedCourse)) return Result.fail(savedCourse.error);
 
     // Mapper to return response shape to the client
     const resoponse = CourseMapper.toResponse(savedCourse.value);

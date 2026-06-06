@@ -63,14 +63,16 @@ export class PaymentProcessUseCase implements IUseCase<
       params.courseId,
     );
     if (isUserEnrolled.ok && isUserEnrolled.value) {
-      return Result.fail(Errors.conflict('Already enrolled'));
+      return Result.fail<TPaymentResponse>(Errors.conflict('Already enrolled'));
     }
 
     // 2. Establish Redis Distributed Idempotency Lock
     const lockKey = `lock:payment:${params.userId}:${params.courseId}`;
     const lockAcquired = await this.cacheRepo.setNx(lockKey, 'processing', 30);
-    if (!lockAcquired.ok) {
-      return Result.fail(Errors.conflict('Payment already in progress'));
+    if (Result.isFail(lockAcquired)) {
+      return Result.fail<TPaymentResponse>(
+        Errors.conflict('Payment already in progress'),
+      );
     }
 
     const [userResult, courseResult] = await Promise.all([
@@ -78,8 +80,10 @@ export class PaymentProcessUseCase implements IUseCase<
       this.courseRepo.findById(params.courseId),
     ]);
 
-    if (!userResult.ok) return userResult;
-    if (!courseResult.ok) return courseResult;
+    if (Result.isFail(userResult))
+      return Result.fail<TPaymentResponse>(userResult.error);
+    if (Result.isFail(courseResult))
+      return Result.fail<TPaymentResponse>(courseResult.error);
 
     const user = userResult.value;
     const { course: courseEntity } = courseResult.value;
@@ -98,7 +102,8 @@ export class PaymentProcessUseCase implements IUseCase<
         paymentId: internalPaymentTrackingId,
       });
 
-      if (!chargResult.ok) return chargResult;
+      if (Result.isFail(chargResult))
+        return Result.fail<TPaymentResponse>(chargResult.error);
 
       // 4. Run database modifications atomically inside the Unit of Work transaction
       const result = await this.uow.runInTransaction<Result<PaymentResponse>>(
@@ -129,8 +134,8 @@ export class PaymentProcessUseCase implements IUseCase<
           });
 
           const paymentResult = await this.paymentRepo.save(createPayment);
-          if (!paymentResult.ok) {
-            return Result.fail(
+          if (Result.isFail(paymentResult)) {
+            return Result.fail<PaymentResponse>(
               Errors.internal('Payment record failed to commit securely'),
             );
           }
@@ -143,7 +148,8 @@ export class PaymentProcessUseCase implements IUseCase<
         },
       );
 
-      if (!result.ok) return result;
+      if (Result.isFail(result))
+        return Result.fail<TPaymentResponse>(result.error);
 
       // 5. Notify surrounding context aggregates via CQRS Event Bus
       this.eventBus.publish(

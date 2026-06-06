@@ -1,6 +1,6 @@
 import { Test, TestingModule } from '@nestjs/testing';
 import { DeleteUserUseCase } from './delete-user.usecase';
-import { failure } from '@/core';
+import { failure, Result } from '@/core';
 import { IUSER_REPOSITORY } from '@/module/users';
 
 describe('Delet user test cases', () => {
@@ -41,7 +41,8 @@ describe('Delet user test cases', () => {
     const result = await useCase.execute('1');
 
     expect(result.ok).toBe(true);
-    if (!result.ok) expect(result.error.message).toBe('User not exists');
+    if (Result.isFail(result))
+      expect(result.error.message).toBe('User not exists');
   });
 
   it('should called with id params', async () => {
@@ -62,7 +63,7 @@ describe('Delet user test cases', () => {
 
     const result = await useCase.execute('1');
 
-    if (!result.ok)
+    if (Result.isFail(result))
       expect(result.error).toEqual({
         type: 'INTERNAL',
         message: 'Database connection failed',

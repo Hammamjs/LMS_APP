@@ -4,6 +4,7 @@ import { UserRole } from '@/module/users/domain/interface/role.interface';
 import { failure } from '@/core/common/domain/err.utils';
 import { User } from '@/module/users/domain/entity/user.entity';
 import { IUSER_REPOSITORY } from '@/module/users/domain/constants/injection.token';
+import { Result } from '@/core';
 
 describe('Update user test cases', () => {
   let useCase: UpdateUserUseCase;
@@ -94,7 +95,7 @@ describe('Update user test cases', () => {
 
     const result = await useCase.execute(updatedUser);
 
-    if (!result.ok)
+    if (Result.isFail(result))
       expect(result.error).toEqual({
         message: 'User not found',
         type: 'NOT_FOUND',
@@ -113,7 +114,7 @@ describe('Update user test cases', () => {
 
     expect(result.ok).toBeFalsy();
 
-    if (!result.ok)
+    if (Result.isFail(result))
       expect(result.error).toEqual({
         type: 'INTERNAL',
         message: 'Connection failed',

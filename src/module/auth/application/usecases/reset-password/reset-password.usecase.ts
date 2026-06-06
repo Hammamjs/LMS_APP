@@ -11,20 +11,24 @@ import { User } from '@/module/users/domain/entity/user.entity';
 import type { IUserRepository } from '@/module/users/domain/repositories/user.repository.interface';
 import { Result } from '@/core/common/domain/result.pattern';
 import { Inject, Injectable } from '@nestjs/common';
-import { ConfigService } from '@nestjs/config';
 import { EventBus } from '@nestjs/cqrs';
 import { ResetPasswordVerifiedEvent } from '@/module/auth/domain/events/reset-password-verified.event';
+import { ResetPasswordParams } from './reset-password.params';
 
+type ResetPasswordType = {
+  user: User;
+  accessToken: string;
+  refreshToken: string;
+};
 @Injectable()
 export class ResetPasswordUseCase implements IUseCase<
-  { email: string; newPassword: string; confirmPassword: string },
-  Promise<Result<{ user: User; accessToken: string; refreshToken: string }>>
+  ResetPasswordParams,
+  Promise<Result<ResetPasswordType>>
 > {
   constructor(
     @Inject(IUSER_REPOSITORY) private readonly userRepo: IUserRepository,
     @Inject(IJWTTOKEN_SERVICE) private readonly tokenService: IJWTTokenService,
     @Inject(IBCRYPT_SERVICE) private readonly bcryptService: IBcryptService,
-    private readonly config: ConfigService,
     private readonly eventBus: EventBus,
   ) {}
 
@@ -32,23 +36,28 @@ export class ResetPasswordUseCase implements IUseCase<
     email: string;
     newPassword: string;
     confirmPassword: string;
-  }): Promise<
-    Result<{ user: User; accessToken: string; refreshToken: string }>
-  > {
+  }): Promise<Result<ResetPasswordType>> {
     const userResult = await this.userRepo.findByEmail(dto.email);
 
     if (dto.newPassword.length < 6)
-      return Result.fail(Errors.validation('Password too short'));
+      return Result.fail<ResetPasswordType>(
+        Errors.validation('Password too short'),
+      );
 
-    if (!userResult.ok) return Result.fail(Errors.notFound('User not found'));
+    if (Result.isFail(userResult))
+      return Result.fail<ResetPasswordType>(Errors.notFound('User not found'));
     const user = userResult.value;
     // check if code verified
     if (!user.isPasswordCodeVerified)
-      return Result.fail(Errors.validation('Reset code not verified'));
+      return Result.fail<ResetPasswordType>(
+        Errors.validation('Reset code not verified'),
+      );
 
     // Check if passwords doesn't matched
     if (dto.confirmPassword !== dto.newPassword)
-      return Result.fail(Errors.validation("Passwords don't match"));
+      return Result.fail<ResetPasswordType>(
+        Errors.validation("Passwords don't match"),
+      );
 
     // we need to hash user password
     const hashedPassword = await this.bcryptService.hash(dto.newPassword);

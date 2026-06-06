@@ -1,5 +1,4 @@
 import { IUseCase } from '@/core/common/domain/use-case-interface';
-import { User } from '@/module/users/domain/entity/user.entity';
 import { SignInParam } from './sign-in.params';
 import { Result } from '@/core/common/domain/result.pattern';
 import type { IBcryptService } from '../../../domain/service/bcrypt.service.interface';
@@ -14,11 +13,17 @@ import {
   IJWTTOKEN_SERVICE,
 } from '@/module/auth/domain/constants/injection.token';
 import { ILOGGER_SERVICE, type ILoggerService } from '@/core';
+import { UserResponse, UserResponseMapper } from '@/module/users';
 
+type SignInType = {
+  user: UserResponse;
+  accessToken: string;
+  refreshToken: string;
+};
 @Injectable()
 export class SignInUseCase implements IUseCase<
   SignInParam,
-  Promise<Result<{ user: User; accessToken: string; refreshToken: string }>>
+  Promise<Result<SignInType>>
 > {
   constructor(
     @Inject(IBCRYPT_SERVICE)
@@ -31,20 +36,17 @@ export class SignInUseCase implements IUseCase<
     private readonly config: ConfigService,
   ) {}
 
-  async execute(
-    dto: SignInParam,
-  ): Promise<
-    Result<{ user: User; accessToken: string; refreshToken: string }>
-  > {
+  async execute(dto: SignInParam): Promise<Result<SignInType>> {
     this.logger.log(`${dto.email} Try to sign in`, SignInUseCase.name);
     const userResult = await this.userRepo.findByEmail(dto.email);
 
-    if (!userResult.ok) return userResult;
+    if (Result.isFail(userResult))
+      return Result.fail<SignInType>(userResult.error);
 
     const rawUser = userResult.value;
 
     if (!rawUser.isVerified)
-      return Result.fail(Errors.validation('Email not verified'));
+      return Result.fail<SignInType>(Errors.validation('Email not verified'));
 
     // Compare passwords
     const isMatch = await this.bcrypteService.compare(
@@ -57,11 +59,13 @@ export class SignInUseCase implements IUseCase<
         `Invalid login attempt for ${rawUser.email}`,
         SignInUseCase.name,
       );
-      return Result.fail(Errors.validation('Incorrect Email or password'));
+      return Result.fail<SignInType>(
+        Errors.validation('Incorrect Email or password'),
+      );
     }
 
     if (!rawUser.id)
-      return Result.fail(
+      return Result.fail<SignInType>(
         Errors.internal('Pleas re-loggin internal issue occur'),
       );
 
@@ -92,8 +96,10 @@ export class SignInUseCase implements IUseCase<
 
     const updatedUser = rawUser.updateRefreshToken(refreshToken);
 
+    const userResponse = UserResponseMapper.toResponse(updatedUser);
+
     await this.userRepo.save(updatedUser);
 
-    return Result.ok({ user: updatedUser, accessToken, refreshToken });
+    return Result.ok({ user: userResponse, accessToken, refreshToken });
   }
 }

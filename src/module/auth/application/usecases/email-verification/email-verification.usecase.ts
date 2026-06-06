@@ -32,34 +32,34 @@ export class EmailVerificationUseCase implements IUseCase<
   ): Promise<Result<EmailVerificationResponse>> {
     const userResult = await this.userRepo.findByEmail(dto.email);
 
-    console.log('user', userResult);
-
-    if (!userResult.ok) return userResult;
+    if (Result.isFail(userResult))
+      return Result.fail<EmailVerificationResponse>(userResult.error);
 
     const user = userResult.value;
 
     if (user.isVerified)
-      return Result.fail(Errors.validation('Email already verified'));
+      return Result.fail<EmailVerificationResponse>(
+        Errors.validation('Email already verified'),
+      );
 
     const inputHash = createHash('sha256').update(dto.code).digest('hex');
 
-    console.log('Input hash', inputHash);
-    console.log('plain text', dto.code);
-
     const savedCodeResult = await this.cacheRepo.get(`verify:${user.id}`);
 
-    if (!savedCodeResult.ok)
-      return Result.fail(Errors.internal('Failed to retrive code'));
+    if (Result.isFail(savedCodeResult))
+      return Result.fail<EmailVerificationResponse>(
+        Errors.internal('Failed to retrive code'),
+      );
 
-    console.log(savedCodeResult);
-
-    if (!savedCodeResult.value)
-      return Result.fail(
+    if (Result.isFail(savedCodeResult))
+      return Result.fail<EmailVerificationResponse>(
         Errors.internal('Verification code has expired or was never sent'),
       );
 
     if (inputHash !== savedCodeResult.value)
-      return Result.fail(Errors.validation('Incorrect verification code'));
+      return Result.fail<EmailVerificationResponse>(
+        Errors.validation('Incorrect verification code'),
+      );
 
     const id = user.id,
       email = user.email,

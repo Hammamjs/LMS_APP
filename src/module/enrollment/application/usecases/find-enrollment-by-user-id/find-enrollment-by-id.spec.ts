@@ -50,6 +50,7 @@ describe('Find enrollment by id test cases', () => {
     const result = await usecase.execute('non-existing-id');
 
     expect(result.ok).toBe(false);
-    if (!result.ok) expect(result.error.message).toBe(errors.NOT_FOUND);
+    if (Result.isFail(result))
+      expect(result.error.message).toBe(errors.NOT_FOUND);
   });
 });

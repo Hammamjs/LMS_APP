@@ -1,5 +1,6 @@
 import { createHash } from 'crypto';
 import { RegisterationUseCase } from './registeration.usecase';
+import { Result } from '@/core';
 
 describe('Registeration test cases', () => {
   let useCase: RegisterationUseCase;
@@ -86,7 +87,8 @@ describe('Registeration test cases', () => {
     });
 
     expect(result.ok).toBe(false);
-    if (!result.ok) expect(result.error.message).toBe('Email already exists');
+    if (Result.isFail(result))
+      expect(result.error.message).toBe('Email already exists');
   });
 
   afterEach(() => {

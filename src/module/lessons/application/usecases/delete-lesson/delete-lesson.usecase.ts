@@ -9,7 +9,7 @@ import { IUSER_REPOSITORY, type IUserRepository } from '@/module/users';
 @Injectable()
 export class DeleteLessonUseCase implements IUseCase<
   DeleteLessonParams,
-  Promise<Result<undefined>>
+  Promise<Result<void>>
 > {
   constructor(
     @Inject(ICOURSE_REPOSITORY) private readonly courseRepo: ICourseRepository,
@@ -17,26 +17,28 @@ export class DeleteLessonUseCase implements IUseCase<
     @Inject(IUSER_REPOSITORY) private readonly userRepo: IUserRepository,
   ) {}
 
-  async execute(params: DeleteLessonParams): Promise<Result<undefined>> {
+  async execute(params: DeleteLessonParams): Promise<Result<void>> {
     // we need to check user at first
 
     const userResult = await this.userRepo.findById(params.userId);
-    if (!userResult.ok) return userResult;
+    if (Result.isFail(userResult)) return Result.fail<void>(userResult.error);
 
     const lessonResult = await this.lessonRepo.findById(params.id);
 
-    if (!lessonResult.ok) return lessonResult;
+    if (Result.isFail(lessonResult))
+      return Result.fail<void>(lessonResult.error);
 
     const lesson = lessonResult.value;
 
     const courseResult = await this.courseRepo.findById(lesson.courseId);
-    if (!courseResult.ok) return courseResult;
+    if (Result.isFail(courseResult))
+      return Result.fail<void>(courseResult.error);
 
     const user = userResult.value;
     const { course: courseEntity } = courseResult.value;
 
     if (!user.isInstructor() || !courseEntity.isOwnedBy(user.id))
-      return Result.fail(
+      return Result.fail<void>(
         Errors.forbidden('You are not allowed to perform this action'),
       );
 
@@ -54,7 +56,8 @@ export class DeleteLessonUseCase implements IUseCase<
     // soft delete
     const deletedResult = await this.lessonRepo.save(deletedLesson);
 
-    if (!deletedResult.ok) return Result.fail(Errors.internal('Delete failed'));
+    if (Result.isFail(deletedResult))
+      return Result.fail<void>(Errors.internal('Delete failed'));
 
     return Result.ok(undefined);
   }

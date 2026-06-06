@@ -27,13 +27,15 @@ export class FindLessonUseCase implements IUseCase<
   async execute(params: FindLessonParams): Promise<Result<LessonResponseType>> {
     const { id, userId } = params;
     const lessonResult = await this.lessonRepo.findById(id);
-    if (!lessonResult.ok) return lessonResult;
+    if (Result.isFail(lessonResult))
+      return Result.fail<LessonResponseType>(lessonResult.error);
 
     const lesson = lessonResult.value;
 
     const courseResult = await this.courseRepo.findById(lesson.courseId);
 
-    if (!courseResult.ok) return courseResult;
+    if (Result.isFail(courseResult))
+      return Result.fail<LessonResponseType>(courseResult.error);
 
     const { course: courseEntity } = courseResult.value;
 
@@ -50,8 +52,8 @@ export class FindLessonUseCase implements IUseCase<
       lesson.courseId,
     );
 
-    if (!enrollmentResult.ok || !enrollmentResult.value.isActive)
-      return Result.fail(
+    if (Result.isFail(enrollmentResult))
+      return Result.fail<LessonResponseType>(
         Errors.forbidden('Purchase required or access revoked.'),
       );
 

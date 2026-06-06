@@ -8,7 +8,7 @@ import {
   IBCRYPT_SERVICE,
   IJWTTOKEN_SERVICE,
 } from '@/module/auth/domain/constants/injection.token';
-import { ILOGGER_SERVICE } from '@/core';
+import { ILOGGER_SERVICE, Result } from '@/core';
 
 describe('Sign in test cases', () => {
   let useCase: SignInUseCase;
@@ -108,7 +108,8 @@ describe('Sign in test cases', () => {
     });
 
     expect(result.ok).toBe(false);
-    if (!result.ok) expect(result.error.message).toBe('User not found');
+    if (Result.isFail(result))
+      expect(result.error.message).toBe('User not found');
   });
 
   it('should fail if passwords does not match', async () => {
@@ -124,7 +125,7 @@ describe('Sign in test cases', () => {
     });
 
     expect(result.ok).toBe(false);
-    if (!result.ok)
+    if (Result.isFail(result))
       expect(result.error).toEqual({
         type: 'VALIDATION',
         message: 'Incorrect Email or password',
@@ -146,7 +147,7 @@ describe('Sign in test cases', () => {
 
     expect(result.ok).toBe(false);
 
-    if (!result.ok)
+    if (Result.isFail(result))
       expect(result.error).toEqual({
         type: 'VALIDATION',
         message: 'Email not verified',

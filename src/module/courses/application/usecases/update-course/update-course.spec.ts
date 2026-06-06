@@ -183,6 +183,6 @@ describe('Update course test cases', () => {
     });
 
     expect(result.ok).toBe(false);
-    if (!result.ok) expect(result.error.message).toBe(errors.DB_ERR);
+    if (Result.isFail(result)) expect(result.error.message).toBe(errors.DB_ERR);
   });
 });

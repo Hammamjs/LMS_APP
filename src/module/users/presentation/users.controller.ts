@@ -12,7 +12,6 @@ import {
 import { FacadeUsers } from '../application/facade.users';
 import { CreatUserDto } from './dto/users/create-user.dto';
 import { UpdateUserDto } from './dto/users/update-user.dto';
-import { DomainException } from '../../../core/common/domain/domain.exception';
 import { PaginationQuery } from './dto/users/pagination-params';
 
 @Controller('users')
@@ -21,11 +20,7 @@ export class UserController {
 
   @Get()
   async findAll(@Query() query: PaginationQuery) {
-    const result = await this.facadeUser.findAll.execute(query);
-
-    if (!result.ok) throw new DomainException(result.error);
-
-    return result;
+    return await this.facadeUser.findAll.execute(query);
   }
 
   @Get(':id')

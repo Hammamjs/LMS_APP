@@ -66,7 +66,7 @@ describe('Find enrollment by course and course test cases', () => {
       userId: 'valid-user-id',
     });
 
-    if (!result.ok) {
+    if (Result.isFail(result)) {
       expect(result.error.message).toBe(errors.NOT_FOUND);
     }
 

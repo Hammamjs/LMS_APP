@@ -23,7 +23,10 @@ export class FindEnrollmentByUserIdUseCase implements IUseCase<
   ): Promise<Result<PaginationResult<EnrollmentResponseDto>>> {
     const enrollmentsResult = await this.enrollmentRepo.findByUser({ userId });
 
-    if (!enrollmentsResult.ok) return enrollmentsResult;
+    if (Result.isFail(enrollmentsResult))
+      return Result.fail<PaginationResult<EnrollmentResponseDto>>(
+        enrollmentsResult.error,
+      );
 
     const { data, meta } = enrollmentsResult.value;
 

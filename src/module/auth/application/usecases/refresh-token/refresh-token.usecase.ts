@@ -10,10 +10,11 @@ import type { IJWTTokenService } from '@/module/auth/domain/service/token.servic
 import type { IUserRepository } from '@/module/users/domain/repositories/user.repository.interface';
 import { IUSER_REPOSITORY } from '@/module/users';
 
+type TResponse = { refreshToken: string; accessToken: string };
 @Injectable()
 export class RefreshTokenUseCase implements IUseCase<
   string,
-  Promise<Result<{ refreshToken: string; accessToken: string }>>
+  Promise<Result<TResponse>>
 > {
   constructor(
     @Inject(IUSER_REPOSITORY) private readonly userRepo: IUserRepository,
@@ -22,9 +23,7 @@ export class RefreshTokenUseCase implements IUseCase<
     private readonly config: ConfigService,
   ) {}
 
-  async execute(
-    oldRefreshToken: string,
-  ): Promise<Result<{ refreshToken: string; accessToken: string }>> {
+  async execute(oldRefreshToken: string): Promise<Result<TResponse>> {
     const secret = this.config.getOrThrow<string>('JWT_REFRESH_TOKEN_SECRET');
 
     const verifyingToken = await this.tokenServie.verify(
@@ -33,7 +32,7 @@ export class RefreshTokenUseCase implements IUseCase<
     );
 
     if (!verifyingToken)
-      return Result.fail(
+      return Result.fail<TResponse>(
         Errors.unauthroized('Invalid or expired refreshToken'),
       );
 
@@ -44,12 +43,16 @@ export class RefreshTokenUseCase implements IUseCase<
     };
 
     if (!payload)
-      return Result.fail(Errors.validation('Invalid token signature'));
+      return Result.fail<TResponse>(
+        Errors.validation('Invalid token signature'),
+      );
 
     const userResult = await this.userRepo.findByEmail(payload.email);
 
-    if (!userResult.ok)
-      return Result.fail(Errors.notFound('User not found it may be deleted'));
+    if (Result.isFail(userResult))
+      return Result.fail<TResponse>(
+        Errors.notFound('User not found it may be deleted'),
+      );
 
     const user = userResult.value;
 
@@ -62,10 +65,13 @@ export class RefreshTokenUseCase implements IUseCase<
     if (!isTokensMatched) {
       const removeRefreshToken = user.updateRefreshToken(null);
       await this.userRepo.save(removeRefreshToken);
-      return Result.fail(Errors.unauthroized('Session expired or compromised'));
+      return Result.fail<TResponse>(
+        Errors.unauthroized('Session expired or compromised'),
+      );
     }
 
-    if (!user) return Result.fail(Errors.unauthroized('User not authorized'));
+    if (!user)
+      return Result.fail<TResponse>(Errors.unauthroized('User not authorized'));
 
     // generate new rotation
     const tokens = await this.tokenServie.generateAuthToken(payload);
@@ -79,12 +85,9 @@ export class RefreshTokenUseCase implements IUseCase<
 
     await this.userRepo.save(updateUserRefreshToken);
 
-    return {
-      ok: true,
-      value: {
-        accessToken: tokens.accessToken,
-        refreshToken: tokens.refreshToken,
-      },
-    };
+    return Result.ok({
+      accessToken: tokens.accessToken,
+      refreshToken: tokens.refreshToken,
+    });
   }
 }

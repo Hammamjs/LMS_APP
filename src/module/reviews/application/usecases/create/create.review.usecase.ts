@@ -39,15 +39,16 @@ export class CreateReviewUseCase implements IUseCase<
       courseId,
     );
 
-    if (!enrollmentResult.ok)
-      return Result.fail(
+    if (Result.isFail(enrollmentResult))
+      return Result.fail<TReviewResponse>(
         Errors.forbidden('User not enrolled at this course yet.'),
       );
 
     // we need to check if course exists
     const courseResult = await this.courseRepo.findById(courseId);
 
-    if (!courseResult.ok) return courseResult;
+    if (Result.isFail(courseResult))
+      return Result.fail<TReviewResponse>(courseResult.error);
 
     // we need to check if current user has already review on this course firstly
     const reviewResult = await this.reviewRepo.findByUserIdAndCourse(
@@ -56,7 +57,7 @@ export class CreateReviewUseCase implements IUseCase<
     );
 
     if (reviewResult.ok)
-      return Result.fail(
+      return Result.fail<TReviewResponse>(
         Errors.conflict('User already has commented on this course'),
       );
 
@@ -71,7 +72,8 @@ export class CreateReviewUseCase implements IUseCase<
 
     const savedReview = await this.reviewRepo.save(createReview);
 
-    if (!savedReview.ok) return savedReview;
+    if (Result.isFail(savedReview))
+      return Result.fail<TReviewResponse>(savedReview.error);
 
     // fire event if exists
     if (createReview.domainEvents.length > 0) {

@@ -33,7 +33,8 @@ export class CreateLessonUsecase implements IUseCase<
     params: CreateLessonParams,
   ): Promise<Result<LessonResponseType>> {
     const courseResult = await this.courseRepo.findById(params.courseId);
-    if (!courseResult.ok) return courseResult;
+    if (Result.isFail(courseResult))
+      return Result.fail<LessonResponseType>(courseResult.error);
 
     const { course: courseEntity } = courseResult.value;
 
@@ -42,8 +43,8 @@ export class CreateLessonUsecase implements IUseCase<
       params.courseId,
     );
 
-    if (!orderResult.ok)
-      return Result.fail(
+    if (Result.isFail(orderResult))
+      return Result.fail<LessonResponseType>(
         Errors.internal('Unknown error occured when fetching order list'),
       );
 
@@ -51,19 +52,20 @@ export class CreateLessonUsecase implements IUseCase<
 
     const userResult = await this.userRepo.findById(params.userId);
 
-    if (!userResult.ok) return userResult;
+    if (Result.isFail(userResult))
+      return Result.fail<LessonResponseType>(userResult.error);
 
     const user = userResult.value;
 
     // we need to check this is instructor first
     if (!user.isInstructor())
-      return Result.fail(
+      return Result.fail<LessonResponseType>(
         Errors.forbidden('Only instructors can create lessons'),
       );
 
     // we need instructor id
     if (!courseEntity.isOwnedBy(user.id))
-      return Result.fail(
+      return Result.fail<LessonResponseType>(
         Errors.forbidden('This permission not allowed for you'),
       );
 
@@ -73,8 +75,10 @@ export class CreateLessonUsecase implements IUseCase<
 
     const saveInDbResult = await this.lessonRepo.save(createLesson);
 
-    if (!saveInDbResult.ok)
-      return Result.fail(Errors.internal('Save new lesson failed'));
+    if (Result.isFail(saveInDbResult))
+      return Result.fail<LessonResponseType>(
+        Errors.internal('Save new lesson failed'),
+      );
 
     const response = LessonMapper.toResponse(saveInDbResult.value);
     // Before send response we need to send notification for subscriber

@@ -21,7 +21,7 @@ export class ForgotPasswordUseCase implements IUseCase<
   async execute(dto: ForgotPasswordRequest): Promise<Result<string>> {
     const userResult = await this.userRep.findByEmail(dto.email);
 
-    if (!userResult.ok) return userResult;
+    if (Result.isFail(userResult)) return Result.fail(userResult.error);
 
     const user = userResult.value;
 

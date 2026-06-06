@@ -25,12 +25,17 @@ export class FindLessonsUseCase implements IUseCase<
     // we need to ensure the course exists before go further
     const courseResult = await this.courseRepo.findById(params.courseId);
 
-    if (!courseResult.ok) return courseResult;
+    if (Result.isFail(courseResult))
+      return Result.fail<PaginationResult<LessonResponseDto>>(
+        courseResult.error,
+      );
 
     const lessonsResult = await this.lessonRepo.findAll(params);
 
-    if (!lessonsResult.ok)
-      return Result.fail(Errors.notFound('No lessons could be found'));
+    if (Result.isFail(lessonsResult))
+      return Result.fail<PaginationResult<LessonResponseDto>>(
+        Errors.notFound('No lessons could be found'),
+      );
 
     const { data, meta } = lessonsResult.value;
 

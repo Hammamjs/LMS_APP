@@ -26,23 +26,28 @@ export class UpdateLessonUseCase implements IUseCase<
     // we need to check if course exists
     const courseResult = await this.courseRepo.findById(params.courseId);
 
-    if (!courseResult.ok) return courseResult;
+    if (Result.isFail(courseResult))
+      return Result.fail<LessonResponseType>(courseResult.error);
 
     const { course: courseEntity } = courseResult.value;
     // we need to check if user exists and the permission
     const userResult = await this.userRepo.findById(params.userId);
 
-    if (!userResult.ok) return userResult;
+    if (Result.isFail(userResult))
+      return Result.fail<LessonResponseType>(userResult.error);
 
     const user = userResult.value;
 
     // check user permission
     if (!courseEntity.isOwnedBy(user.id) || !user.isInstructor())
-      return Result.fail(Errors.forbidden('This operation is forbidden'));
+      return Result.fail<LessonResponseType>(
+        Errors.forbidden('This operation is forbidden'),
+      );
 
     const lessonResult = await this.lessonRepo.findById(params.id);
 
-    if (!lessonResult.ok) return lessonResult;
+    if (Result.isFail(lessonResult))
+      return Result.fail<LessonResponseType>(lessonResult.error);
 
     const lesson = lessonResult.value;
 
@@ -67,8 +72,10 @@ export class UpdateLessonUseCase implements IUseCase<
 
     const saveInDb = await this.lessonRepo.save(lessonToSave);
 
-    if (!saveInDb.ok)
-      return Result.fail(Errors.internal('Failed to update course data'));
+    if (Result.isFail(saveInDb))
+      return Result.fail<LessonResponseType>(
+        Errors.internal('Failed to update course data'),
+      );
 
     const toResponse = LessonMapper.toResponse(saveInDb.value);
 

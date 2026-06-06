@@ -1,4 +1,9 @@
-import { Inject, Injectable } from '@nestjs/common';
+import {
+  BadRequestException,
+  Inject,
+  Injectable,
+  NotFoundException,
+} from '@nestjs/common';
 import { type IPaymentRepository } from '../../domain/repository/payment.interface';
 import { IPAYMENT_REPOSITORY } from '../../domain/constants/injection.token';
 import { EventBus } from '@nestjs/cqrs';
@@ -9,6 +14,7 @@ import {
   ICOURSE_REPOSITORY,
   type ICourseRepository,
 } from '@/module/courses';
+import { Result } from '@/core';
 
 @Injectable()
 export class WebhookService {
@@ -20,7 +26,10 @@ export class WebhookService {
     @Inject(ICOURSE_REPOSITORY) private readonly courseRepo: ICourseRepository,
   ) {}
 
-  async handleStripeEvent(payload: any, signature: string) {
+  async handleStripeEvent(
+    payload: Buffer | string,
+    signature: string,
+  ): Promise<void> {
     const stripe = new Stripe(
       this.config.getOrThrow<string>('STRIPE_SECRET_KEY'),
       { apiVersion: '2026-05-27.dahlia' },
@@ -38,10 +47,20 @@ export class WebhookService {
 
     if (event.type === 'payment_intent.succeeded') {
       const paymentIntent = event.data.object;
+
       const internalId = paymentIntent.metadata.paymentId;
 
+      if (!internalId) {
+        throw new BadRequestException(
+          'Missing paymentId metadata within Stripe Payload',
+        );
+      }
+
       const paymentResult = await this.paymentRepo.findByPaymentId(internalId);
-      if (!paymentResult.ok) return paymentResult;
+      if (Result.isFail(paymentResult))
+        throw new NotFoundException(
+          `Payment record tracking lookup failed: ${paymentResult.error?.message}`,
+        );
 
       const payment = paymentResult.value;
 
@@ -54,7 +73,10 @@ export class WebhookService {
         const courseResult = await this.courseRepo.findById(
           payment.getCourseId,
         );
-        if (!courseResult.ok) return courseResult;
+        if (Result.isFail(courseResult))
+          throw new NotFoundException(
+            `Course target verification lookup failed: ${courseResult.error?.message}`,
+          );
         const { course: courseEntity } = courseResult.value;
 
         // 2. Dispatch the event. Your Event Handler will capture this

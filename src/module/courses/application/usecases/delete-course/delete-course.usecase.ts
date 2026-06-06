@@ -17,14 +17,14 @@ export class DeleteCourseUseCase implements IUseCase<
   async execute(params: DeleteCourseParams): Promise<Result<void>> {
     const result = await this.courseRepo.findById(params.id);
 
-    if (!result.ok) {
-      return Result.fail(result.error);
+    if (Result.isFail(result)) {
+      return Result.fail<void>(result.error);
     }
 
     const { course: courseEntity, instructorData } = result.value;
 
     if (instructorData?.id !== params.currentUserId) {
-      return Result.fail(
+      return Result.fail<void>(
         Errors.forbidden('You do not have permission to delete this course'),
       );
     }
@@ -33,8 +33,8 @@ export class DeleteCourseUseCase implements IUseCase<
 
     const deleted = await this.courseRepo.save(deletedVideo);
 
-    if (!deleted.ok) {
-      return Result.fail(deleted.error);
+    if (Result.isFail(deleted)) {
+      return Result.fail<void>(deleted.error);
     }
 
     console.log('delete course', deleted.value);

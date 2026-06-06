@@ -23,13 +23,14 @@ export class UpdateCourseUseCase implements IUseCase<
     if (!params.id) return Result.fail(Errors.validation('Id is required'));
 
     const courseResult = await this.courseRepo.findById(params.id);
-    if (!courseResult.ok) return courseResult;
+    if (Result.isFail(courseResult))
+      return Result.fail<ICourseMapperResponse>(courseResult.error);
 
     const { course: courseEntity, instructorData } = courseResult.value;
 
     // we need to check if only instructor can update his courses
     if (params.userId !== instructorData?.id)
-      return Result.fail(
+      return Result.fail<ICourseMapperResponse>(
         Errors.forbidden('You are not allowed to update this course'),
       );
 
@@ -66,14 +67,14 @@ export class UpdateCourseUseCase implements IUseCase<
       const slugConflict = await this.courseRepo.findBySlug(updatedCourse.slug);
 
       if (slugConflict.ok)
-        return Result.fail(
+        return Result.fail<ICourseMapperResponse>(
           Errors.conflict('A course with this title already exist.'),
         );
     }
 
     const updatedInDb = await this.courseRepo.save(updatedCourse);
 
-    if (!updatedInDb.ok) return updatedInDb;
+    if (Result.isFail(updatedInDb)) return Result.fail(updatedInDb.error);
 
     const response = CourseMapper.toResponse(updatedInDb.value);
 

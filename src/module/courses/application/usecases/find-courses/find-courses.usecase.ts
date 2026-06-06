@@ -22,7 +22,10 @@ export class FindCoursesUseCase implements IUseCase<
   ): Promise<Result<PaginationResult<ICourseMapperPaginationResult>>> {
     const results = await this.courseRepo.findAll(params);
 
-    if (!results.ok) return Result.fail(results.error);
+    if (Result.isFail(results))
+      return Result.fail<PaginationResult<ICourseMapperPaginationResult>>(
+        results.error,
+      );
 
     const { data, meta } = results.value;
 

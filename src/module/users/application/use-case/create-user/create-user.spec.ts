@@ -1,10 +1,11 @@
 import { Test, TestingModule } from '@nestjs/testing';
 import { CreateUserUseCase } from './create-user.usecase';
-import { failure } from '@/core/common/domain/err.utils';
+import { Errors } from '@/core/common/domain/err.utils';
 import { IUSER_REPOSITORY } from '@/module/users/domain/constants/injection.token';
 import { IBCRYPT_SERVICE } from '@/module/auth/domain/constants/injection.token';
 import { UserFactory } from '@/tests';
 import { UserRole } from '@/module/users/domain/interface';
+import { Result } from '@/core';
 
 describe('CreateUserUseCase', () => {
   let useCase: CreateUserUseCase;
@@ -99,11 +100,8 @@ describe('CreateUserUseCase', () => {
 
       expect(result.ok).toBe(false);
 
-      if (!result.ok) {
-        expect(result.error).toEqual({
-          type: 'VALIDATION',
-          message: 'Email is missing',
-        });
+      if (Result.isFail(result)) {
+        expect(result.error).toEqual(Errors.validation('Email is missing'));
       }
     });
 
@@ -120,10 +118,7 @@ describe('CreateUserUseCase', () => {
       mockRepository.create.mockReturnValue(newUser);
 
       mockRepository.save.mockResolvedValue(
-        failure({
-          type: 'INTERNAL',
-          message: 'Failed to save new user',
-        }),
+        Result.fail(Errors.validation('Failed to save new user')),
       );
 
       const result = await useCase.execute({
@@ -138,11 +133,10 @@ describe('CreateUserUseCase', () => {
 
       expect(result.ok).toBe(false);
 
-      if (!result.ok) {
-        expect(result.error).toEqual({
-          type: 'INTERNAL',
-          message: 'Failed to save new user',
-        });
+      if (Result.isFail(result)) {
+        expect(result.error).toEqual(
+          Errors.validation('Failed to save new user'),
+        );
       }
     });
   });
