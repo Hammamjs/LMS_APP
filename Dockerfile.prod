@@ -13,7 +13,8 @@ RUN pnpm install --frozen-lockfile
 
 COPY . .
 
-RUN npx prisma generate   # ✅ bypasses pnpm 10 script blocking
+RUN npx prisma generate 
+RUN find /app/node_modules -name "default.js" | grep prisma 
 RUN pnpm build
 
 
