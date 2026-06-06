@@ -38,6 +38,6 @@ COPY --from=builder /app/.npmrc ./.npmrc
 
 RUN pnpm install --prod --frozen-lockfile
 
-RUN pnpm prisma generate
+COPY --from=builder /app/node_modules/.prisma ./node_modules/.prisma
 
 CMD ["node", "dist/main"]
