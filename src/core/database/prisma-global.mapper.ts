@@ -6,9 +6,12 @@ export class ErrorMapper {
   public static toResult(err: unknown, entityName: string) {
     console.error('[Prisma Error] ', err);
 
-    if (err instanceof Prisma.PrismaClientKnownRequestError) {
-      const code = err.code;
-      switch (code) {
+    if (
+      err instanceof Error &&
+      err.constructor.name === 'PrismaClientKnownRequestError'
+    ) {
+      const prismaErr = err as Prisma.PrismaClientKnownRequestError;
+      switch (prismaErr.code) {
         case 'P2025':
           return failure(Errors.notFound(`${entityName} not found`));
         case 'P2002':
@@ -22,11 +25,14 @@ export class ErrorMapper {
             Errors.validation(`Related data for ${entityName} is missing`),
           );
         default:
-          return failure(Errors.internal(`Database error: ${err.code}`));
+          return failure(Errors.internal(`Database error: ${prismaErr.code}`));
       }
     }
 
-    if (err instanceof Prisma.PrismaClientValidationError) {
+    if (
+      err instanceof Error &&
+      err.constructor.name === 'PrismaClientValidationError'
+    ) {
       return failure(
         Errors.validation(`Invalid data provided for ${entityName}.`),
       );
