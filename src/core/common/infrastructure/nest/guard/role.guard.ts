@@ -1,9 +1,9 @@
-import { JwtPayload } from '@/module/auth';
 import { CanActivate, ExecutionContext, Injectable } from '@nestjs/common';
 import { Reflector } from '@nestjs/core';
 import { Observable } from 'rxjs';
 import { ROLES_KEY } from '../../decorators/roles.decorator';
 import { IS_PUBLIC_KEY } from '../../decorators/public.decorator';
+import { Request } from 'express';
 
 @Injectable()
 export class RoleGuard implements CanActivate {
@@ -28,7 +28,7 @@ export class RoleGuard implements CanActivate {
 
     if (!requiredRoles || !requiredRoles.length) return true;
 
-    const user = request['user'] as JwtPayload;
+    const user = request.user;
 
     if (!user) return false;
 

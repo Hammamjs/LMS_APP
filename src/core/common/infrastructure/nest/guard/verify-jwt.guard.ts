@@ -27,7 +27,7 @@ export class VerifyJwt implements CanActivate {
         secret: this.config.getOrThrow<string>('JWT_ACCESS_TOKEN_SECRET'),
       });
 
-      request['user'] = payload;
+      request.user = payload;
     } catch {
       throw new UnauthorizedException('Invalid or expired token');
     }
@@ -44,9 +44,6 @@ export class VerifyJwt implements CanActivate {
     }
 
     // 2. Check Cookies (if header is missing)
-    return (
-      (request.cookies?.['accessToken'] as string) ||
-      (request.cookies?.['refreshToken'] as string)
-    );
+    return request.cookies?.['refreshToken'] as string;
   }
 }
