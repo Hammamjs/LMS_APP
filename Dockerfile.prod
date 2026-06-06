@@ -14,7 +14,6 @@ RUN pnpm install --frozen-lockfile
 COPY . .
 
 RUN npx prisma generate 
-RUN find /app/node_modules -name "default.js" | grep prisma 
 RUN pnpm build
 
 
@@ -39,5 +38,5 @@ COPY --from=builder /app/.npmrc ./.npmrc
 
 RUN pnpm install --prod --frozen-lockfile
 
-COPY --from=builder /app/node_modules/.prisma ./node_modules/.prisma 
+COPY --from=builder /app/node_modules/.prisma ./node_modules/.prisma
 CMD ["node", "dist/main"]
