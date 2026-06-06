@@ -6,18 +6,12 @@ export class ErrorMapper {
   public static toResult(err: unknown, entityName: string) {
     console.error('[Prisma Error] ', err);
 
-<<<<<<< Updated upstream
-    if (err instanceof Prisma.PrismaClientKnownRequestError) {
-      const code = err.code;
-      switch (code) {
-=======
     if (
       err instanceof Error &&
       err.constructor.name === 'PrismaClientKnownRequestError'
     ) {
       const prismaErr = err as Prisma.PrismaClientKnownRequestError;
       switch (prismaErr.code) {
->>>>>>> Stashed changes
         case 'P2025':
           return failure(Errors.notFound(`${entityName} not found`));
         case 'P2002':
