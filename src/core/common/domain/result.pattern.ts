@@ -32,4 +32,10 @@ export type DomainError =
 export const Result = {
   ok: <T>(value: T): Result<T> => ({ ok: true, value }),
   fail: <T>(error: DomainError): Result<T> => ({ ok: false, error }),
+
+  isFail: <T>(
+    result: Result<T>,
+  ): result is { ok: false; error: DomainError } => {
+    return !result.ok;
+  },
 };

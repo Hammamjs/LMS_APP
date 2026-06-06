@@ -17,7 +17,7 @@ export class ResultInterceptor implements NestInterceptor {
     return next.handle().pipe(
       map((result: unknown) => {
         if (this._isResult(result)) {
-          if (!result.ok) throw new DomainException(result.error);
+          if (Result.isFail(result)) throw new DomainException(result.error);
 
           if (this._isPagintatedStructure(result.value)) {
             return result.value;
@@ -32,12 +32,7 @@ export class ResultInterceptor implements NestInterceptor {
 
   // we need custom function to decided whatever result is
   private _isResult(obj: unknown): obj is Result<unknown> {
-    return (
-      obj !== null &&
-      typeof obj == 'object' &&
-      'ok' in obj &&
-      ('value' in obj || 'error' in obj)
-    );
+    return typeof obj === 'object' && obj !== null && 'ok' in obj;
   }
 
   private _isPagintatedStructure(
