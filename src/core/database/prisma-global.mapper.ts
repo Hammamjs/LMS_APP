@@ -7,7 +7,8 @@ export class ErrorMapper {
     console.error('[Prisma Error] ', err);
 
     if (err instanceof Prisma.PrismaClientKnownRequestError) {
-      switch (err.code) {
+      const code = err.code;
+      switch (code) {
         case 'P2025':
           return failure(Errors.notFound(`${entityName} not found`));
         case 'P2002':
