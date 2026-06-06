@@ -19,10 +19,11 @@ export class FindUserUseCase implements IUseCase<
   async execute(id: string): Promise<Result<UserResponse>> {
     const userResult = await this.userRepo.findById(id);
 
-    if (!userResult.ok) return userResult;
+    if (Result.isFail(userResult))
+      return Result.fail<UserResponse>(userResult.error);
 
     if (!userResult.value)
-      return Result.fail(Errors.notFound('User not found'));
+      return Result.fail<UserResponse>(Errors.notFound('User not found'));
 
     const toResponse = UserResponseMapper.toResponse(userResult.value);
 

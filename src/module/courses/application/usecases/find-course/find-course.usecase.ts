@@ -25,8 +25,8 @@ export class FindCourseUseCase implements IUseCase<
     if (params.id) {
       const courseResult = await this.courseRepo.findById(params.id);
 
-      if (!courseResult.ok)
-        return Result.fail(
+      if (Result.isFail(courseResult))
+        return Result.fail<ICourseMapperResponse>(
           Errors.notFound(`Course with this id: ${params.id} not found`),
         );
 
@@ -39,8 +39,8 @@ export class FindCourseUseCase implements IUseCase<
     if (params.slug) {
       const courseResult = await this.courseRepo.findBySlug(params.slug);
 
-      if (!courseResult.ok)
-        return Result.fail(
+      if (Result.isFail(courseResult))
+        return Result.fail<ICourseMapperResponse>(
           Errors.notFound(`Course with this title: ${params.slug} not found`),
         );
 
@@ -51,7 +51,7 @@ export class FindCourseUseCase implements IUseCase<
       return Result.ok(response);
     }
 
-    return Result.fail(
+    return Result.fail<ICourseMapperResponse>(
       Errors.validation('Either Course Id or Slug is required'),
     );
   }

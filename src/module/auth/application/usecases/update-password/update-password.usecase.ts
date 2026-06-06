@@ -4,22 +4,23 @@ import { Inject, Injectable } from '@nestjs/common';
 import { IUSER_REPOSITORY, type IUserRepository } from '@/module/users';
 import { IBCRYPT_SERVICE, type IBcryptService } from '@/module/auth';
 
+type TResponse = { message: string };
+
 @Injectable()
 export class UpdatePasswordUseCase implements IUseCase<
   UpdatePasswordParams,
-  Promise<Result<{ message: string }>>
+  Promise<Result<TResponse>>
 > {
   constructor(
     @Inject(IUSER_REPOSITORY) private readonly userRepo: IUserRepository,
     @Inject(IBCRYPT_SERVICE) private readonly bcryptService: IBcryptService,
   ) {}
 
-  async execute(
-    params: UpdatePasswordParams,
-  ): Promise<Result<{ message: string }>> {
+  async execute(params: UpdatePasswordParams): Promise<Result<TResponse>> {
     const userResult = await this.userRepo.findById(params.id);
 
-    if (!userResult.ok) return userResult;
+    if (Result.isFail(userResult))
+      return Result.fail<TResponse>(userResult.error);
 
     const user = userResult.value;
 
@@ -29,7 +30,9 @@ export class UpdatePasswordUseCase implements IUseCase<
     );
 
     if (!isPasswordsMatch)
-      return Result.fail(Errors.validation('Incorrect current password'));
+      return Result.fail<TResponse>(
+        Errors.validation('Incorrect current password'),
+      );
 
     const hashedPassword = await this.bcryptService.hash(params.newPassword);
 
@@ -37,8 +40,10 @@ export class UpdatePasswordUseCase implements IUseCase<
 
     const saveUserPassword = await this.userRepo.save(updateUserPassword);
 
-    if (!saveUserPassword.ok)
-      return Result.fail(Errors.internal('Failed to update password'));
+    if (Result.isFail(saveUserPassword))
+      return Result.fail<TResponse>(
+        Errors.internal('Failed to update password'),
+      );
 
     return Result.ok({ message: 'Password updated succesfully' });
   }

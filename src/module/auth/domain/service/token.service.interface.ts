@@ -1,3 +1,5 @@
+import { UserRole } from '@/module/users';
+
 export interface IJWTTokenService {
   generateAuthToken: (
     payload: JwtPayload,
@@ -14,5 +16,5 @@ export interface TokenOptions {
 export interface JwtPayload {
   id: string;
   email: string;
-  role: string;
+  role: UserRole;
 }

@@ -25,7 +25,8 @@ export class FindReviewsByCourseUseCase implements IUseCase<
       page,
     });
 
-    if (!courseResult.ok) return Result.fail(courseResult.error);
+    if (Result.isFail(courseResult))
+      return Result.fail<TReviewPaginationResponse>(courseResult.error);
 
     const { data, meta } = courseResult.value;
 

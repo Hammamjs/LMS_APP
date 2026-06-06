@@ -111,7 +111,7 @@ describe('Delete lesson test cases', () => {
     });
 
     expect(result.ok).toBe(false);
-    if (!result.ok)
+    if (Result.isFail(result))
       expect(result.error).toEqual(Errors.forbidden(errors.FORBIDDEN));
     expect(mockLessonRepo.save).not.toHaveBeenCalled();
   });
@@ -141,7 +141,7 @@ describe('Delete lesson test cases', () => {
     });
 
     expect(result.ok).toBe(false);
-    if (!result.ok)
+    if (Result.isFail(result))
       expect(result.error).toEqual(Errors.forbidden(errors.FORBIDDEN));
   });
 
@@ -172,7 +172,7 @@ describe('Delete lesson test cases', () => {
     });
 
     expect(result.ok).toBe(false);
-    if (!result.ok)
+    if (Result.isFail(result))
       expect(result.error).toEqual(Errors.forbidden(errors.NOT_MATCH));
   });
 
@@ -205,7 +205,7 @@ describe('Delete lesson test cases', () => {
     });
 
     expect(result.ok).toBe(false);
-    if (!result.ok) expect(result.error.message).toBe(errors.FAILED);
+    if (Result.isFail(result)) expect(result.error.message).toBe(errors.FAILED);
   });
 
   it('should fail when lesson not found', async () => {
@@ -222,7 +222,8 @@ describe('Delete lesson test cases', () => {
     });
 
     expect(result.ok).toBe(false);
-    if (!result.ok) expect(result.error.message).toBe(errors.NOT_FOUND);
+    if (Result.isFail(result))
+      expect(result.error.message).toBe(errors.NOT_FOUND);
     expect(mockLessonRepo.save).not.toHaveBeenCalled();
   });
 
@@ -242,6 +243,7 @@ describe('Delete lesson test cases', () => {
 
     expect(result.ok).toBe(false);
     expect(mockLessonRepo.save).not.toHaveBeenCalled();
-    if (!result.ok) expect(result.error.message).toBe(errors.USER_NOT_EXIST);
+    if (Result.isFail(result))
+      expect(result.error.message).toBe(errors.USER_NOT_EXIST);
   });
 });

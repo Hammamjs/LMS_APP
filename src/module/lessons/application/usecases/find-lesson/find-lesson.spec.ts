@@ -132,7 +132,8 @@ describe('Find lesson test cases', () => {
     });
 
     expect(result.ok).toBe(false);
-    if (!result.ok) expect(result.error.message).toBe(errors.FORBIDDEN);
+    if (Result.isFail(result))
+      expect(result.error.message).toBe(errors.FORBIDDEN);
     expect(mockLessonRepo.findById).toHaveBeenCalled();
     expect(mockEnrollmentRepo.findByCourseAndUser).toHaveBeenCalled();
   });
@@ -149,6 +150,7 @@ describe('Find lesson test cases', () => {
 
     expect(result.ok).toBe(false);
     expect(mockEnrollmentRepo.findByCourseAndUser).not.toHaveBeenCalled();
-    if (!result.ok) expect(result.error.message).toBe(errors.LESSON_NOT_FOUND);
+    if (Result.isFail(result))
+      expect(result.error.message).toBe(errors.LESSON_NOT_FOUND);
   });
 });

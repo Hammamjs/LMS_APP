@@ -17,10 +17,12 @@ import type { ICacheRepository } from '@/module/auth/domain/repository/cache.rep
 import { EventBus } from '@nestjs/cqrs';
 import { RegisterationCodeRequedEvent } from '@/module/auth/domain/events/registeration-code.requested';
 
+type TResponse = { message: string };
+
 @Injectable()
 export class RegisterationUseCase implements IUseCase<
   RegisterationRequest,
-  Promise<Result<{ message: string }>>
+  Promise<Result<TResponse>>
 > {
   constructor(
     @Inject(IUSER_REPOSITORY) private readonly userRepo: IUserRepository,
@@ -29,17 +31,17 @@ export class RegisterationUseCase implements IUseCase<
     private readonly eventPublisher: EventBus,
   ) {}
 
-  async execute(
-    dto: RegisterationRequest,
-  ): Promise<Result<{ message: string }>> {
+  async execute(dto: RegisterationRequest): Promise<Result<TResponse>> {
     const emailResult = await this.userRepo.findByEmail(dto.email);
 
     if (emailResult.ok)
-      return Result.fail(Errors.conflict('Email already exists'));
+      return Result.fail<TResponse>(Errors.conflict('Email already exists'));
 
     // we need to confirm the passwords matched
     if (dto.confirmPassword !== dto.password)
-      return Result.fail(Errors.validation('Passwords do not match'));
+      return Result.fail<TResponse>(
+        Errors.validation('Passwords do not match'),
+      );
 
     // hashing user password
     const hashedPassword = await this.hashService.hash(dto.password);
@@ -66,8 +68,6 @@ export class RegisterationUseCase implements IUseCase<
       .update(verificationCode)
       .digest('hex');
 
-    console.log('User created ');
-
     try {
       // save the digits to redis
       await this.cacheRepo.set(`verify:${user.id}`, hashedCode, 600);
@@ -79,7 +79,7 @@ export class RegisterationUseCase implements IUseCase<
 
       return Result.ok({ message: 'Please verify your account' });
     } catch {
-      return Result.fail(
+      return Result.fail<TResponse>(
         Errors.internal(
           'Account created, but failed to send verification email',
         ),

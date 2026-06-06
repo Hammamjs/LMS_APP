@@ -116,7 +116,8 @@ describe('Create lesson test cases', () => {
 
     expect(result.ok).toBe(false);
 
-    if (!result.ok) expect(result.error.message).toBe('User not found');
+    if (Result.isFail(result))
+      expect(result.error.message).toBe('User not found');
   });
 
   it('should fail when user not an instructor', async () => {
@@ -154,7 +155,7 @@ describe('Create lesson test cases', () => {
     });
 
     expect(result.ok).toBe(false);
-    if (!result.ok) {
+    if (Result.isFail(result)) {
       expect(result.error).toEqual(
         Errors.forbidden('Only instructors can create lessons'),
       );
@@ -192,7 +193,7 @@ describe('Create lesson test cases', () => {
 
     expect(result.ok).toBe(false);
 
-    if (!result.ok) {
+    if (Result.isFail(result)) {
       expect(result.error).toEqual(
         Errors.forbidden('This permission not allowed for you'),
       );
@@ -236,7 +237,7 @@ describe('Create lesson test cases', () => {
 
     expect(result.ok).toBe(false);
 
-    if (!result.ok) {
+    if (Result.isFail(result)) {
       expect(result.error.message).toBe(
         'Unknown error occured when fetching order list',
       );
@@ -280,7 +281,7 @@ describe('Create lesson test cases', () => {
 
     expect(result.ok).toBe(false);
 
-    if (!result.ok) {
+    if (Result.isFail(result)) {
       expect(result.error.message).toBe('Save new lesson failed');
     }
   });

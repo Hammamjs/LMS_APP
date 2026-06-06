@@ -1,6 +1,7 @@
 import { Test, TestingModule } from '@nestjs/testing';
 import { FindUserUseCase } from './find-user.usecase';
 import { IUSER_REPOSITORY } from '@/module/users/domain/constants/injection.token';
+import { Result } from '@/core';
 
 describe('Find unique user', () => {
   let useCase: FindUserUseCase;
@@ -41,7 +42,7 @@ describe('Find unique user', () => {
     const result = await useCase.execute('4');
 
     expect(result.ok).toBe(false);
-    if (!result.ok)
+    if (Result.isFail(result))
       expect(result.error).toEqual({
         type: 'NOT_FOUND',
         message: 'User not found',

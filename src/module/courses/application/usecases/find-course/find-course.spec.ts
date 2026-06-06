@@ -96,7 +96,7 @@ describe('Find course use case', () => {
     const result = await usecase.execute({}); // empty object
 
     expect(result.ok).toBe(false);
-    if (!result.ok)
+    if (Result.isFail(result))
       expect(result.error.message).toBe('Either Course Id or Slug is required');
   });
 

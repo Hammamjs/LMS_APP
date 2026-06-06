@@ -11,11 +11,11 @@ export class DeleteUserUseCase implements IUseCase<
   ) {}
 
   async execute(id: string): Promise<Result<void>> {
-    if (!id) return Result.fail(Errors.validation('Id not provided'));
+    if (!id) return Result.fail<void>(Errors.validation('Id not provided'));
 
     const userResult = await this.userRepo.delete(id);
 
-    if (!userResult.ok) return userResult;
+    if (Result.isFail(userResult)) return Result.fail(userResult.error);
 
     return Result.ok(undefined);
   }

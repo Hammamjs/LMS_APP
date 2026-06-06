@@ -20,10 +20,11 @@ export class UpdateUserUseCase implements IUseCase<
 
     const userResult = await this.userRepo.findById(dto.id);
 
-    if (!userResult.ok) return userResult;
+    if (Result.isFail(userResult))
+      return Result.fail<UserResponse>(userResult.error);
 
     if (!userResult.value)
-      return Result.fail(Errors.notFound('User not found'));
+      return Result.fail<UserResponse>(Errors.notFound('User not found'));
 
     const user = userResult.value;
 
@@ -35,7 +36,7 @@ export class UpdateUserUseCase implements IUseCase<
 
     const savedUser = await this.userRepo.save(updatedUser);
 
-    if (!savedUser.ok) return savedUser;
+    if (Result.isFail(savedUser)) return Result.fail(savedUser.error);
 
     const toResponse = UserResponseMapper.toResponse(savedUser.value);
 

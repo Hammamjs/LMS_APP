@@ -12,10 +12,12 @@ import { UserResponseMapper, type UserResponse } from '@/module/users';
 import { Inject, Injectable } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 
+type TResponse = { user: UserResponse; accessToken: string };
+
 @Injectable()
 export class GetMeUseCase implements IUseCase<
   string,
-  Promise<Result<{ user: UserResponse; accessToken: string }>>
+  Promise<Result<TResponse>>
 > {
   constructor(
     @Inject(IUSER_REPOSITORY) private readonly userRepo: IUserRepository,
@@ -24,9 +26,7 @@ export class GetMeUseCase implements IUseCase<
     @Inject(ILOGGER_SERVICE) private readonly logger: ILoggerService,
   ) {}
 
-  async execute(
-    refreshToken: string,
-  ): Promise<Result<{ user: UserResponse; accessToken: string }>> {
+  async execute(refreshToken: string): Promise<Result<TResponse>> {
     if (!refreshToken) {
       const errorTrack = new Error('Refresh token not Provided');
       this.logger.error(
@@ -34,11 +34,11 @@ export class GetMeUseCase implements IUseCase<
         errorTrack.stack,
         GetMeUseCase.name,
       );
-      return Result.fail(Errors.validation('Token not provided'));
+      return Result.fail<TResponse>(Errors.validation('Token not provided'));
     }
     const userResult = await this.userRepo.findByToken(refreshToken);
 
-    if (!userResult.ok) return userResult;
+    if (Result.isFail(userResult)) return Result.fail(userResult.error);
 
     this.logger.log(
       `Server try to reuath user with email ${userResult.value.email}`,

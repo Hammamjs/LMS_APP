@@ -3,6 +3,7 @@ import { ResendVerificationCodeUseCase } from './resend-verification-code.usecas
 import { UserRole } from '@/module/users/domain/interface/role.interface';
 import { createHash } from 'crypto';
 import { Errors } from '@/core/common/domain/err.utils';
+import { Result } from '@/core';
 
 describe('Resend Code verification test cases', () => {
   let usecase: ResendVerificationCodeUseCase;
@@ -87,7 +88,7 @@ describe('Resend Code verification test cases', () => {
     const result = await usecase.execute({ email: 'test@example.com' });
 
     expect(result.ok).toBe(false);
-    if (!result.ok) {
+    if (Result.isFail(result)) {
       expect(result.error).toEqual(Errors.validation('Email already verified'));
     }
     expect(mockUserRepo.findByEmail).toHaveBeenCalledTimes(1);

@@ -79,7 +79,8 @@ describe('Find lessons test cases', () => {
     const result = await usecase.execute({ courseId: 'any-id' });
 
     expect(result.ok).toBe(false);
-    if (!result.ok) expect(result.error.message).toBe(errors.COURSE_NOT_FOUND);
+    if (Result.isFail(result))
+      expect(result.error.message).toBe(errors.COURSE_NOT_FOUND);
     expect(mockCourseRepo.findById).toHaveBeenCalledTimes(1);
   });
 
@@ -94,7 +95,8 @@ describe('Find lessons test cases', () => {
     const result = await usecase.execute({ courseId: course.id });
 
     expect(result.ok).toBe(false);
-    if (!result.ok) expect(result.error.message).toBe(errors.LESSONS_NOT_FOUND);
+    if (Result.isFail(result))
+      expect(result.error.message).toBe(errors.LESSONS_NOT_FOUND);
     expect(mockCourseRepo.findById).toHaveBeenCalledTimes(1);
   });
 });

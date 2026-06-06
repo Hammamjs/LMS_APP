@@ -15,7 +15,8 @@ export class GetCoursesCategoriesUseCase implements IUseCase<
   async execute(): Promise<Result<string[]>> {
     const categoriesResult = await this.courseRepo.findAllCategories();
 
-    if (!categoriesResult.ok) return categoriesResult;
+    if (Result.isFail(categoriesResult))
+      return Result.fail<string[]>(categoriesResult.error);
 
     return Result.ok(categoriesResult.value);
   }

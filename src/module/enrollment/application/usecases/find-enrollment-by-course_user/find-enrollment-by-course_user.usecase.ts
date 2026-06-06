@@ -25,9 +25,7 @@ export class FindEnrollmentByCourseAndUserUseCase implements IUseCase<
       params.courseId,
     );
 
-    console.log('Enrollment use case ', enrollmentResult);
-
-    if (!enrollmentResult.ok) return Result.ok(null);
+    if (Result.isFail(enrollmentResult)) return Result.ok(null);
 
     const enrollmentResponse = EnrollmentMapper.toResponse(
       enrollmentResult.value,

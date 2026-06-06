@@ -16,14 +16,15 @@ export class UpdateNotificationsUseCase implements IUseCase<
   async execute(userId: string): Promise<Result<void>> {
     const notificationsResult = await this.notificationRepo.findAll({ userId });
 
-    if (!notificationsResult.ok) return notificationsResult;
+    if (Result.isFail(notificationsResult))
+      return Result.fail<void>(notificationsResult.error);
 
     const unreadedMessages = notificationsResult.value.data.filter(
       (n) => !n.read,
     );
 
     if (!unreadedMessages.length)
-      return Result.fail(Errors.notFound('All messages are readed'));
+      return Result.fail<void>(Errors.notFound('All messages are readed'));
 
     // if we reach here we need to return the ids of unreaded messages
     const unreadedMessagesIds = unreadedMessages.map((msg) => msg.id);

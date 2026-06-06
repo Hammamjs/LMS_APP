@@ -24,17 +24,16 @@ export class ResendVerificationCodeUseCase implements IUseCase<
 
   async execute(dto: ResendVerificaionCodeParam): Promise<Result<string>> {
     const userResult = await this.userRepo.findByEmail(dto.email);
-    if (!userResult.ok) return Result.fail(Errors.notFound('Email not found'));
+    if (Result.isFail(userResult))
+      return Result.fail(Errors.notFound('Email not found'));
 
     const user = userResult.value;
     if (user.isVerified)
-      return Result.fail(Errors.validation('Email already verified'));
+      return Result.fail<string>(Errors.validation('Email already verified'));
 
     const generateNewCode = Math.floor(
       100000 + Math.random() * 900000,
     ).toString();
-
-    console.log('generateNewCode', generateNewCode);
 
     const hashedNewCode = createHash('sha256')
       .update(generateNewCode)
@@ -49,9 +48,6 @@ export class ResendVerificationCodeUseCase implements IUseCase<
       new ResendVerificationCodeRequestedEvent(user.email, generateNewCode),
     );
 
-    return {
-      ok: true,
-      value: 'Verification code was sent.',
-    };
+    return Result.ok('Verification code was sent.');
   }
 }

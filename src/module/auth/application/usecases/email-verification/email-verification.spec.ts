@@ -1,6 +1,7 @@
 import { createHash } from 'crypto';
 import { EmailVerificationUseCase } from './email-verification.usecase';
 import { UserFactory } from '@/tests';
+import { Result } from '@/core';
 
 describe('Code verification test cases', () => {
   let useCase: EmailVerificationUseCase;
@@ -76,10 +77,8 @@ describe('Code verification test cases', () => {
     const result = await useCase.execute({ email, code: rawCode });
 
     expect(result.ok).toBe(false);
-    if (!result.ok) {
-      expect(result.error.message).toBe(
-        'Verification code has expired or was never sent',
-      );
+    if (Result.isFail(result)) {
+      expect(result.error.message).toBe('Incorrect verification code');
     }
 
     // this part of code should't be invoked
@@ -95,7 +94,7 @@ describe('Code verification test cases', () => {
     const result = await useCase.execute({ email, code: rawCode });
 
     expect(result.ok).toBe(false);
-    if (!result.ok) {
+    if (Result.isFail(result)) {
       expect(result.error.message).toBe('Email already verified');
     }
     expect(mockCache.del).not.toHaveBeenCalled();

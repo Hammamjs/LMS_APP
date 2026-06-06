@@ -121,7 +121,7 @@ describe('Create course test cases', () => {
     const result = await usecase.execute(params);
 
     expect(result.ok).toBe(false);
-    if (!result.ok) expect(result.error.message).toBe(errors.DB_ERR);
+    if (Result.isFail(result)) expect(result.error.message).toBe(errors.DB_ERR);
   });
 
   it('should fail when some required fields are missing', async () => {

@@ -27,7 +27,8 @@ export class UpdateReviewUseCase implements IUseCase<
       courseId,
     );
 
-    if (!reviewResult.ok) return Result.fail(reviewResult.error);
+    if (Result.isFail(reviewResult))
+      return Result.fail<TReviewResponse>(reviewResult.error);
 
     const reviewEntity = reviewResult.value;
 
@@ -37,7 +38,8 @@ export class UpdateReviewUseCase implements IUseCase<
 
     const savedReview = await this.reviewRepo.save(updatedReview);
 
-    if (!savedReview.ok) return Result.fail(savedReview.error);
+    if (Result.isFail(savedReview))
+      return Result.fail<TReviewResponse>(savedReview.error);
 
     if (updatedReview.domainEvents.length > 0) {
       this.eventBus.publishAll(updatedReview.domainEvents);
