@@ -39,8 +39,6 @@ export class AuthCookieInterceptor implements NestInterceptor {
           const { refreshToken, ...cleanValue } =
             result.value as ExpectedAuthPayload;
 
-          console.log('RefreshToken', refreshToken);
-
           res.cookie('refreshToken', refreshToken, REFRESH_COOKIE_OPTIONS);
 
           return {
