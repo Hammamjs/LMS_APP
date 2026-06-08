@@ -25,10 +25,22 @@ import { ReviewModule } from './module/reviews/review.module';
     ConfigModule.forRoot({ isGlobal: true }),
     LoggerModule,
     RedisModule.forRootAsync({
-      useFactory: (configService: ConfigService) => ({
-        type: 'single',
-        url: configService.get('REDIS_URL', 'redis://localhost:6379'),
-      }),
+      useFactory: (configService: ConfigService) => {
+        const url = configService.getOrThrow<string>('REDIS_URL');
+        const isTls = url.startsWith('rediss://');
+
+        return {
+          type: 'single',
+          url,
+          options: isTls
+            ? {
+                tls: {
+                  rejectUnauthorized: false,
+                },
+              }
+            : {},
+        };
+      },
       inject: [ConfigService],
     }),
     CqrsModule.forRoot({}),

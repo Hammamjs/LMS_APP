@@ -46,6 +46,8 @@ export class ForgotPasswordUseCase implements IUseCase<
     // save code in redis
     await this.cacheRepo.set(`reset_password:${user.id}`, hashedCode, 600);
 
+    console.log('Forgot password', generateCode);
+
     // trigger email event
     this.eventPublisher.publish(
       new ResetPasswordRequestedEvent(user.email, generateCode),
