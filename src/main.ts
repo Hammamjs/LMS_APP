@@ -5,10 +5,9 @@ import cookieParser from 'cookie-parser';
 import { ResultInterceptor, DomainExceptionFilter } from '@/core';
 import { corsOption } from './core/common/infrastructure/config/cors-option';
 import { setDefaultResultOrder } from 'dns';
+setDefaultResultOrder('ipv4first');
 
 async function bootstrap() {
-  setDefaultResultOrder('ipv4first');
-
   const app = await NestFactory.create(AppModule, { rawBody: true });
   app.use(cookieParser());
 
