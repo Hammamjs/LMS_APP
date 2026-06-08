@@ -8,8 +8,7 @@ export class NodemailerService implements IEmailService {
   private transporter: nodemailer.Transporter;
   constructor() {
     this.transporter = nodemailer.createTransport({
-      host: process.env.MAIL_HOST,
-      port: Number(process.env.EMAIL_PORT),
+      service: process.env.SERVICE_PROVIDER,
       auth: {
         user: process.env.EMAIL_USER,
         pass: process.env.EMAIL_PASS,
@@ -19,7 +18,7 @@ export class NodemailerService implements IEmailService {
 
   async send(email: string, subject: string, code: string): Promise<void> {
     await this.transporter.sendMail({
-      from: 'LMS support <support@lms.com>',
+      from: `LMS Support <${process.env.EMAIL_USER}>`,
       to: email,
       subject,
       html: EmailServiceTemplate(subject, code),
