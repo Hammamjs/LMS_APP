@@ -14,6 +14,7 @@ import { Errors } from '@/core/common/domain/err.utils';
 import { createHash } from 'crypto';
 import { ConfigService } from '@nestjs/config';
 import type { ICacheRepository } from '@/module/auth/domain/repository/cache.repsoitory.interface';
+import { UserResponseMapper } from '@/module/users';
 
 @Injectable()
 export class EmailVerificationUseCase implements IUseCase<
@@ -83,12 +84,14 @@ export class EmailVerificationUseCase implements IUseCase<
 
     const finalUser = user.verify().updateRefreshToken(refreshToken);
 
+    const userResponse = UserResponseMapper.toResponse(finalUser);
+
     // atomic clean up and save
     await Promise.all([
       this.cacheRepo.del(`verify:${user.id}`),
       this.userRepo.save(finalUser),
     ]);
 
-    return Result.ok({ user: finalUser, accessToken, refreshToken });
+    return Result.ok({ user: userResponse, accessToken, refreshToken });
   }
 }
