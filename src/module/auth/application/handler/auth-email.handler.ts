@@ -33,7 +33,7 @@ export class AuthSendEmailHandler implements IEventHandler<
       // This event is fire and forgot so we need to log error
       this.logger.error(
         `Failed to send email to ${event.email}`,
-        err instanceof Error ? err.stack : String(err),
+        JSON.stringify(err),
       );
     }
   }
