@@ -20,7 +20,7 @@ import {
   SignInUseCase,
 } from './index';
 import { AuthSendEmailHandler } from './application/handler/auth-email.handler';
-import { NodemailerService } from './infrastructure/security/email.service';
+import { MailersendService } from './infrastructure/security/email.service';
 import { RedisCacheRepository } from './infrastructure/repository/redis-cache.repository';
 import { CqrsModule } from '@nestjs/cqrs';
 import { GetMeUseCase } from './application/usecases/get-user/get-user.usecase';
@@ -46,7 +46,7 @@ const handlers: Provider[] = [AuthSendEmailHandler];
 const infrastructure: Provider[] = [
   BcryptService,
   TokenService,
-  NodemailerService,
+  MailersendService,
   RedisCacheRepository,
 
   {
@@ -58,7 +58,7 @@ const infrastructure: Provider[] = [
     provide: IJWTTOKEN_SERVICE,
   },
   {
-    useExisting: NodemailerService,
+    useExisting: MailersendService,
     provide: IEMAIL_SERVICE,
   },
   {
