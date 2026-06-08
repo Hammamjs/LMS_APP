@@ -77,15 +77,9 @@ importers:
       ioredis:
         specifier: ^5.10.1
         version: 5.11.1
-<<<<<<< Updated upstream
-      nodemailer:
-        specifier: ^8.0.10
-        version: 8.0.10
-=======
       mailersend:
         specifier: ^3.0.0
         version: 3.0.0
->>>>>>> Stashed changes
       pg:
         specifier: ^8.20.0
         version: 8.21.0
