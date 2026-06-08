@@ -63,8 +63,6 @@ export class AuthController {
 
   @Post('verify-email')
   async EmailVerification(@Body() dto: EmailVerification) {
-    console.log(dto);
-
     return this.authFacade.emailVerification.execute(dto);
   }
 
@@ -95,7 +93,6 @@ export class AuthController {
   @Get('refresh')
   @HttpCode(200)
   async RefreshToken(@Req() req: Request) {
-    console.log('refresh endpoint reached');
     console.log(req.cookies);
 
     const oldToken = req.cookies?.['refreshToken'] as string | undefined;
