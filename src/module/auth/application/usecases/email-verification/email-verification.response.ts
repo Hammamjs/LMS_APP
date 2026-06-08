@@ -1,8 +1,8 @@
-import { User } from '@/module/users/domain/entity/user.entity';
+import { UserResponse } from '@/module/users';
 
 export class EmailVerificationResponse {
   constructor(
-    public user: User,
+    public user: UserResponse,
     public accessToken: string,
     public refreshToken: string,
   ) {}
